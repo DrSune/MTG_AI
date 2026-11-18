@@ -1,0 +1,53 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "hh",
+   "real": "Homunculus Horde",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "tt1",
+   "real": "Think Twice",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "tt2",
+   "real": "Think Twice",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 2,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "tt1",
+   "real": "Think Twice",
+   "controller": 0
+  },
+  {
+   "op": "cast",
+   "key": "tt2",
+   "real": "Think Twice",
+   "controller": 0
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Homunculus Horde": 1
+  }
+ },
+ "notes": "Printed: 'Whenever you draw your second card each turn, create a token that's a copy of this creature.' Two Think Twices: the second card drawn makes one token copy."
+}

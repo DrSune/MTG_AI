@@ -1,0 +1,52 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "rite",
+   "real": "Rite of Replication",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "hawk",
+   "real": "Healer's Hawk",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 2,
+   "C": 7
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "rite",
+   "real": "Rite of Replication",
+   "controller": 0,
+   "targets": [
+    "hawk"
+   ],
+   "kicked": true
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Healer's Hawk": 5
+  },
+  "kick_rows": {
+   "rite": {
+    "kicked": true,
+    "x": null,
+    "from": "hand"
+   }
+  }
+ },
+ "notes": "Printed: 'Kicker {5}', 'Create a token that's a copy of target creature.' and 'If this spell was kicked, create five of those tokens instead.' Kicked, at the opponent's Hawk: five token copies, the caster's."
+}

@@ -1,0 +1,68 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "sr",
+   "real": "Self-Reflection",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "hawk",
+   "real": "Healer's Hawk",
+   "zone": "battlefield",
+   "controller": 0,
+   "start_tapped": true,
+   "counters": {
+    "PLUS_1_PLUS_1": 2
+   }
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 3,
+   "C": 7
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "sr",
+   "real": "Self-Reflection",
+   "controller": 0,
+   "targets": [
+    "hawk"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:sr:via:sr",
+    "hawk"
+   ]
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Healer's Hawk": 2
+  },
+  "zone": {
+   "sr": "exile",
+   "hawk": "battlefield"
+  },
+  "tapped": {
+   "hawk": true
+  },
+  "counters": {
+   "hawk": {
+    "PLUS_1_PLUS_1": 2
+   }
+  }
+ },
+ "notes": "Printed: 'Create a token that's a copy of target creature you control.' and 'Flashback {3}{U}'. Cast from the hand, then by flashback (exiled as it leaves the stack): two token copies of the tapped Hawk with two +1/+1 counters; the Hawk keeps both; the copies are untapped Hawks without counters (CR 707.2)."
+}

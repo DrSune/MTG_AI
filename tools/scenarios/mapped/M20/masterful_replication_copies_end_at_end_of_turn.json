@@ -1,0 +1,68 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mr",
+   "real": "Masterful Replication",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "alpha",
+   "name": "Alpha Golem",
+   "type": "Artifact Creature — Golem",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "beta",
+   "name": "Beta Construct",
+   "type": "Artifact Creature — Construct",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 1
+   }
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "mr",
+   "real": "Masterful Replication",
+   "controller": 0,
+   "targets": [
+    "alpha"
+   ],
+   "decisions": [
+    "1"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "power": {
+   "alpha": 4,
+   "beta": 2
+  },
+  "toughness": {
+   "beta": 2
+  }
+ },
+ "notes": "Printed: as mode 2 of Masterful Replication. At the cleanup step the copy effect ends (CR 514.2, 613.2a): Beta is a 1/1 again, its counter kept, 2/2."
+}

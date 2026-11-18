@@ -265,10 +265,12 @@ def _choose_new_targets(executor: Executor, ctx: ExecCtx, copy: StackObject) -> 
     copier = copy.controller
     if copy.spell_kind == "ACTIVATED":
         slots = activation_target_slots(executor, copy.node.effect, source=copy.source, seat=copier)
+        about = copy.source  # the ask names a card, as an activation's own target ask does
     else:
         slots = spell_target_slots(
             executor, copy.target_node or copy.node, spell_handle=copy.handle, seat=copier
         )
+        about = copy.handle
     if not slots:
         return
     if len(slots) == 1:
@@ -286,7 +288,7 @@ def _choose_new_targets(executor: Executor, ctx: ExecCtx, copy: StackObject) -> 
             if len(options) > 1:
                 vocab = tuple(str(h) for h in options)
                 answer = ctx.take_decision_of(
-                    copier, vocab, f"target:{copier}:{copy.handle}:{site_digest(vocab)}"
+                    copier, vocab, f"target:{copier}:{about}:{site_digest(vocab)}"
                 )
                 group[j] = next(h for h in options if str(h) == answer)
         groups[i] = tuple(sorted(group))

@@ -1,0 +1,79 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "storm",
+   "real": "Thousand-Year Storm",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "tt",
+   "real": "Think Twice",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bl1",
+   "real": "Burst Lightning",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bl2",
+   "real": "Burst Lightning",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 2,
+   "R": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "tt",
+   "real": "Think Twice",
+   "controller": 0
+  },
+  {
+   "op": "cast",
+   "key": "bl1",
+   "real": "Burst Lightning",
+   "controller": 0,
+   "targets": [
+    "p1"
+   ],
+   "decisions": [
+    "first-legal"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "bl2",
+   "real": "Burst Lightning",
+   "controller": 0,
+   "targets": [
+    "p1"
+   ],
+   "decisions": [
+    "first-legal",
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 10
+  }
+ },
+ "notes": "Printed: 'Whenever you cast an instant or sorcery spell, copy it for each other instant and sorcery spell you've cast before it this turn. You may choose new targets for the copies.' Think Twice (no copy), then Burst Lightning (one copy), then another (two): 2+2 + 2+2+2 = 10 damage."
+}

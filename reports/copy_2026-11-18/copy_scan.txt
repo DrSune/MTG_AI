@@ -1,0 +1,159 @@
+ 25  You may choose new targets for the copy.
+       10E Twincast; DOM Naru Meha, Master Wizard; DOM The Mirari Conjecture; ELD Lucky Clover; FDN Teach by Example; IKO Lutri, the Spellchaser; KHM Dual Strike; M10 Twincast; M11 Reverberate; M12 Chandra, the Firebrand; M12 Reverberate; M13 Chandra, the Firebrand; M13 Reverberate; M14 Strionic Resonator;
+  5  Copy target instant or sorcery spell.
+       10E Twincast; M10 Twincast; M11 Reverberate; M12 Reverberate; M13 Reverberate
+  5  You may choose new targets for the copies.
+       ELD Banish into Fable; FDN Thousand-Year Storm; M20 Repeated Reverberation; WAR Finale of Promise; ZNR Sea Gate Stormcaller
+  5  You may have this creature enter as a copy of any creature on the battlefield.
+       10E Clone; M10 Clone; M11 Clone; M13 Clone; M14 Clone
+  3  [−2]: When you next cast an instant or sorcery spell this turn, copy that spell.
+       M12 Chandra, the Firebrand; M13 Chandra, the Firebrand; WAR Ral, Storm Conduit
+  2  Choose an instant or sorcery card exiled this way and copy it three times.
+       M14 Chandra, Pyromaster; M15 Chandra, Pyromaster
+  2  If you do, copy that ability.
+       M15 Kurkesh, Onakke Ancient; M20 Chandra's Regulator
+  2  If you do, create a token that's a copy of this creature.
+       DOM Mishra's Self-Replicator; ELD Sorcerer's Broom
+  2  When that mana is spent to cast a red instant or sorcery spell, copy that spell and you may choose new targets for the copy.
+       FDN Pyromancer's Goggles; ORI Pyromancer's Goggles
+  2  When you next cast an instant or sorcery spell this turn, copy that spell.
+       FDN Teach by Example; M19 Doublecast
+  2  You may cast the copies without paying their mana costs.
+       M14 Chandra, Pyromaster; M15 Chandra, Pyromaster
+  1  At the beginning of combat on your turn, create a token that's a copy of equipped creature, except the token isn't legendary.
+       DOM Helm of the Host
+  1  At the beginning of your upkeep, create a token that's a copy of another target nonland permanent you control.
+       FDN Extravagant Replication
+  1  Cast the copies if able without paying their mana costs.
+       M13 Spelltwine
+  1  Constellation — Whenever an enchantment you control enters, you may have this creature become a copy of another target creature, except it has this ability.
+       THB Protean Thaumaturge
+  1  Copy target instant or sorcery spell, then return it to its owner's hand.
+       WAR Narset's Reversal
+  1  Copy those cards.
+       M13 Spelltwine
+  1  Create a token that's a copy of it, except it's a Nightmare in addition to its other types.
+       FDN Abyssal Harvester
+  1  Create a token that's a copy of target creature you control, except it has haste and "At the beginning of the end step, sacrifice this token."
+       FDN Electroduplicate
+  1  Create a token that's a copy of target creature you control.
+       FDN Self-Reflection
+  1  Create a token that's a copy of target creature.
+       FDN Rite of Replication
+  1  Create a token that's a copy of target permanent.
+       IKO Mythos of Illuna
+  1  Create a token that's a copy of that card, except it's 1/1.
+       IKO Offspring's Revenge
+  1  Each of those players may choose new targets for their copy.
+       M10 Hive Mind
+  1  Each other artifact you control becomes a copy of that artifact until end of turn.
+       M20 Masterful Replication
+  1  Enchanted creature is a copy of the chosen creature.
+       M19 Metamorphic Alteration
+  1  For each of them, create a token that's a copy of it.
+       KHM Battle for Bretagard
+  1  III — Until end of turn, whenever you cast an instant or sorcery spell, copy it.
+       DOM The Mirari Conjecture
+  1  If X is 10 or more, copy each of those spells twice.
+       WAR Finale of Promise
+  1  If this creature was kicked, copy that spell twice instead.
+       ZNR Sea Gate Stormcaller
+  1  If you control six or more lands, create a token that's a copy of this creature instead.
+       ZNR Scute Swarm
+  1  If you do, copy that spell.
+       ZNR Verazol, the Split Current
+  1  If you do, create a token that's a copy of that creature, except it's 1/1 and it's a Nightmare in addition to its other types.
+       THB Nightmare Shepherd
+  1  If you do, create a token that's a copy of that creature.
+       ORI Flameshadow Conjuring
+  1  If {R}{G} was spent to cast this spell, instead create a token that's a copy of that permanent, except the token has "When this token enters, if it's a creature, it fights up to one target creature you don't control."
+       IKO Mythos of Illuna
+  1  Spell mastery — If there are two or more instant and/or sorcery cards in your graveyard, you may copy the spell countered this way.
+       ORI Psychic Rebuttal
+  1  That copy costs {2} less to cast.
+       WAR God-Eternal Kefnet
+  1  The next time one or more creatures or planeswalkers enter this turn, they enter as copies of the chosen creature.
+       KHM Mystic Reflection
+  1  Then copy that spell.
+       M14 Wild Ricochet
+  1  Valki becomes a copy of that card.
+       KHM Valki, God of Lies // Tibalt, Cosmic Impostor
+  1  When Jace enters, if Jace was kicked, create a token that's a copy of Jace, except it's not legendary and its starting loyalty is 1.
+       ZNR Jace, Mirror Mage
+  1  When Lutri enters, if you cast it, copy target instant or sorcery spell you control.
+       IKO Lutri, the Spellchaser
+  1  When Naru Meha enters, copy target instant or sorcery spell you control.
+       DOM Naru Meha, Master Wizard
+  1  When a spell or ability an opponent controls causes you to discard this card, create a token that's a copy of target permanent.
+       KHM Orvar, the All-Form
+  1  When this artifact enters, if it was kicked, create two tapped tokens that are copies of this artifact.
+       ZNR Skyclave Relic
+  1  When this creature enters, copy the next instant or sorcery spell with mana value 2 or less you cast this turn when you cast it.
+       ZNR Sea Gate Stormcaller
+  1  When you cast this spell from your hand, copy it if you control an artifact, then copy it if you control an enchantment.
+       ELD Banish into Fable
+  1  When you next cast an instant or sorcery spell with mana value 4 or less this turn, copy that spell.
+       KHM Dual Strike
+  1  When you next cast an instant spell, cast a sorcery spell, or activate a loyalty ability this turn, copy that spell or ability twice.
+       M20 Repeated Reverberation
+  1  Whenever a player casts an instant or sorcery spell, each other player copies that spell.
+       M10 Hive Mind
+  1  Whenever you cast a spell of the chosen type, copy that spell.
+       KHM Reflections of Littjara
+  1  Whenever you cast an Adventure instant or sorcery spell, copy it.
+       ELD Lucky Clover
+  1  Whenever you cast an instant or sorcery spell, copy it for each other instant and sorcery spell you've cast before it this turn.
+       FDN Thousand-Year Storm
+  1  Whenever you cast an instant or sorcery spell, if it targets one or more other permanents you control, create a token that's a copy of one of those permanents.
+       KHM Orvar, the All-Form
+  1  Whenever you cast or copy an instant or sorcery spell, Ral deals 1 damage to target opponent or planeswalker.
+       WAR Ral, Storm Conduit
+  1  Whenever you cast your first instant or sorcery spell each turn, copy that spell.
+       M21 Double Vision
+  1  Whenever you draw your second card each turn, create a token that's a copy of this creature.
+       FDN Homunculus Horde
+  1  Whenever you reveal an instant or sorcery card this way, copy that card and you may cast the copy.
+       WAR God-Eternal Kefnet
+  1  Whenever ~ attacks, create a token that's a copy of target token you control.
+       KHM Esika's Chariot
+  1  You may cast the copy without paying its mana cost.
+       M14 Elite Arcanist
+  1  You may have Moritte enter as a copy of a permanent you control, except it's legendary and snow in addition to its other types and, if it's a creature, it enters with two additional +1/+1 counters on it and has changeling.
+       KHM Moritte of the Frost
+  1  You may have Shapeshifters you control become copies of that creature until end of turn.
+       KHM Absorb Identity
+  1  You may have this artifact enter as a copy of any artifact on the battlefield.
+       10E Sculpting Steel
+  1  You may have this creature enter as a copy of a creature or planeswalker you control, except it enters with an additional +1/+1 counter on it if it's a creature, it enters with an additional loyalty counter on it if it's a planeswalker, and it isn't legendary.
+       WAR Spark Double
+  1  You may have this creature enter as a copy of a creature you control, except it has "{2}{U}{U}: Return this creature to its owner's hand."
+       M15 Mercurial Pretender
+  1  You may have this creature enter as a copy of a creature you control, except it's a Shapeshifter Rogue in addition to its other types.
+       ZNR Glasspool Mimic // Glasspool Shore
+  1  You may have this creature enter as a copy of a creature you control.
+       M19 Mirror Image
+  1  You may have this creature enter as a copy of any creature on the battlefield, except it's an Illusion in addition to its other types and it has "When this creature becomes the target of a spell or ability, sacrifice it."
+       M12 Phantasmal Image
+  1  You may have this enchantment enter as a copy of any artifact or enchantment on the battlefield.
+       ELD Mirrormade
+  1  [+1]: Create a token that's a copy of target creature you control, except it has haste and "At the beginning of the end step, sacrifice this token."
+       FDN Chandra, Flameshaper
+  1  [0]: Until end of turn, Oko becomes a copy of target creature you control.
+       ELD Oko, the Trickster
+  1  [−2]: Target artifact you control becomes a copy of another target artifact or creature you control until end of turn, except it's an artifact in addition to its other types.
+       WAR Saheeli, Sublime Artificer
+  1  {2}, {T}: Copy target activated or triggered ability you control.
+       ZNR Lithoform Engine
+  1  {2}, {T}: Copy target triggered ability you control.
+       M14 Strionic Resonator
+  1  {2}{G}{G}{U}, {T}, Sacrifice this land: Create a token that's a copy of target creature you control, except it enters with an additional +1/+1 counter on it.
+       KHM Littjara Mirrorlake
+  1  {3}, {T}: Copy target instant or sorcery spell you control.
+       ZNR Lithoform Engine
+  1  {4}, {T}: Copy target permanent spell you control.
+       ZNR Lithoform Engine
+  1  {X}, {T}: Copy the exiled card.
+       M14 Elite Arcanist
+  1  • Create a token that's a copy of target creature you control.
+       M21 Sublime Epiphany
+71 cards, 81 printings

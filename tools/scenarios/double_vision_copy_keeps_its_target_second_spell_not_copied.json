@@ -1,0 +1,75 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dv",
+   "real": "Double Vision",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "shock2",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "shock",
+   "real": "Shock",
+   "controller": 0,
+   "targets": [
+    "p1"
+   ],
+   "decisions": [
+    "first-legal"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "shock2",
+   "real": "Shock",
+   "controller": 0,
+   "targets": [
+    "p1"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 14
+  },
+  "zone": {
+   "bear": "battlefield",
+   "shock": "graveyard"
+  }
+ },
+ "notes": "Printed: 'Whenever you cast your first instant or sorcery spell each turn, copy that spell.' The copy keeps its target (the first option of its new-target ask, CR 707.10c): 4 damage. The second Shock is not the first instant of the turn, and the copy was not cast (CR 707.10), so it is not copied: 2 more, 14 life."
+}

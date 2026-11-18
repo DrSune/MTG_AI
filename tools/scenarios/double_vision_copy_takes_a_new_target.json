@@ -1,0 +1,60 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dv",
+   "real": "Double Vision",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "shock",
+   "real": "Shock",
+   "controller": 0,
+   "targets": [
+    "p1"
+   ],
+   "decisions": [
+    "bear"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "zone": {
+   "bear": "graveyard",
+   "shock": "graveyard"
+  }
+ },
+ "notes": "Printed: 'Whenever you cast your first instant or sorcery spell each turn, copy that spell. You may choose new targets for the copy.' Shock at the opponent: the copy is put onto the stack (CR 707.10) and its controller changes its target to the Bear (707.10c): 2 damage to the opponent, the Bear dies."
+}

@@ -1,0 +1,4 @@
+M21: deckable 279 (base) / 279 (branch); taken out: []; games 100; identical digests 100; identical journals 100; identical event logs 100; lane calls (base, branch) {'tokens': (46, 46), 'counters': (5, 5), 'copies': (0, 0)}; crashes 0 (base) / 0 (branch)
+M20: deckable 286 (base) / 286 (branch); taken out: []; games 100; identical digests 100; identical journals 100; identical event logs 100; lane calls (base, branch) {'tokens': (65, 65), 'counters': (6, 6), 'copies': (0, 0)}; crashes 0 (base) / 0 (branch)
+FDN: deckable 261 (base) / 261 (branch); taken out: []; games 100; identical digests 100; identical journals 100; identical event logs 100; lane calls (base, branch) {'tokens': (157, 157), 'counters': (22, 22), 'copies': (0, 0)}; crashes 0 (base) / 0 (branch)
+games whose play differs: 0 of 300

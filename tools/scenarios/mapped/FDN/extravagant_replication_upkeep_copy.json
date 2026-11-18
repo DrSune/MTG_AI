@@ -1,0 +1,50 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "er",
+   "real": "Extravagant Replication",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "hawk",
+   "real": "Healer's Hawk",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "theirs",
+   "real": "Healer's Hawk",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "er"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Healer's Hawk": 1
+  },
+  "zone": {
+   "hawk": "battlefield",
+   "er": "battlefield",
+   "theirs": "battlefield"
+  }
+ },
+ "notes": "Printed: 'At the beginning of your upkeep, create a token that's a copy of another target nonland permanent you control.' At its controller's next upkeep the trigger's one legal target is the Hawk (not the enchantment itself, 'another'; not the opponent's Hawk): one token copy of it. The opponent's upkeep makes none."
+}

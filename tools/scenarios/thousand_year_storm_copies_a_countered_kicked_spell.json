@@ -1,0 +1,92 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "storm",
+   "real": "Thousand-Year Storm",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "tt",
+   "real": "Think Twice",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bl",
+   "real": "Burst Lightning",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "cancel",
+   "real": "Cancel",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 2,
+   "R": 1,
+   "C": 4
+  },
+  "1": {
+   "U": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "tt",
+   "real": "Think Twice",
+   "controller": 0
+  },
+  {
+   "op": "cast",
+   "key": "bl",
+   "real": "Burst Lightning",
+   "controller": 0,
+   "targets": [
+    "p1"
+   ],
+   "kicked": true,
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "cancel",
+   "real": "Cancel",
+   "controller": 1,
+   "targets": [
+    "bl"
+   ],
+   "hold": true
+  },
+  {
+   "op": "resolve"
+  },
+  {
+   "op": "pass",
+   "decisions": [
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 16
+  },
+  "zone": {
+   "bl": "graveyard",
+   "cancel": "graveyard"
+  }
+ },
+ "notes": "Printed: as Thousand-Year Storm. Burst Lightning, kicked, is countered while the Storm's trigger waits: the trigger still copies it as it last existed on the stack (CR 608.2h), kicked (CR 707.10: the copy has the original's choices), so the copy deals 4."
+}

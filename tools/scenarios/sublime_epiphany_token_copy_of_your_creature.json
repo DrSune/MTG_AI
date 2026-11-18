@@ -1,0 +1,49 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "se",
+   "real": "Sublime Epiphany",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "wurm",
+   "real": "Massacre Wurm",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "se",
+   "real": "Sublime Epiphany",
+   "controller": 0,
+   "targets": [
+    "wurm"
+   ],
+   "decisions": [
+    "3"
+   ]
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Massacre Wurm": 1
+  },
+  "zone": {
+   "wurm": "battlefield"
+  }
+ },
+ "notes": "Printed: '• Create a token that's a copy of target creature you control.' (mode 4 alone, the word '3'). The token is a Massacre Wurm (CR 707.5)."
+}

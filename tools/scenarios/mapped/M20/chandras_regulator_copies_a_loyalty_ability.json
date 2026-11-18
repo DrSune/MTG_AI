@@ -1,0 +1,70 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "reg",
+   "real": "Chandra's Regulator",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "chandra",
+   "real": "Chandra, Novice Pyromancer",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 4,
+   "C": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "chandra"
+  },
+  {
+   "op": "activate",
+   "key": "chandra",
+   "idx": 2,
+   "seat": 0,
+   "targets": [
+    "p1"
+   ],
+   "decisions": [
+    "fire",
+    "bear"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "zone": {
+   "bear": "graveyard"
+  },
+  "counters": {
+   "chandra": {
+    "LOYALTY": 3
+   }
+  }
+ },
+ "notes": "Printed: 'Whenever you activate a loyalty ability of a Chandra planeswalker, you may pay {1}. If you do, copy that ability. You may choose new targets for the copy.' Chandra, Novice Pyromancer's [-2] at the opponent; paid ('fire'), the copy's new target is the Bear. The copy is not activated: no loyalty is removed for it (CR 606.4, 707.10), Chandra stays at 3."
+}

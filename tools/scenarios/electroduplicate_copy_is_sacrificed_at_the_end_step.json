@@ -1,0 +1,60 @@
+{
+ "set": "FDN",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ed",
+   "real": "Electroduplicate",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "hawk",
+   "real": "Healer's Hawk",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "ed",
+   "real": "Electroduplicate",
+   "controller": 0,
+   "targets": [
+    "hawk"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {}
+  },
+  {
+   "op": "to_step",
+   "step": "END_TURN"
+  },
+  {
+   "op": "pass"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Healer's Hawk": 0
+  },
+  "zone": {
+   "hawk": "battlefield",
+   "ed": "graveyard"
+  }
+ },
+ "notes": "Printed: 'Create a token that's a copy of target creature you control, except it has haste and \"At the beginning of the end step, sacrifice this token.\"' The token copy has haste (its attack ask) and is sacrificed at the end step; the Hawk stays."
+}
