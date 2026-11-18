@@ -463,6 +463,31 @@ def test_that_player_of_a_damage_trigger_loses_the_game() -> None:
     assert r.ex.lost_players == [p1]
 
 
+def test_each_opponent_loses_the_game_unless_they_cant() -> None:
+    """"Each opponent loses the game" is LOSE_GAME(ALL_OPPONENTS), LOSE_LIFE's plural role
+    (divergence D21's fold; gate round B12's MINOR 1): in a three-player game both opponents
+    lose and the game is over; an opponent who can't lose (Platinum Angel's first atom) stays in,
+    and the game goes on between the two left."""
+    from types import SimpleNamespace
+
+    for angel in (False, True):
+        world = GameWorld(num_players=3, start_life=20, master_seed=3)
+        p0, p1, p2 = world.player_order
+        ex = Executor(world)
+        if angel:
+            table = SimpleNamespace(world=world, seats=world.player_order, ex=ex)
+            _ruled(table, 2, StaticAbility(prohibit(GameOutcomeEvent(won=False, actor=FAtom(
+                pred=FAtomPred.CONTROLLER_IS, who=YOU)))))
+            ex.execute(game_result(Verb.LOSE_GAME, ControllerRef.ALL_OPPONENTS), source=p0,
+                       controller=p0)
+            assert ex.lost_players == [p1]
+            continue
+        with pytest.raises(GameOver):
+            ex.execute(game_result(Verb.LOSE_GAME, ControllerRef.ALL_OPPONENTS), source=p0,
+                       controller=p0)
+        assert sorted(ex.lost_players) == [p1, p2]
+
+
 def _player_target():
     from MTG_bot.core.ability_tree import Selector, SelectorMode
 

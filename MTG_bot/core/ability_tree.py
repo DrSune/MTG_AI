@@ -349,10 +349,14 @@ EMBLEM_RECIPIENTS = frozenset(
 )
 
 #: Who an effect makes lose the game (LOSE_GAME's ``controller``, CR 104.3e) besides "that
-#: player" (:func:`event_player`): "you" and the printed targets, what the 19 sets print. "Each
-#: opponent ... loses the game" is LOSE_GAME(YOU) under EachPlayer (one form: the plural refs are
-#: refused). WIN_GAME takes YOU only: every "win the game" of the 19 sets is "you win the game".
-LOSERS = frozenset({ControllerRef.YOU, ControllerRef.TARGET_PLAYER, ControllerRef.TARGET_OPPONENT})
+#: player" (:func:`event_player`): "you", the printed targets and "each opponent". "Each
+#: opponent loses the game" is LOSE_GAME(ALL_OPPONENTS), LOSE_LIFE's plural role (divergence
+#: D21's fold: every player verb names its players in ``controller``), so an EachPlayer around a
+#: lone LOSE_GAME is refused (:class:`EachPlayer`), as GET_EMBLEM's is; one whose condition reads
+#: the rotated "you" ("each opponent who ...") stays EachPlayer's. WIN_GAME takes YOU only: every
+#: "win the game" of the 19 sets is "you win the game".
+LOSERS = frozenset({ControllerRef.YOU, ControllerRef.TARGET_PLAYER, ControllerRef.TARGET_OPPONENT,
+                    ControllerRef.ALL_OPPONENTS})
 
 
 class QPropField(Enum):
@@ -3478,8 +3482,9 @@ class Atom:
                 raise ValueError(f"Atom: PREVENT_EFFECT: {fault}")
         if self.verb in (Verb.LOSE_GAME, Verb.WIN_GAME):
             # Who loses or wins (CR 104.3e, 104.2b), one form each: "that player" is the
-            # trigger's player (event_player); the plural refs are EachPlayer's, and a referent
-            # of "target" is the designated player's second form (gate round 8, M1).
+            # trigger's player (event_player), "each opponent" ALL_OPPONENTS (LOSERS); OPPONENT,
+            # ANY and the other refs name no one of these, and a referent of "target" is the
+            # designated player's second form (gate round 8, M1).
             who = roles["controller"]
             loser = who in LOSERS or who == event_player()
             if who is not ControllerRef.YOU and (self.verb is Verb.WIN_GAME or not loser):
@@ -3659,6 +3664,15 @@ class EachPlayer:
         # would pass WIN_GAME's "you only" rule by rotating "you" (round B12's review).
         if any(isinstance(n, Atom) and n.verb is Verb.WIN_GAME for n in own_nodes(self.effect)):
             raise ValueError("EachPlayer: one player wins the game, never each of several")
+        # "Each opponent loses the game" is LOSE_GAME's own plural `controller` (ALL_OPPONENTS,
+        # LOSE_LIFE's lane: divergence D21's fold): an EachPlayer around the lone atom would run
+        # the same, a second encoding (gate round B12, MINOR 1). A condition that reads the
+        # rotated "you" ("each opponent who ...") keeps the EachPlayer.
+        if isinstance(self.effect, Atom) and self.effect.verb is Verb.LOSE_GAME:
+            raise ValueError(
+                'EachPlayer: who loses the game is LOSE_GAME\'s `controller` (ALL_OPPONENTS for '
+                '"each opponent loses the game"), never an EachPlayer around the lone atom'
+            )
 
 
 def orders_a_library(atom: Atom) -> bool:

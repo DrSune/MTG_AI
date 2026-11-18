@@ -212,10 +212,11 @@ def test_the_at_least_ordinal_is_a_prohibitions_alone() -> None:
 
 
 def test_who_loses_or_wins_is_named_once() -> None:
-    """LOSE_GAME names its player in `controller`: you, the printed target, or "that player" of a
-    trigger's event (event_player, R_ITSCONTROLLER's referent); WIN_GAME you."""
+    """LOSE_GAME names its player in `controller`: you, the printed target, "that player" of a
+    trigger's event (event_player, R_ITSCONTROLLER's referent) or each opponent (ALL_OPPONENTS,
+    LOSE_LIFE's plural role: divergence D21's fold, gate round B12's MINOR 1); WIN_GAME you."""
     for who in (ControllerRef.YOU, ControllerRef.TARGET_PLAYER, ControllerRef.TARGET_OPPONENT,
-                event_player()):
+                event_player(), ControllerRef.ALL_OPPONENTS):
         roundtrip(a(Verb.LOSE_GAME, controller=who))
     roundtrip(a(Verb.WIN_GAME, controller=ControllerRef.YOU))
 
@@ -223,8 +224,6 @@ def test_who_loses_or_wins_is_named_once() -> None:
 @pytest.mark.parametrize(
     ("verb", "who"),
     [
-        # each opponent: EachPlayer around LOSE_GAME(YOU), one form (D21's plural role refused)
-        (Verb.LOSE_GAME, ControllerRef.ALL_OPPONENTS),
         (Verb.LOSE_GAME, ControllerRef.OPPONENT),
         (Verb.LOSE_GAME, ControllerRef.ANY),
         (Verb.LOSE_GAME, ControllerRef.DEFENDING_PLAYER),
@@ -249,11 +248,17 @@ def test_another_player_form_is_refused(verb, who) -> None:
 def test_a_game_result_is_one_players_and_a_resolving_effects() -> None:
     """One player wins (CR 104.2b): EachPlayer around WIN_GAME would rotate "you" past the YOU-only
     rule; and a game result happens as an effect resolves, so a static's never runs ("can't
-    lose" is the PREVENT_EFFECT). "Each opponent loses the game" stays EachPlayer's."""
+    lose" is the PREVENT_EFFECT). "Each opponent loses the game" is LOSE_GAME(ALL_OPPONENTS): an
+    EachPlayer around the lone atom is its second encoding (D21, as GET_EMBLEM's), refused; one
+    whose condition reads the rotated "you" ("each opponent who ...") stays."""
     win, lose = (a(verb, controller=ControllerRef.YOU) for verb in (Verb.WIN_GAME, Verb.LOSE_GAME))
     with pytest.raises(ValueError, match="one player wins"):
         at.EachPlayer(ControllerRef.ALL_OPPONENTS, win)
-    at.EachPlayer(ControllerRef.ALL_OPPONENTS, lose)
+    for ref in (ControllerRef.ALL_OPPONENTS, ControllerRef.OPPONENT, ControllerRef.ANY):
+        with pytest.raises(ValueError, match="never an EachPlayer around the lone atom"):
+            at.EachPlayer(ref, lose)
+    a_card_in_hand = at.at_least(1, quantity=at.number_in(Zone(ZoneKind.HAND, ControllerRef.YOU)))
+    at.EachPlayer(ControllerRef.ALL_OPPONENTS, at.Conditional(at.FNot(a_card_in_hand), lose))
     for atom in (win, lose):
         with pytest.raises(ValueError, match="never a static's"):
             at.StaticAbility(atom)

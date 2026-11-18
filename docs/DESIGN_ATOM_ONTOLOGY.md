@@ -2918,14 +2918,18 @@ has, a PREVENT_EFFECT over the event it forbids, with four new event lanes:
   declaration).
 
 **B12-3 Game results.** LOSE_GAME names its player in a required `controller` (`:3479`): YOU,
-TARGET_PLAYER / TARGET_OPPONENT (a printed target: Door to Nothingness), or `event_player()`
+TARGET_PLAYER / TARGET_OPPONENT (a printed target: Door to Nothingness), `event_player()`
 (`:1855`), "that player" of a trigger's event (Atemsis, Phage), byte for byte Gloom Sower's
-referent; refused, each another form of these or of nothing: OPPONENT, ALL_OPPONENTS, ANY,
-DEFENDING_PLAYER, OWNER, a referent of `target` (gate round 8, M1's second designated form),
-`result` or a filtered referent. "Each opponent loses the game" is EachPlayer around LOSE_GAME(YOU)
-(one form: D21's plural role refused). WIN_GAME (new, `:193`) takes YOU only, never under
-EachPlayer (one player wins, CR 104.2b), and neither verb stands in a static (a static never
-resolves). `GameOutcomeEvent(won, actor)` (`:2519`) is a prohibition's event only: "You can't lose
+referent, or ALL_OPPONENTS, "each opponent loses the game": LOSE_LIFE's plural role, which
+divergence D21's fold gives every player verb (`_v_lose_game` reads `role_players`). Refused,
+each another form of these or of nothing: OPPONENT, ANY, DEFENDING_PLAYER, OWNER, a referent of
+`target` (gate round 8, M1's second designated form), `result` or a filtered referent; and an
+EachPlayer around a lone LOSE_GAME, the plural role's second encoding (refused as GET_EMBLEM's
+is). "Each opponent who ... loses the game" stays EachPlayer around a Conditional: its condition
+reads the rotated "you". (The round first wrote the EachPlayer as the one form and refused the
+plural role, against D21's scheduled fold: gate round B12's MINOR 1.) WIN_GAME (new, `:193`)
+takes YOU only, never under EachPlayer (one player wins, CR 104.2b), and neither verb stands in
+a static (a static never resolves). `GameOutcomeEvent(won, actor)` (`:2519`) is a prohibition's event only: "You can't lose
 the game and your opponents can't win the game" is its two PREVENT_EFFECTs; a trigger, a
 replacement, a delayed trigger and a turn history refuse it (the game is over when it happens).
 

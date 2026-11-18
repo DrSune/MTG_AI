@@ -780,6 +780,8 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
   the rotated "you": Peer into the Abyss ("their library", "their life"), Goremand and Run Afoul
   (a creature they control), Yarok's Fenlurker ("their hand"), Liliana, Waker of the Dead's "who
   can't", Transmogrify. A gated round: it changes verified trees, each re-verified after.
+  LOSE_GAME was born folded (gate round B12, MINOR 1): ALL_OPPONENTS in its `controller`, the
+  EachPlayer around the lone atom refused.
 - **ALL's count has two meanings** (2026-11-13, gate round 7, m3): `verbs._v_move_zone`'s
   non-partition lane and `verbs._hand_picks` take the first N of an ALL with a finite count
   (`pool[:n]`), where every other lane takes the whole population. Register it in

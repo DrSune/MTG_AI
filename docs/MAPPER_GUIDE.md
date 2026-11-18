@@ -483,8 +483,11 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
     in the spell's filter. With a duration it is a resolving spell's effect ("this turn").
   - **Who loses or wins** (CR 104.3e, 104.2b): LOSE_GAME and WIN_GAME name their player in
     `controller`: "you" YOU, "target player" TARGET_PLAYER, "that player" of a trigger's event
-    `ability_tree.event_player()` (Atemsis); "each opponent ... loses the game" is
-    `EachPlayer(ALL_OPPONENTS, LOSE_GAME(YOU))`. WIN_GAME is YOU's only, never under EachPlayer.
+    `ability_tree.event_player()` (Atemsis), "each opponent loses the game" ALL_OPPONENTS (the
+    plural role "each opponent loses 2 life" has; an EachPlayer around the lone LOSE_GAME is
+    refused, divergence D21). "Each opponent who ... loses the game" keeps
+    `EachPlayer(ALL_OPPONENTS, Conditional(<who ...>, LOSE_GAME(YOU)))`: its condition reads the
+    rotated "you". WIN_GAME is YOU's only, never under EachPlayer.
     "You can't lose the game" alone on a card whose drawbacks do not compile (DOM Lich's Mastery)
     is not mapped: alone it plays stronger than printed.
   - **"Reveal cards from the top of your library until you reveal a creature card. Put that card
