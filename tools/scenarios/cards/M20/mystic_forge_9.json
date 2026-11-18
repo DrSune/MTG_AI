@@ -1,0 +1,91 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "name": "mystic_forge_exiles_the_top_card_for_tap_and_one_life_and_the_next_is_castable",
+ "notes": "Printed: '{T}, Pay 1 life: Exile the top card of your library.' The Forge taps, life 20 -> 19, exactly the top card of the controller's library (Shock) is exiled, the opponent's library is untouched; the Vial that was second is now on top and is cast from the library with {2}. A second activation the same turn is refused (the Forge is tapped).",
+ "cards": [
+  {
+   "key": "forge",
+   "real": "Mystic Forge",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "vial",
+   "real": "Vial of Dragonfire",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "forge",
+   "idx": 2,
+   "seat": 0
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:vial"
+   ]
+  },
+  {
+   "op": "activate",
+   "key": "forge",
+   "idx": 2,
+   "seat": 0,
+   "expect_raise": "cost:tap"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "shock": "exile",
+   "vial": "battlefield"
+  },
+  "tapped": {
+   "forge": true
+  },
+  "life": {
+   "0": 19,
+   "1": 20
+  },
+  "library": {
+   "0": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ],
+   "1": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

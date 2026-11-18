@@ -1,0 +1,39 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "name": "mystic_forge_casts_nothing_for_free",
+ "notes": "Printed: 'cast ... spells' (no cost change). With an empty pool and no land the Vial on top is not offered.",
+ "cards": [
+  {
+   "key": "forge",
+   "real": "Mystic Forge",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "vial",
+   "real": "Vial of Dragonfire",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:vial"
+   ],
+   "expect_raise": "does not offer 'cast:card:1'; it offers ('PASS', 'act:card:0:2')"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "vial": "library"
+  }
+ }
+}

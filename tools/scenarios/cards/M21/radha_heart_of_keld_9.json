@@ -1,0 +1,72 @@
+{
+ "set": "M21",
+ "name": "radha_pump_is_fixed_when_the_ability_resolves",
+ "notes": "Printed: '{4}{R}{G}: Radha gets +X/+X until end of turn, where X is the number of lands you control.' The ability resolves with two lands in play: X = 2 and Radha is 5/5. A third land played afterwards (the Forest from the hand) does not make her bigger: an effect of a resolved ability uses the number it found as it resolved (CR 611.2c).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "radha",
+   "real": "Radha, Heart of Keld",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "m1",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "m2",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "G": 1,
+   "C": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:radha:2"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "land:forest"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "forest": "battlefield"
+  },
+  "power": {
+   "radha": 5
+  },
+  "toughness": {
+   "radha": 5
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

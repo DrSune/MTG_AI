@@ -1,0 +1,53 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "name": "mystic_forge_does_not_cast_a_red_instant_from_the_top",
+ "notes": "Printed: 'artifact spells and colorless spells'. Shock (a red instant, not an artifact) on top is neither: with {R} in the pool and a target to hit, no cast from the library is offered.",
+ "cards": [
+  {
+   "key": "forge",
+   "real": "Mystic Forge",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:shock",
+    "p1"
+   ],
+   "expect_raise": "does not offer 'cast:card:1'; it offers ('PASS', 'act:card:0:2')"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "shock": "library"
+  },
+  "mana_pool": {
+   "0": {
+    "R": 1
+   }
+  },
+  "life": {
+   "1": 20
+  }
+ }
+}

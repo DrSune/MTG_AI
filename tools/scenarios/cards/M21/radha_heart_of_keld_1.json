@@ -1,0 +1,67 @@
+{
+ "set": "M21",
+ "name": "radha_plays_a_land_from_the_top_of_the_library_as_the_land_drop",
+ "notes": "Printed: 'you may play lands from the top of your library.' The top card (Mountain) is played from the library as the turn's land drop (it enters untapped); the next card, a Forest, is now on top but the land drop is spent (CR 305.2), so it is not offered.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "radha",
+   "real": "Radha, Heart of Keld",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "mtn",
+   "real": "Mountain",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "land:mtn"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "land:forest"
+   ],
+   "expect_raise": "no ask took: ['land:card:1']"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "mtn": "battlefield",
+   "forest": "library"
+  },
+  "tapped": {
+   "mtn": false
+  },
+  "library": {
+   "0": [
+    "Forest",
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  }
+ }
+}

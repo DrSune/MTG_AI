@@ -1,0 +1,94 @@
+{
+ "set": "M21",
+ "name": "radha_pump_counts_the_lands_you_control",
+ "notes": "Printed: '{4}{R}{G}: Radha gets +X/+X until end of turn, where X is the number of lands you control.' The controller controls four lands: three it owns and one the opponent owns; a land it owns that the opponent controls and the opponent's own two lands are not counted. X = 4: Radha is 7/7 after the six mana of the pool pay for it.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "radha",
+   "real": "Radha, Heart of Keld",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "m1",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "m2",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "m3",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "stolen",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0,
+   "controlled_by": 1
+  },
+  {
+   "key": "taken",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1,
+   "controlled_by": 0
+  },
+  {
+   "key": "o1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "o2",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "G": 1,
+   "C": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:radha:2"
+   ]
+  }
+ ],
+ "expect": {
+  "power": {
+   "radha": 7
+  },
+  "toughness": {
+   "radha": 7
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "tapped": {
+   "m1": false,
+   "m2": false,
+   "m3": false,
+   "taken": false
+  }
+ }
+}

@@ -1,0 +1,40 @@
+{
+ "set": "M21",
+ "name": "radha_land_permission_works_only_while_she_is_on_the_battlefield",
+ "notes": "Printed: a permission of Radha's text, so it works while she is on the battlefield. With Radha in the hand the Mountain on top of the library is not offered.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "radha",
+   "real": "Radha, Heart of Keld",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mtn",
+   "real": "Mountain",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "land:mtn"
+   ],
+   "expect_raise": "no ask took: ['land:card:1']"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "mtn": "library",
+   "radha": "hand"
+  }
+ }
+}

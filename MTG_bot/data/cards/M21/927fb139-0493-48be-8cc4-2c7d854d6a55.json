@@ -1,0 +1,62 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "927fb139-0493-48be-8cc4-2c7d854d6a55",
+ "name": "Radha, Heart of Keld",
+ "text_sha": "1124863522132711354c9924ed2aac1c48205b963bed23f932dfda50c226c189",
+ "verified": {
+  "tree_sha": "cb5fde44e3a7566140226a3e50e5489ff4256eb45daa731eb02401aff15359af",
+  "probe_sha": "702509b898adf6c93065e38686ce5f8fd84b42f345d399ae0534157d9e7d3e12",
+  "date": "2026-11-18",
+  "reviewer": "claude-sonnet-verifier-wave5",
+  "clauses": [
+   {
+    "clause": "During your turn, Radha has first strike.",
+    "status": "OK",
+    "evidence": "Trace [cast]: 'keywords +FIRST_STRIKE' on the controller's turn; [on the opponent's turn, opp_bear attacks you] and [on the opponent's turn, you cast an instant]: 'card: keywords -FIRST_STRIKE'; [this creature attacks and opp_giant blocks it]: opp_giant is dealt 3 first, then Radha is dealt 4 (two damage steps). Packs A06_7 (her own turn: a 3/3 blocker dies before it deals damage) and A06_8 (the opponent's turn: both 3/3s die together).",
+    "issue": ""
+   },
+   {
+    "clause": "You may look at the top card of your library any time,",
+    "status": "OK",
+    "evidence": "Information only: no event, no lane, no change in the trace. The tree is the static LOOK_AT {controller YOU, count 1} (the compiler's own B19-look-and-play-lands-from-top form; the executor is omniscient and records only a 'disclosure' layer record while the static is live). Judged from the tree; nothing in the game state depends on it.",
+    "issue": ""
+   },
+   {
+    "clause": "and you may play lands from the top of your library.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Not in the trace. Pack A06_1: the Mountain on top is played from the library as the land drop (untapped), the Forest now on top is refused (land drop spent). A06_2: a nonland top card (Walking Corpse) is not castable, a land under it is not playable. A06_3: with Radha in the hand nothing is offered. A06_4: a land on top of the opponent's library is not offered.",
+    "issue": ""
+   },
+   {
+    "clause": "{4}{R}{G}: Radha gets +X/+X until end of turn, where X is the number of lands you control.",
+    "status": "OK",
+    "evidence": "Trace [activate [2] from battlefield]: 'mana C-4 G-1 R-1' (the whole cost), 'card: P/T 3/3 -> 4/4' with exactly one land under the controller's control (the board also has an opponent's land: X is 1, not 2), 'after the turn ends: card: P/T 4/4 -> 3/3'. Packs A06_5 (X = 4 with lands counted by control: an owned land the opponent controls is not counted, an opponent-owned land the controller controls is), A06_6 (gone on the next turn), A06_9 (X is fixed as the ability resolves).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/radha_heart_of_keld_1.json",
+   "tools/scenarios/cards/M21/radha_heart_of_keld_2.json",
+   "tools/scenarios/cards/M21/radha_heart_of_keld_3.json",
+   "tools/scenarios/cards/M21/radha_heart_of_keld_4.json",
+   "tools/scenarios/cards/M21/radha_heart_of_keld_5.json",
+   "tools/scenarios/cards/M21/radha_heart_of_keld_6.json",
+   "tools/scenarios/cards/M21/radha_heart_of_keld_7.json",
+   "tools/scenarios/cards/M21/radha_heart_of_keld_8.json",
+   "tools/scenarios/cards/M21/radha_heart_of_keld_9.json"
+  ],
+  "mutation": {
+   "mutants": 20,
+   "killed": 15,
+   "score": 0.75,
+   "survived": [
+    "drop step 0 at 1/1/effect",
+    "drop step 1 at 1/1/effect",
+    "controller YOU->OPPONENT at 1/2/effect/args/power/magnitude/selector/filter/children/0/who",
+    "widen filter (drop part 0) at 1/2/effect/args/target/filter",
+    "controller YOU->OPPONENT at 1/2/effect/args/toughness/magnitude/selector/filter/children/0/who"
+   ]
+  }
+ }
+}

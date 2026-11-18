@@ -1,0 +1,67 @@
+{
+ "set": "M21",
+ "name": "radha_pump_ends_with_the_turn",
+ "notes": "Printed: '+X/+X until end of turn'. With two lands the pump makes her 5/5 this turn; on the opponent's turn she is 3/3 again.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "radha",
+   "real": "Radha, Heart of Keld",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "m1",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "m2",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "G": 1,
+   "C": 4
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:radha:2"
+   ]
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "power": {
+   "radha": 3
+  },
+  "toughness": {
+   "radha": 3
+  },
+  "turn_seats": [
+   0,
+   1
+  ],
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ }
+}

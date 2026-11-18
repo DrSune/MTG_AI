@@ -238,5 +238,50 @@
  },
  "probe": {
   "sha": "dac7ea25c29918a4bf34b6e93b7ba0f3c3baa11c14e86a54b35f76e1c21fab08"
+ },
+ "verified": {
+  "tree_sha": "1b853da7153414afb4003774b2565d7abfd522561ad6f19b662e536c927f130e",
+  "probe_sha": "dac7ea25c29918a4bf34b6e93b7ba0f3c3baa11c14e86a54b35f76e1c21fab08",
+  "date": "2026-11-18",
+  "reviewer": "claude-sonnet-verifier-wave5",
+  "clauses": [
+   {
+    "clause": "You may look at the top card of your library any time.",
+    "status": "OK",
+    "evidence": "Information only: no event, lane or state change in the trace. The tree is the static LOOK_AT {controller YOU, count 1} (the compiler's B19-look-any-time form; the executor is omniscient). Judged from the tree.",
+    "issue": ""
+   },
+   {
+    "clause": "You may cast artifact spells and colorless spells from the top of your library.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Not in the trace (no cast from a library). Packs: A07_1 (a colorless artifact on top is cast from the library paying its {2}: pool empty, a cast from 'library'), A07_2 (a WHITE artifact is cast: an artifact spell), A07_3 (a red instant on top is not offered), A07_4 (a land on top is neither cast nor played), A07_5 (the second card is not offered), A07_6 (the opponent's library top is not offered), A07_7 (with the Forge in the hand nothing is offered), A07_8 (nothing is free: without mana no cast). Not reachable in M20's pool: a colorless NONartifact spell on top (the colorless branch of the filter is the compiler's FNot(at_least(1, COLOR))).",
+    "issue": ""
+   },
+   {
+    "clause": "{T}, Pay 1 life: Exile the top card of your library.",
+    "status": "OK",
+    "evidence": "Trace [activate [2] from battlefield]: 'card becomes tapped', 'you loses 1 life' (20 -> 19), one 'you:Library 5#1 moves library -> exile (by card/MOVE_ZONE)', 'you: library 6 -> 5' (the controller's top card, one card). Pack A07_9: exactly the top card (Shock) is exiled, the opponent's library is untouched, the next card (Vial) is then castable from the top, and a second activation the same turn is refused (cost:tap).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/mystic_forge_1.json",
+   "tools/scenarios/cards/M20/mystic_forge_2.json",
+   "tools/scenarios/cards/M20/mystic_forge_3.json",
+   "tools/scenarios/cards/M20/mystic_forge_4.json",
+   "tools/scenarios/cards/M20/mystic_forge_5.json",
+   "tools/scenarios/cards/M20/mystic_forge_6.json",
+   "tools/scenarios/cards/M20/mystic_forge_7.json",
+   "tools/scenarios/cards/M20/mystic_forge_8.json",
+   "tools/scenarios/cards/M20/mystic_forge_9.json"
+  ],
+  "mutation": {
+   "mutants": 6,
+   "killed": 5,
+   "score": 0.8333333333333334,
+   "survived": [
+    "amount+1 at 1/1/effect/args/source/filter/children/1/inner/count"
+   ]
+  }
  }
 }

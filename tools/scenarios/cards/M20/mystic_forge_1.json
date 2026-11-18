@@ -1,0 +1,61 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "name": "mystic_forge_casts_a_colorless_artifact_from_the_top_paying_its_cost",
+ "notes": "Printed: 'You may cast artifact spells and colorless spells from the top of your library.' Vial of Dragonfire ({2}, a colorless artifact) on top is cast from the library with the two mana of the pool: it resolves onto the battlefield and the pool is empty (the cost is paid, nothing is free).",
+ "cards": [
+  {
+   "key": "forge",
+   "real": "Mystic Forge",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "vial",
+   "real": "Vial of Dragonfire",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:vial"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "vial": "battlefield"
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "kick_rows": {
+   "vial": {
+    "from": "library"
+   }
+  },
+  "library": {
+   "0": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  }
+ }
+}

@@ -1,0 +1,49 @@
+{
+ "set": "M21",
+ "name": "radha_has_first_strike_when_she_attacks_on_her_controllers_turn",
+ "notes": "Printed: 'During your turn, Radha has first strike.' Radha (3/3) attacks and the opponent's 3/3 blocks: her first-strike damage kills it before it deals any, so she takes no damage and survives.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "radha",
+   "real": "Radha, Heart of Keld",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "blk",
+   "name": "Test Blocker",
+   "power": "3",
+   "toughness": "3",
+   "type": "Creature \u2014 Bear",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "radha": true
+   },
+   "block": {
+    "blk": "radha"
+   }
+  }
+ ],
+ "expect": {
+  "zone": {
+   "radha": "battlefield",
+   "blk": "graveyard"
+  },
+  "damage": {},
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

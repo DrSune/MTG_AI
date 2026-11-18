@@ -1,0 +1,39 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "name": "mystic_forge_does_not_play_a_land_from_the_top",
+ "notes": "Printed: 'You may CAST artifact spells and colorless spells'. A Mountain on top of the library is colorless-ish but is no spell and 'cast' is not 'play': no land play from the library is offered.",
+ "cards": [
+  {
+   "key": "forge",
+   "real": "Mystic Forge",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mtn",
+   "real": "Mountain",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "land:mtn"
+   ],
+   "expect_raise": "does not offer 'land:card:1'; it offers ('PASS', 'act:card:0:2')"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "mtn": "library"
+  }
+ }
+}
