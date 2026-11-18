@@ -228,9 +228,27 @@ def f17(card: Any) -> bool:
 
 
 def f46(card: Any) -> bool:
-    """MOVE_ZONE's top-n lane into a hand: it reads the destination's library (CR 108.3)."""
-    return any(a.args.get("pop_order") is not None and isinstance(d := a.args.get("destination"), at.Zone)
-               and d.kind is at.ZoneKind.HAND for _p, a in atoms(card, at.Verb.MOVE_ZONE))
+    """MOVE_ZONE's top-n draw idiom into a hand (an unpartitioned, referent-free, unfiltered
+    selector over one library: ``verbs._v_move_zone``'s draw lane, ``gates._draw_idiom``'s test)
+    that is not "your library into your hand": the lane takes the cards from the library of the
+    destination's player (``zone_owner``, the ability's controller for OWNER or ANY), not from the
+    selector's library, and puts them in that player's hand (CR 108.3, 400.3: the selector's
+    library, its owner's hand). The mill lane (``pop_order``) names its library itself and is right."""
+    you = at.ControllerRef
+    for _p, a in atoms(card, at.Verb.MOVE_ZONE):
+        sel, dest = a.args.get("cards"), a.args.get("destination")
+        if not (isinstance(sel, at.Selector) and isinstance(dest, at.Zone) and dest.kind is at.ZoneKind.HAND):
+            continue
+        partition = sel.mode in (at.SelectorMode.ONE_OF, at.SelectorMode.REST) or (
+            sel.mode is at.SelectorMode.ALL
+            and any(z.kind is at.ZoneKind.LIBRARY and z.position is at.ZonePosition.TOP for z in sel.zones))
+        draw = (not partition and sel.referent is None and len(sel.zones) == 1
+                and sel.zones[0].kind is at.ZoneKind.LIBRARY and isinstance(sel.filter, at.FAnd)
+                and not sel.filter.children)
+        if draw and (sel.zones[0].controller is not you.YOU
+                     or dest.controller not in (you.YOU, you.OWNER, you.ANY)):
+            return True
+    return False
 
 
 def f53(card: Any) -> bool:

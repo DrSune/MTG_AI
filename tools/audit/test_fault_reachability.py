@@ -141,6 +141,23 @@ def test_the_carriers_of_a_fault_are_the_ones_judged(fault: str) -> None:
     assert not moved, f"{fault} (KNOWLEDGE/2026-11-18/215 §4): its carriers changed: {moved}"
 
 
+def test_f46_is_the_draw_lane_naming_another_players_library() -> None:
+    """F46 is MOVE_ZONE's draw lane (``verbs._v_move_zone`` takes the cards from the destination's
+    player's library), so "put the top two cards of target opponent's library into its owner's
+    hand" holds it and "of your library into your hand" does not (the W0 review: the shape keyed
+    on the mill lane, which names its library itself, and could never turn red)."""
+    def mover(library: at.ControllerRef, hand: at.ControllerRef, name: str) -> at.CardRecord:
+        cards = at.Selector(at.QConst(2), at.SelectorMode.CHOOSE, at.FAnd(()),
+                            zones=(at.Zone(at.ZoneKind.LIBRARY, library),))
+        move = at.Atom(verb=at.Verb.MOVE_ZONE, args=at.AtomArgs(pairs=(
+            ("cards", cards), ("destination", at.Zone(at.ZoneKind.HAND, hand)))))
+        return dataclasses.replace(pools()["M21"][0], name=name,
+                                   abilities=(at.SpellAbility(kind=at.SpellKind.SORCERY, effect=move),))
+    cards = [mover(at.ControllerRef.OPPONENT, at.ControllerRef.OWNER, "Synthetic Theft"),
+             mover(at.ControllerRef.YOU, at.ControllerRef.YOU, "Synthetic Draw")]
+    assert holders(LATENT["F46"], cards) == {"Synthetic Theft"}
+
+
 def test_the_guard_turns_red_on_a_card_holding_a_latent_shape() -> None:
     """A synthetic card in the M21 pool: a Saga (F61, lore counters are not modelled) and a copy
     effect beside a card that chooses as it enters (F60, F40). Each latent entry it holds fails."""

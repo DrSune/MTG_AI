@@ -14,5 +14,5 @@
   "zone": {"du": "graveyard", "trick": "graveyard", "elf": "hand"},
   "hand": {"1": 1}
  },
- "notes": "Printed: 'You choose a noncreature, nonland card from it. That player discards that card.' The opponent's hand holds one legal card (an instant) and a creature: the choice is not optional, so the instant is discarded even when the caster answers the engine's empty row '1'. OBSERVED 2026-10-29: verb_choose_options always appends an empty row (query.py:1528-1529), and answering it discards nothing."
+ "notes": "Printed: 'You choose a noncreature, nonland card from it. That player discards that card.' The opponent's hand holds one legal card (an instant) and a creature: the choice is not optional, so the instant is discarded. The ask offers no empty row any more (on 2026-10-29 verb_choose_options appended one, and answering '1' discarded nothing); a '1' would now be a word no ask takes, which the runner fails."
 }

@@ -1,5 +1,5 @@
 {"set": "FDN", "name": "incinerating_blast_nothing_to_discard_draws_nothing",
- "notes": "Paf195f16fe G4. Printed: 'Incinerating Blast deals 6 damage to target creature. You may discard a card. If you do, draw a card.' Seat 0 casts Incinerating Blast as its last card at seat 1's 4/4 (dealt 6, dies). Seat 0's hand is empty, so no card can be discarded and 'If you do' is false (CR 608.2c): nothing is drawn, seat 0's hand stays at 0 and its library is untouched. The step offers the 'you may' its first legal word (whatever the engine offers), so the pack holds whether or not the engine offers the may.",
+ "notes": "Paf195f16fe G4. Printed: 'Incinerating Blast deals 6 damage to target creature. You may discard a card. If you do, draw a card.' Seat 0 casts Incinerating Blast as its last card at seat 1's 4/4 (dealt 6, dies). Seat 0's hand is empty, so no card can be discarded and 'If you do' is false (CR 608.2c): nothing is drawn, seat 0's hand stays at 0 and its library is untouched. The step answers the 'you may' with its first legal word: the engine still offers that may with an empty hand (215's F43, a phantom decision), and the runner fails a word no ask took (W0's G3), so wave W-D, which removes the phantom, drops the word here.",
  "world": {"life": 20, "seed": 7},
  "cards": [
   {"key": "ib", "real": "Incinerating Blast", "zone": "hand", "controller": 0},

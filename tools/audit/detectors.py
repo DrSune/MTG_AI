@@ -685,12 +685,14 @@ def d6_lifecycle(g: ReplayData) -> Verdict:
             source_exempt = (
                 (kind_ in ("grant", "lose") and bool(str(tag).strip()))
                 or (kind_ == "permit" and len(row) > 11 and row[11] is True)  # made by a resolution
-                # A combat rule a resolving spell made with a duration ("must be blocked this
-                # turn if able", FDN Joraga Invocation: layers.register_rule) outlives its source
-                # as a grant does (CR 611.2a). FDN soak seeds 50 and 64 cast it in the game's last
-                # turn, which ended before the cleanup that expires it (KNOWLEDGE 215 F65, D6(iv)).
-                # A static rule has no duration ("Permanent") and still dies with its source.
-                or (kind_ in ("mandate", "mandate_block", "attack_policy") and str(tag) != "Permanent")
+                # A combat rule a resolving spell made ("must be blocked this turn if able", FDN
+                # Joraga Invocation: layers.register_rule) outlives its source as a grant does
+                # (CR 611.2a). FDN soak seeds 50 and 64 cast it in the game's last turn, which
+                # ended before the cleanup that expires it (KNOWLEDGE 215 F65, D6(iv)). It names
+                # the creatures it was applied to (register_rule's fixed targets, never empty); a
+                # static rule names none (its selector is judged live, whatever its tag: a
+                # "While" one too) and still dies with its source (CR 611.3a).
+                or (kind_ in ("mandate", "mandate_block", "attack_policy") and bool(raw_targets))
             )
             for raw in (source, *targets):
                 handle = str(raw)

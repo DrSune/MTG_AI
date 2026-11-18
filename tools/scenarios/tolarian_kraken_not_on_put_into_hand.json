@@ -1,5 +1,5 @@
 {"set": "M21", "world": {"life": 20, "seed": 7},
- "notes": "Printed: 'Whenever you DRAW a card, you may pay {1}. When you do, you may tap or untap target creature.' Garruk, Savage Herald's +1 reveals the top card (a creature) and puts it into your hand; that is not a draw (CR 121.1), so the Kraken must not trigger: the opponent's Walker stays untapped and the {1} stays in the pool even though every offer would be answered.",
+ "notes": "Printed: 'Whenever you DRAW a card, you may pay {1}. When you do, you may tap or untap target creature.' Garruk, Savage Herald's +1 reveals the top card (a creature) and puts it into your hand; that is not a draw (CR 121.1), so the Kraken must not trigger: the opponent's Walker stays untapped and the {1} stays in the pool. No answer is queued: a Kraken trigger would ask its may and fail the pack for want of one.",
  "cards": [
   {"key": "kr", "real": "Tolarian Kraken", "zone": "hand", "controller": 0},
   {"key": "gsh", "real": "Garruk, Savage Herald", "zone": "battlefield", "controller": 0},

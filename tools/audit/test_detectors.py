@@ -623,10 +623,11 @@ def test_d6_a_resolved_combat_rule_outlives_its_source() -> None:
     rule = (20, "mandate_block", "card:14", P0, "Eot", "live", ("card:13",), "payload", ())
     g = game([], final_zone={"card:14": "graveyard", "card:13": D.BATTLEFIELD}, layers_rows=[rule])
     assert D.d6_lifecycle(g).status == "clean"
-    # a static rule (no duration) still dies with its source (CR 611.3a), and a dead creature
-    # still bound is still a hit
-    static = (21, "mandate_block", "card:14", P0, "Permanent", "live", (), "payload", ())
-    assert D.d6_lifecycle(game([], final_zone={"card:14": "graveyard"}, layers_rows=[static])).status == "HIT"
+    # a static rule (no fixed creatures, whatever its tag: "While" too) still dies with its source
+    # (CR 611.3a), and a dead creature still bound is still a hit
+    for tag in ("Permanent", "While"):
+        static = (21, "mandate_block", "card:14", P0, tag, "live", (), "payload", ())
+        assert D.d6_lifecycle(game([], final_zone={"card:14": "graveyard"}, layers_rows=[static])).status == "HIT"
     dead = game([], final_zone={"card:14": "graveyard", "card:13": "graveyard"}, layers_rows=[rule])
     assert D.d6_lifecycle(dead).status == "HIT"
 

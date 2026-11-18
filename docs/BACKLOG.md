@@ -51,13 +51,11 @@ are neutral; each one is teaching the agent something.
 ## Open engine faults
 - **Possible rules faults found by the 2026-11-06 engine lean pass** (not changed; none known to be
   live in two-player verified play):
-  - a target-player slot with no legal player still resolves instead of the ability being removed
-    (CR 603.3d);
   - "an opponent controls more creatures than you" (Garruk, Unleashed; since ontology round R12
     the comparison of two counts) sums all opponents at three or more seats;
   - party size can count one multi-class creature several times;
   - `templates_b6` emits `Verb.DISCARD`, which has no handler.
-  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F01-F04):* F01 CLOSED on main (`binding.TriggerBinder._designate` removes the ability; `test_executor_hexproof` and pack `runed_halo_names_brash_taunter` pin it), removal proposed in W0; F02 multiplayer only (W5); F03 latent, no party card is dealt; F04 latent, 0 trees in the deal pools (I8's fold).
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F02-F04):* F02 multiplayer only (W5); F03 latent, no party card is dealt; F04 latent, 0 trees in the deal pools (I8's fold). (F01, a target-player slot with no legal player, was closed in W0 with its trigger, spell and activated lanes checked: `reports/engine_wave_w0_2026-11-18/stale_entries.txt`.)
 - **Compiler faults found by the 2026-11-06 lean pass** (none live in the M21, M20 or FDN verified
   pools: every verified card that places counters places the printed kind, and the verified
   "as long as" statics carry their condition as a while-duration):
@@ -153,10 +151,6 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
   - **A copy of "this creature"** made by an ability whose source came back reads the new object's
     copiable values (`copies.values_of` reads live a card on the battlefield), where CR 608.2h reads
     the old one's; they differ only if a copy effect applied to one of them.
-- **B-54 [2026-10-29, first mapping batch] `legal_casts` offers a spell whose required target has
-  no legal candidate** (CR 601.2c), and casting it raises. The bench router hides such rows; the
-  probe now skips them.
-  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F15):* CLOSED for play: games build their menu with `menu.menu`, which leaves out a row `stack.can_designate` refuses; `query.legal_casts` is read only by tools/cards (probe, respond), which move to the menu in W0.
 - **Two "target" words with the same text share one target slot** (found 2026-11-06): the slot
   query keys a slot by its selector (`query.spell_target_slots` dedupes by repr, which is how the
   compiled anaphora of "target creature ... its power" stays one target), so "Target creature gets
@@ -456,11 +450,6 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
   (`executor._conditional_subject` takes the result register only when it holds one object): no
   tree has such a step today; "if they ..." over several tokens would need its own reading.
   - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F47):* latent (FDN Faebloom Trick holds the shape, but its Conditional is MAY_DONE, not a test of the tokens). With the card.
-- **Starlight Snare's "doesn't untap during its controller's untap step" blocks every untap of
-  the creature** (FDN round 1, 2026-11-06; CR 502.3: only the untap step). Check the verified
-  "next untap step" cards too (Frost Breath M21, Frost Lynx M20); it matters only when an untap
-  effect is in play.
-  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F49):* CLOSED on main: only the untap step reads the prevention (`Executor._untap_step`); the closed check `reports/engine_fault_triage_2026-11-18/closed_checks/act_of_treason_untaps_a_creature_sleep_paralysis_holds.json` and its control pass. Removal proposed in W0.
 - **The reveal record of "reveals their hand" lists the library, not the hand** (verbs.py ~1485;
   round-3 verification, 2026-11-06); nothing reads it today.
   - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F51):* the same fault as F63 ('The journal is not a record of what players know'), wave W3.
@@ -614,35 +603,6 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
   rebuilds knowledge from the journal is wrong: `search.reshuffle_unknown` did, and was replaced by
   a whole-library shuffle. Fix: a zone role on REVEAL, and SCRY rows that name the cards.
   - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F63, with F51):* latent for play (no reader), but a honesty hazard for memory v1, which would read a revealed hand as the opponent's library. IR change (REVEAL names its zone), gate round W3, before memory v1.
-- **Teferi, Master of Time's -3 duration (suspected, check the ruling)** (2026-11-12, 197): "phases
-  out until your next turn" compiles as plain PHASE_OUT, and the pack
-  `teferi_master_of_time_phased_out_waits_for_its_controller.json` pins classic phasing (it phases
-  in at its controller's next untap step). With his loyalty abilities usable on any player's turn,
-  the two readings can differ; check the Comprehensive Rules and the card's rulings.
-  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F64):* NOT A FAULT: the printed text's reminder reads 'until its controller's next turn', classic phasing, which the pack pins. Removal proposed in W0.
-
-- **B-73 [2026-10-29 soaks] The anomaly detectors flag about 2% of M21 games on `main`.**
-  - Measured: 18 flags in 800 castable games (400 stress + 400 coherent), all pre-existing. On
-    `cards/integration`: 10.
-  - The classes:
-    - d1: life moved without a journal row;
-    - d3, triaged 2026-11-18 (engine wave E3): a detector artefact. It flagged every placement
-      after the card's last death, so a creature that died, came back (Soul Salvage, Macabre
-      Waltz, Zombify) and was then given a counter on the battlefield looked like a phantom. All
-      3 hits in 450 soak games on main fa284327 were that (M20 seed 122, FDN 260 and 283), none a
-      real placement off the battlefield; presence alone decides now (`detectors.d3_counters`).
-      The two rules gaps 208 §9 read into it are fixed anyway (KNOWLEDGE 212 §6, E3);
-    - d5: P/T recompute mismatch (Goblin Wizard, Thieves' Guild Enforcer, Quirion Dryad, Palladium
-      Myr);
-    - d6: an end-of-turn grant or lose layer still bound to a card that left (related to B-50 and
-      CR 400.7); two replacement records for one event (B-69); a delayed trigger never drained.
-  - BUGCATCH's "scan = 0" was 10 catalog seeds, so the larger sample now finds these. Triage each
-    class: detector gap or engine bug.
-  - Since then B-50 (CR 400.7, f908287) and B-69 (two replacements on one event, a528b03) are
-    fixed, and the M20 verified-pool soak found 0 detector hits in 300 games (/184 §12):
-    re-measure on the castable pool before triaging.
-  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F65):* re-measured: 300 verified-mode games per pool, 0 crashes; M20 0 hits; every M21 and FDN hit traced to a detector artefact (D5 folds counters across lives and ignores static and end-of-turn P/T; D6 counts a game that ended inside a delayed trigger's turn, and two copies of one replacement) or to an end-of-turn mandate record left on a dead card with no reachable effect. The record is W1's.
-  - *Detectors fixed 2026-11-18 (engine wave W0):* D5 judges a death by the printed P/T plus the counters of that life only (CR 400.7), and only where no P/T effect or counter removal touched it (the soak's `detectors.Watch` reads them from the ledger and the event log, which the journal does not carry); D6 (i) flags a delayed trigger that outlived its window, not one of the game's last turn; D6 (iii) counts one source's duplicate records, not two copies of one replacement (CR 616.1). The soak baseline with them (`reports/engine_wave_w0_2026-11-18/soak_*.json`, 300 games per pool): 0 crashes, and one hit class left, D6 (iv)'s mandate_block record (FDN seeds 50, 64), W1's.
 
 ---
 
