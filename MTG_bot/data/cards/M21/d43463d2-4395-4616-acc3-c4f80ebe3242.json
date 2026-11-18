@@ -6,42 +6,50 @@
  "text_sha": "6d21f1be35b77f61144edcfc01c0803ccc2e12ede2b0ec02630129169f4e4989",
  "verified": {
   "tree_sha": "ef828262dfcea23f474fa2cda0947cb019a7d065494c34e0457bed8c3da53c5c",
-  "probe_sha": "901873b10598c457383f02c013fdc961fdc575dace41f345745ab5be409e9fc6",
-  "date": "2026-10-29",
-  "reviewer": "claude-verifier-m21-A",
+  "probe_sha": "68d0fbe91a4ffbeeabd569c761ff23ac71454b2c7a73c10eaef206ddb0ca1947",
+  "date": "2026-11-18",
+  "reviewer": "claude-sonnet-verifier-wave6",
   "clauses": [
    {
     "clause": "Flying",
     "status": "OK",
-    "evidence": "keywords[0] FLYING; [cast] keywords +FLYING; [this creature attacks and opp_giant blocks it] the block is not made and opp takes 2 (opp_giant has no flying/reach)",
+    "evidence": "keywords[0] FLYING; [cast]: 'card: zone hand -> battlefield; P/T - -> 2/2; keywords +FLYING'; [this creature attacks and opp_giant blocks it]: the giant (no flying or reach) does not block, 'opp is dealt 2 damage (combat)'.",
     "issue": ""
    },
    {
     "clause": "Creature spells with flying you cast cost {1} less to cast.",
     "status": "NOT_EXERCISED",
-    "evidence": "abilities[0] CostModifier(Creature AND KEYWORD_HAS FLYING, controller YOU, reduce generic 1) matches parse; the trace's only creature cast (Staunch Shieldmate, no flying) is unchanged. Packs watcher_of_the_spheres_flier.json (Mistral Singer {2}{U} cast with exactly 2 mana) and watcher_of_the_spheres_nonflier_full_cost.json (Mystic Skyfish, no flying, still costs 3: 'illegal cast: cost:mana_generic') PASS",
+    "evidence": "The trace's only creature cast ('you cast a creature (Staunch Shieldmate)') has no flying and is unchanged. abilities[0] = CostModifier(FAnd(TYPE_EQ Creature, KEYWORD_HAS FLYING), controller_ref YOU, CostDeltaReduceGeneric(1)), the compiler's own tree (parse: B4-cost-modifier-watcher). Packs: A01_1 (Mistral Singer, {2}{U}, printed flying, is paid by exactly two Islands, both tapped), A01_2 (Mystic Skyfish, no flying, is refused with the same two Islands, the Singer then castable), A01_3 (one Island cannot pay it: exactly one less, the control with a floating {U} succeeds), A01_4 (the opponent's flier on its own turn costs its full three, all three Islands tapped: 'you cast').",
     "issue": ""
    },
    {
     "clause": "Whenever another creature you control with flying enters, this creature gets +1/+1 until end of turn.",
     "status": "NOT_EXERCISED",
-    "evidence": "abilities[1] matches parse (B2b-flying-enters-self-boost); trace's non-flying entries ('a creature enters under your control') do not trigger. Packs watcher_of_the_spheres_flier.json (own flier enters -> Watcher 3/3, opponent's flier enters -> no extra boost) and watcher_of_the_spheres_eot.json (non-flier adds nothing; back to 2/2 after end_turn) PASS",
+    "evidence": "The trace's entering creatures have no flying ('a creature enters under your control -> none', 'under the opponent's control -> none'), and the Watcher's own entry does not trigger it. abilities[1] matches the compiler's tree (parse: B2b-flying-enters-self-boost): ZoneChangeEvent to Zone(BATTLEFIELD, YOU), subject FAnd(CONTROLLER_IS YOU, Creature, KEYWORD_HAS FLYING, FNot(IS_SOURCE)), MODIFY_PT +1/+1 DurationEot on IS_SOURCE, no once_per_event. Packs: A01_1 (cast flier: 3/3), A01_5 (your flier: +1/+1; your non-flier and the opponent's flier: nothing), A01_6 (back to 2/2 after the turn ends), A01_7 (two fliers entering in one event: two triggers, 4/4), A01_8 (a second Watcher buffs the first, not itself). A01_9 and A01_10 pin 'you control' as the controller as the creature enters, not its owner (CR 110.2): Liliana, Waker of the Dead's emblem puts the opponent's own flier under seat 0's control (the Watcher becomes 3/3), and seat 1's emblem puts seat 0's flier under seat 1's control (the Watcher stays 2/2).",
     "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/watcher_of_the_spheres_1.json",
-   "tools/scenarios/cards/M21/watcher_of_the_spheres_2.json",
-   "tools/scenarios/cards/M21/watcher_of_the_spheres_3.json"
+   "tools/scenarios/cards/M21/watcher_of_the_spheres_4.json",
+   "tools/scenarios/cards/M21/watcher_of_the_spheres_5.json",
+   "tools/scenarios/cards/M21/watcher_of_the_spheres_6.json",
+   "tools/scenarios/cards/M21/watcher_of_the_spheres_7.json",
+   "tools/scenarios/cards/M21/watcher_of_the_spheres_8.json",
+   "tools/scenarios/cards/M21/watcher_of_the_spheres_9.json",
+   "tools/scenarios/cards/M21/watcher_of_the_spheres_10.json",
+   "tools/scenarios/cards/M21/watcher_of_the_spheres_11.json",
+   "tools/scenarios/cards/M21/watcher_of_the_spheres_12.json",
+   "tools/scenarios/cards/M21/watcher_of_the_spheres_13.json"
   ],
   "mutation": {
-   "mutants": 13,
+   "mutants": 14,
    "killed": 3,
-   "score": 0.23076923076923078,
+   "score": 0.21428571428571427,
    "survived": [
     "widen filter (drop part 0) at 1/0/filter",
     "widen filter (drop part 1) at 1/0/filter",
     "controller YOU->OPPONENT at 1/0/controller_ref",
+    "each occurrence -> once per event at 1/1",
     "controller YOU->OPPONENT at 1/1/event/to_zone/controller",
     "widen filter (drop part 0) at 1/1/event/subject",
     "widen filter (drop part 1) at 1/1/event/subject",

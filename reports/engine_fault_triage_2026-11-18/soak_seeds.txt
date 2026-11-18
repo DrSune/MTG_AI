@@ -1,0 +1,19 @@
+M21 seed 9: d6_lifecycle: delayed trigger still pending at game end (never drained, never expired): (4, 'Eot', 'card:77', 'player:1', "DamageDealtEvent(amount=QUnbounded(), filter=FNot(i
+M21 seed 53: d5_pt_recompute: recompute mismatch on card:5 (Hooded Blightfang): assert 2/5 vs fold -2/1 (anchor base -3/0 + counters (1, 1)); NOTE: a SET_PT/MODIFY_PT layer is a possible ben
+M21 seed 57: d5_pt_recompute: recompute mismatch on card:10 (Thieves' Guild Enforcer): assert 4/3 vs fold 2/2 (anchor base 1/1 + counters (1, 1)); NOTE: a SET_PT/MODIFY_PT layer is a possibl
+M21 seed 114: d6_lifecycle: 2 replacement records for one event "DamageDealtEvent(amount=QX(), filter=FAnd(children=()), source=FAtom(pred=<FAtomPred.CONTROLLER_IS: 'CONTROLLER_IS'>, st" (
+M21 seed 172: d5_pt_recompute: recompute mismatch on card:6 (Pack Leader): assert 3/3 vs fold 5/4 (anchor base 4/3 + counters (1, 1)); NOTE: a SET_PT/MODIFY_PT layer is a possible benign read
+M21 seed 193: d6_lifecycle: delayed trigger still pending at game end (never drained, never expired): (12, 'Eot', 'card:73', 'player:1', "DamageDealtEvent(amount=QUnbounded(), filter=FNot(
+M21 seed 229: d5_pt_recompute: counter-invariant assert: card:26 died asserted 2/2 with pt-delta (0, 0) while a same-identity copy (Watcher of the Spheres) asserts the SAME PT with a differen
+M21 seed 229: d5_pt_recompute: counter-invariant assert: card:118 died asserted 2/2 with pt-delta (2, 2) while a same-identity copy (Watcher of the Spheres) asserts the SAME PT with a differe
+M21 seed 229: d5_pt_recompute: recompute mismatch on card:118 (Watcher of the Spheres): assert 2/2 vs fold 4/4 (anchor base 2/2 + counters (2, 2)) — COUNTER-BLIND: assertion equals the uncoun
+M21 seed 235: d6_lifecycle: delayed trigger still pending at game end (never drained, never expired): (13, 'Eot', 'card:112', 'player:1', "DeclareAttackersEvent(filter=FAtom(pred=<FAtomPre
+M21 seed 281: d6_lifecycle: delayed trigger still pending at game end (never drained, never expired): (8, 'Eot', 'card:7', 'player:0', "DamageDealtEvent(amount=QUnbounded(), filter=FNot(in
+M21 seed 297: d6_lifecycle: 2 replacement records for one event "DamageDealtEvent(amount=QX(), filter=FAnd(children=()), source=FAtom(pred=<FAtomPred.CONTROLLER_IS: 'CONTROLLER_IS'>, st" (
+FDN seed 50: d6_lifecycle: live layer #20 kind=mandate_block tag=Eot bound to card:14 ended in 'graveyard'
+FDN seed 64: d6_lifecycle: live layer #56 kind=mandate_block tag=Eot bound to card:119 ended in 'graveyard'
+FDN seed 123: d5_pt_recompute: counter-invariant assert: card:0 died asserted 3/4 with pt-delta (1, 1) while a same-identity copy (Erudite Wizard) asserts the SAME PT with a different counter
+FDN seed 123: d5_pt_recompute: counter-invariant assert: card:0 died asserted 3/4 with pt-delta (2, 2) while a same-identity copy (Erudite Wizard) asserts the SAME PT with a different counter
+FDN seed 213: d5_pt_recompute: recompute mismatch on card:47 (Mold Adder): assert 0/0 vs fold 2/2 (anchor base 1/1 + counters (1, 1)); NOTE: a SET_PT/MODIFY_PT layer is a possible benign read
+FDN seed 262: d5_pt_recompute: counter-invariant assert: card:38 died asserted 3/2 with pt-delta (1, 1) while a same-identity copy (Brineborn Cutthroat) asserts the SAME PT with a different c
+FDN seed 262: d5_pt_recompute: counter-invariant assert: card:38 died asserted 3/2 with pt-delta (2, 2) while a same-identity copy (Brineborn Cutthroat) asserts the SAME PT with a different c

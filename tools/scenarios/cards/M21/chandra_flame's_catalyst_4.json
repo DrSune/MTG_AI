@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "name": "A00_4_minus_two_is_a_may_and_can_be_declined",
+ "notes": "Printed: '[-2]: You MAY cast target red instant or sorcery card from your graveyard.' Shock is the only legal target (so no target ask). The cast is offered as the -2 resolves and is declined ('skip'): Shock stays in the graveyard, nothing is spent (the {R} stays in the pool), the opposing Bear lives, nobody is hurt. The loyalty cost was paid all the same (5 -> 3).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cf", "real": "Chandra, Flame's Catalyst", "zone": "battlefield", "controller": 0},
+  {"key": "shock", "real": "Shock", "zone": "graveyard", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "act", "seat": 0, "words": ["act:cf:1", "skip"]}
+ ],
+ "expect": {
+  "zone": {"shock": "graveyard", "bear": "battlefield", "cf": "battlefield"},
+  "counters": {"cf": {"LOYALTY": 3}},
+  "life": {"0": 20, "1": 20},
+  "mana_pool": {"0": {"R": 1}}
+ }
+}

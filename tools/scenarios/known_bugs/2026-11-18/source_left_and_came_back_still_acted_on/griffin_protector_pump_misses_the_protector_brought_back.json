@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "notes": "KNOWN BUG (KNOWLEDGE/2026-11-18/215, fault F14; BACKLOG 'An ability whose source left and came back still acts on the source'). Fails on main 8d85e0a7; passes once every verb skips a source that changed zones since its ability triggered. Printed: Griffin Protector, 'Whenever another creature you control enters, this creature gets +1/+1 until end of turn.' Brought Back (verified, M20): 'Choose up to two target permanent cards in your graveyard that were put there from the battlefield this turn. Return them to the battlefield tapped.' A Bear enters (hold): the Protector's trigger waits. The Protector dies (a move by another effect, the destroy stand-in), and Brought Back returns it in response: the Protector on the battlefield is a new object (CR 400.7) that the waiting trigger does not name (CR 113.7a), so the pump does nothing and the new Protector stays a 2/3. On main the pump lands on the new object (3/4): STRONGER than printed, and reachable in the M20 deal pool with two verified cards (Brought Back and any of the 16 M20 cards whose ability acts on its own source).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "gp", "real": "Griffin Protector", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "hand", "controller": 0},
+  {"key": "bb", "real": "Brought Back", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "enter", "key": "bear", "hold": true},
+  {"op": "move", "key": "gp", "to": "graveyard", "hold": true},
+  {"op": "cast", "key": "bb", "targets": ["gp"], "hold": true},
+  {"op": "resolve"},
+  {"op": "pass"}
+ ],
+ "expect": {
+  "zone": {"gp": "battlefield", "bb": "graveyard"},
+  "tapped": {"gp": true},
+  "power": {"gp": 2},
+  "toughness": {"gp": 3}
+ }
+}

@@ -128,7 +128,14 @@ SET_CODE = "M21"
 # ------------------------------------------------------------------ the rules
 DECK_SIZE = 60
 OPENING_HAND = 7
-TURN_CAP = 60
+#: A rail for games that would never end, scored as a draw-cap (a loss for both seats in self-play).
+#: Just above the rules' own end: a library holds at most DECK_SIZE cards (a mulligan puts cards on
+#: the bottom), so a player draws its last on its DECK_SIZE-th draw and loses on the next (CR
+#: 704.5b), and the starting player skips one draw (CR 103.8a). No game without an effect that
+#: returns cards to a library reaches this, so a stalled game is lost by the player who decks, and
+#: the cap binds only on a loop the stall rule misses (60 until 2026-11-18, when it ended 0.17% of
+#: r29's training games, all of them network stalls the rules would have ended by decking).
+TURN_CAP = 2 * (DECK_SIZE + 1) + 3  # one turn of margin past the last possible draw (the owner)
 MAX_COPIES = 4
 #: A card's own deck-construction rule beats the four-copy limit (CR 100.2a; the card wins, CR
 #: 101.1): "A deck can have any number of cards named ~." (FDN Hare Apparent, DOM Rat Colony,
@@ -140,10 +147,11 @@ _COPY_WORDS = {"two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7,
                "nine": 9, "ten": 10}
 MIN_MANA_SOURCES = 10
 #: At most this many actions by one player in one step (CR 117: a player who acts keeps
-#: priority, so one who never passes would never let a step end); a rail, not a rule, registered
-#: in docs/BACKLOG.md "Scaffolds to remove". The loop passes for a player at the cap, recorded as
-#: any pass is.
-MAX_ACTS_PER_STEP = 10
+#: priority, so one who never passes would never let a step end); a rail against such a loop, not
+#: a rule, registered in docs/BACKLOG.md "Scaffolds to remove". The loop passes for a player at
+#: the cap, recorded as any pass is, and counts it (``Game.act_cap_hits``). 10 until 2026-11-18;
+#: no heuristic game of 1,000 took more than 7.
+MAX_ACTS_PER_STEP = 30
 
 # Stall rule (CR 104.4b): a game whose
 # WORLD FINGERPRINT is unchanged across REPEAT_ROUNDS consecutive rounds
@@ -1065,6 +1073,8 @@ class Game:
     acts: int = 0
     turns: int = 0
     infeasible_skips: int = 0
+    # Priority points where a player at MAX_ACTS_PER_STEP was made to pass (a rail binding)
+    act_cap_hits: int = 0
     player_target_designations: int = 0
     reason: str = ""
     # Seats whose life crossed 0 DURING a COMBAT phase (combat deaths,
@@ -1471,7 +1481,9 @@ def _play_turns(
                     game.trace.record_turn(active)
             if stop_after is not None and stop_after(game, "priority"):
                 return
-            if executor.step_actions.get(seat, 0) < MAX_ACTS_PER_STEP and policy.take_priority(game, seat):
+            capped = executor.step_actions.get(seat, 0) >= MAX_ACTS_PER_STEP
+            game.act_cap_hits += capped
+            if not capped and policy.take_priority(game, seat):
                 executor.acted(seat)
             else:
                 lives = {s: world.players[s].life for s in world.player_order}

@@ -1,0 +1,775 @@
+
+== F14 carriers: an activated or triggered ability's verb (not PUT_COUNTER) acting on its own source
+  M21 deal pool: 22 hits on 18 cards
+    Alpine Houndmaster | TriggeredAbility MODIFY_PT.target
+    Archfiend's Vessel | TriggeredAbility MOVE_ZONE.target
+    Burlfist Oak | TriggeredAbility MODIFY_PT.target
+    Chandra's Pyreling | TriggeredAbility GRANT_ABILITY.target
+    Chandra's Pyreling | TriggeredAbility MODIFY_PT.target
+    Dire Fleet Warmonger | TriggeredAbility GRANT_ABILITY.target
+    Dire Fleet Warmonger | TriggeredAbility MODIFY_PT.target
+    Malefic Scythe | ActivatedAbility ATTACH.equipment
+    Mazemind Tome | TriggeredAbility MOVE_ZONE.target
+    Mystic Skyfish | TriggeredAbility GRANT_ABILITY.target
+    Nine Lives | TriggeredAbility MOVE_ZONE.target
+    Ornery Dilophosaur | TriggeredAbility MODIFY_PT.target
+    Riddleform | TriggeredAbility GRANT_ABILITY.target
+    Riddleform | TriggeredAbility GRANT_TYPE.target
+    Riddleform | TriggeredAbility SET_PT.target
+    Sabertooth Mauler | TriggeredAbility UNTAP.target
+    Seasoned Hallowblade | ActivatedAbility TAP.target
+    Short Sword | ActivatedAbility ATTACH.equipment
+    Siege Striker | TriggeredAbility MODIFY_PT.target
+    Silversmote Ghoul | TriggeredAbility MOVE_ZONE.cards
+    Snarespinner | TriggeredAbility MODIFY_PT.target
+    Watcher of the Spheres | TriggeredAbility MODIFY_PT.target
+  M20 deal pool: 19 hits on 16 cards
+    Ancestral Blade | ActivatedAbility ATTACH.equipment
+    Ancestral Blade | TriggeredAbility ATTACH.equipment
+    Cavalier of Gales | TriggeredAbility MOVE_ZONE.cards
+    Chandra's Spitfire | TriggeredAbility MODIFY_PT.target
+    Colossus Hammer | ActivatedAbility ATTACH.equipment
+    Diviner's Lockbox | ActivatedAbility SACRIFICE.target
+    Griffin Protector | TriggeredAbility MODIFY_PT.target
+    Heart-Piercer Bow | ActivatedAbility ATTACH.equipment
+    Immortal Phoenix | TriggeredAbility MOVE_ZONE.cards
+    Lavakin Brawler | TriggeredAbility MODIFY_PT.target
+    Marauder's Axe | ActivatedAbility ATTACH.equipment
+    Marauding Raptor | TriggeredAbility MODIFY_PT.target
+    Mask of Immolation | ActivatedAbility ATTACH.equipment
+    Mask of Immolation | TriggeredAbility ATTACH.equipment
+    Netcaster Spider | TriggeredAbility MODIFY_PT.target
+    Sanitarium Skeleton | ActivatedAbility MOVE_ZONE.cards
+    Waterkin Shaman | TriggeredAbility MODIFY_PT.target
+    Wolfrider's Saddle | ActivatedAbility ATTACH.equipment
+    Wolfrider's Saddle | TriggeredAbility ATTACH.equipment
+  FDN deal pool: 7 hits on 6 cards
+    Adventuring Gear | ActivatedAbility ATTACH.equipment
+    Ball Lightning | TriggeredAbility SACRIFICE.target
+    Fireshrieker | ActivatedAbility ATTACH.equipment
+    Goldvein Pick | ActivatedAbility ATTACH.equipment
+    Mazemind Tome | TriggeredAbility MOVE_ZONE.target
+    Pirate's Cutlass | ActivatedAbility ATTACH.equipment
+    Pirate's Cutlass | TriggeredAbility ATTACH.equipment
+
+== F14 enablers: returns a permanent card to the battlefield from a graveyard, exile or a hand
+  M21 deal pool: 6 hits on 6 cards
+    Liliana, Waker of the Dead | TriggeredAbility cards: zones=['GRAVEYARD'] ref=None duration=NoneType
+    Obsessive Stitcher | ActivatedAbility cards: zones=['GRAVEYARD'] ref=None duration=NoneType
+    Rise Again | SpellAbility cards: zones=['GRAVEYARD'] ref=None duration=NoneType
+    Silversmote Ghoul | TriggeredAbility cards: zones=['GRAVEYARD'] ref=None duration=NoneType
+    Transmogrify | SpellAbility cards: zones=['ANY'] ref=result duration=NoneType
+    Ugin, the Spirit Dragon | ActivatedAbility cards: zones=['HAND'] ref=None duration=NoneType
+  M20 deal pool: 6 hits on 6 cards
+    Blood for Bones | SpellAbility cards: zones=['GRAVEYARD'] ref=None duration=NoneType
+    Brought Back | SpellAbility cards: zones=['GRAVEYARD'] ref=None duration=NoneType
+    Cavalier of Night | TriggeredAbility cards: zones=['GRAVEYARD'] ref=None duration=NoneType
+    Gravewaker | ActivatedAbility cards: zones=['GRAVEYARD'] ref=None duration=NoneType
+    Risen Reef | TriggeredAbility cards: zones=['ANY'] ref=result duration=NoneType
+    Sorin, Imperious Bloodlord | ActivatedAbility cards: zones=['HAND'] ref=None duration=NoneType
+  FDN deal pool: 5 hits on 5 cards
+    Deadly Plot | SpellAbility cards: zones=['GRAVEYARD'] ref=None duration=NoneType
+    Fake Your Own Death | TriggeredAbility cards: zones=['ANY'] ref=event duration=NoneType
+    Nullpriest of Oblivion | TriggeredAbility cards: zones=['GRAVEYARD'] ref=None duration=NoneType
+    Rise of the Dark Realms | SpellAbility cards: zones=['GRAVEYARD'] ref=None duration=NoneType
+    Zombify | SpellAbility cards: zones=['GRAVEYARD'] ref=None duration=NoneType
+
+== F14b carriers: reads a chosen quality (NAME_CHOSEN) in an activated or triggered ability
+  M21 deal pool: 0 hits on 0 cards
+  M20 deal pool: 3 hits on 3 cards
+    Diamond Knight | TriggeredAbility
+    Diviner's Lockbox | ActivatedAbility
+    Icon of Ancestry | ActivatedAbility
+  FDN deal pool: 1 hits on 1 cards
+    Diamond Mare | TriggeredAbility
+
+== F01: a trigger designates 'target opponent/player' (a player slot)
+  M21 deal pool: 1 hits on 1 cards
+    Brash Taunter | TriggeredAbility selector zones=[('PLAYER', 'OPPONENT')]
+  M20 deal pool: 1 hits on 1 cards
+    Gruesome Scourger | TriggeredAbility selector zones=[('BATTLEFIELD', 'ANY'), ('PLAYER', 'OPPONENT')]
+  FDN deal pool: 0 hits on 0 cards
+
+== F01h: gives a player hexproof or protection (a target-player slot can lose every candidate)
+  M21 deal pool: 2 hits on 2 cards
+    Enthralling Hold | StaticAbility PREVENT targeting: TargetingEvent(filter=FAnd(children=(FAtom(pred=<FAtomPred.IS_UNTAPPED: 'IS_UNTAPPED'>, st
+    Runed Halo | StaticAbility GRANT_ABILITY to a player
+  M20 deal pool: 1 hits on 1 cards
+    Veil of Summer | SpellAbility GRANT_ABILITY to a player
+  FDN deal pool: 0 hits on 0 cards
+
+== F04: Verb.DISCARD (no executor handler)
+  M21 deal pool: 0 hits on 0 cards
+  M20 deal pool: 0 hits on 0 cards
+  FDN deal pool: 0 hits on 0 cards
+
+== F05: PUT_COUNTER of a kind other than +1/+1 (a misprint would show here)
+  M21 deal pool: 32 hits on 28 cards
+    Adherent of Hope | PLUS_1_PLUS_1
+    Animal Sanctuary | PLUS_1_PLUS_1
+    Basri Ket | PLUS_1_PLUS_1
+    Basri's Acolyte | PLUS_1_PLUS_1
+    Basri's Aegis | PLUS_1_PLUS_1
+    Basri's Lieutenant | PLUS_1_PLUS_1
+    Basri's Solidarity | PLUS_1_PLUS_1
+    Basri, Devoted Paladin | PLUS_1_PLUS_1
+    Conclave Mentor | PLUS_1_PLUS_1
+    Feat of Resistance | PLUS_1_PLUS_1
+    Garruk, Unleashed | LOYALTY
+    Hobblefiend | PLUS_1_PLUS_1
+    Hunter's Edge | PLUS_1_PLUS_1
+    Invigorating Surge | PLUS_1_PLUS_1
+    Light of Promise | PLUS_1_PLUS_1
+    Liliana's Scrounger | LOYALTY
+    Lorescale Coatl | PLUS_1_PLUS_1
+    Makeshift Battalion | PLUS_1_PLUS_1
+    Malefic Scythe | SOUL
+    Nine Lives | INCARNATION
+    Pridemalkin | PLUS_1_PLUS_1
+    Quirion Dryad | PLUS_1_PLUS_1
+    Sabertooth Mauler | PLUS_1_PLUS_1
+    Scavenging Ooze | PLUS_1_PLUS_1
+    Spellgorger Weird | PLUS_1_PLUS_1
+    Tempered Veteran | PLUS_1_PLUS_1
+    Trufflesnout | PLUS_1_PLUS_1
+    Wildwood Scourge | PLUS_1_PLUS_1
+  M20 deal pool: 20 hits on 19 cards
+    Ajani, Inspiring Leader | PLUS_1_PLUS_1
+    Ajani, Strength of the Pride | PLUS_1_PLUS_1
+    Bloodthirsty Aerialist | PLUS_1_PLUS_1
+    Brineborn Cutthroat | PLUS_1_PLUS_1
+    Diamond Knight | PLUS_1_PLUS_1
+    Herald of the Sun | PLUS_1_PLUS_1
+    Knight of the Ebon Legion | PLUS_1_PLUS_1
+    Omnath, Locus of the Roil | PLUS_1_PLUS_1
+    Overgrowth Elemental | PLUS_1_PLUS_1
+    Savage Gorger | PLUS_1_PLUS_1
+    Sorin, Imperious Bloodlord | PLUS_1_PLUS_1
+    Starfield Mystic | PLUS_1_PLUS_1
+    Steadfast Sentry | PLUS_1_PLUS_1
+    Steel Overseer | PLUS_1_PLUS_1
+    Twinblade Paladin | PLUS_1_PLUS_1
+    Vengeful Warchief | PLUS_1_PLUS_1
+    Vivien, Nature's Avenger | PLUS_1_PLUS_1
+    Voracious Hydra | PLUS_1_PLUS_1
+    Woodland Champion | PLUS_1_PLUS_1
+  FDN deal pool: 18 hits on 18 cards
+    Ajani's Pridemate | PLUS_1_PLUS_1
+    Apothecary Stomper | PLUS_1_PLUS_1
+    Brineborn Cutthroat | PLUS_1_PLUS_1
+    Clinquant Skymage | PLUS_1_PLUS_1
+    Erudite Wizard | PLUS_1_PLUS_1
+    Felidar Savior | PLUS_1_PLUS_1
+    Felling Blow | PLUS_1_PLUS_1
+    Fleeting Flight | PLUS_1_PLUS_1
+    Halana and Alena, Partners | PLUS_1_PLUS_1
+    High-Society Hunter | PLUS_1_PLUS_1
+    Hungry Ghoul | PLUS_1_PLUS_1
+    Mold Adder | PLUS_1_PLUS_1
+    Scavenging Ooze | PLUS_1_PLUS_1
+    Snakeskin Veil | PLUS_1_PLUS_1
+    Stromkirk Bloodthief | PLUS_1_PLUS_1
+    Treetop Snarespinner | PLUS_1_PLUS_1
+    Twinblade Paladin | PLUS_1_PLUS_1
+    Wildwood Scourge | PLUS_1_PLUS_1
+
+== F10a: a once-per-event trigger (its event kind)
+  M21 deal pool: 4 hits on 4 cards
+    Basri Ket | DeclareAttackersEvent
+    Feline Sovereign | DamageDealtEvent
+    Mangara, the Diplomat | DeclareAttackersEvent
+    Tide Skimmer | DeclareAttackersEvent
+  M20 deal pool: 2 hits on 2 cards
+    Angelic Guardian | DeclareAttackersEvent
+    Woodland Champion | ZoneChangeEvent
+  FDN deal pool: 2 hits on 2 cards
+    Ancestor Dragon | DeclareAttackersEvent
+    Battlesong Berserker | DeclareAttackersEvent
+
+== F10d: a damage trigger naming a dealer and no recipient (split by trample or blockers)
+  M21 deal pool: 0 hits on 0 cards
+  M20 deal pool: 0 hits on 0 cards
+  FDN deal pool: 0 hits on 0 cards
+
+== F11: a creature can block more than one attacker
+  M21 deal pool: 0 hits on 0 cards
+  M20 deal pool: 0 hits on 0 cards
+  FDN deal pool: 0 hits on 0 cards
+
+== F16: two TARGET selectors with the same bytes in one ability (one slot, CR 601.2c)
+  M21 deal pool: 6 hits on 6 cards
+    Garruk, Savage Herald | ActivatedAbility x2: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAnd(children=(FAtom(pr
+    Garruk, Unleashed | ActivatedAbility x2: Selector(count=QAtMost(n=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAtom(pred=<FAtomPred.TYPE
+    Lofty Denial | SpellAbility x2: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAtom(pred=<FAtomPred.S
+    Ranger's Guile | SpellAbility x2: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAnd(children=(FAtom(pr
+    Sure Strike | SpellAbility x2: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAtom(pred=<FAtomPred.T
+    Tolarian Kraken | TriggeredAbility x2: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAtom(pred=<FAtomPred.T
+  M20 deal pool: 7 hits on 7 cards
+    Gods Willing | SpellAbility x5: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAnd(children=(FAtom(pr
+    Moment of Heroism | SpellAbility x2: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAtom(pred=<FAtomPred.T
+    Mu Yanling, Sky Dancer | ActivatedAbility x2: Selector(count=QAtMost(n=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAtom(pred=<FAtomPred.TYPE
+    Rabid Bite | SpellAbility x2: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAnd(children=(FAtom(pr
+    Sorin, Imperious Bloodlord | ActivatedAbility x2: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAnd(children=(FAtom(pr
+    Uncaged Fury | SpellAbility x2: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAtom(pred=<FAtomPred.T
+    Vivien, Nature's Avenger | ActivatedAbility x2: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAtom(pred=<FAtomPred.T
+  FDN deal pool: 9 hits on 9 cards
+    Adamant Will | SpellAbility x2: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAtom(pred=<FAtomPred.T
+    Battlesong Berserker | TriggeredAbility x2: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAnd(children=(FAtom(pr
+    Bite Down | SpellAbility x2: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAnd(children=(FAtom(pr
+    Burst Lightning | SpellAbility x2: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FOr(children=(FAtom(pre
+    Dive Down | SpellAbility x2: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAnd(children=(FAtom(pr
+    Fake Your Own Death | SpellAbility x2: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAtom(pred=<FAtomPred.T
+    Kindled Fury | SpellAbility x2: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAtom(pred=<FAtomPred.T
+    Offer Immortality | SpellAbility x2: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAtom(pred=<FAtomPred.T
+    Sure Strike | SpellAbility x2: Selector(count=QConst(value=1), mode=<SelectorMode.TARGET: 'TARGET'>, filter=FAtom(pred=<FAtomPred.T
+
+== F17: an activated ability with X in its cost and a TARGET (X announced after targets)
+  M21 deal pool: 0 hits on 0 cards
+  M20 deal pool: 0 hits on 0 cards
+  FDN deal pool: 0 hits on 0 cards
+
+== F18: a trigger with two or more designations (multi-slot)
+  M21 deal pool: 0 hits on 0 cards
+  M20 deal pool: 1 hits on 1 cards
+    Drakuseth, Maw of Flames | 2 slots choose=False
+  FDN deal pool: 1 hits on 1 cards
+    Drakuseth, Maw of Flames | 2 slots choose=False
+
+== F20: EachPlayer whose body is a Seq (two instructions) or holds a choice
+  M21 deal pool: 8 hits on 8 cards
+    Goremand | seq=False choice=True verbs=['SACRIFICE'] ref=<ControllerRef.ALL_OPPONENTS: 'ALL_OPPON
+    Keral Keep Disciples | seq=False choice=True verbs=['DEAL_DAMAGE'] ref=<ControllerRef.ALL_OPPONENTS: 'ALL_OPPON
+    Liliana, Waker of the Dead | seq=False choice=False verbs=['LOSE_LIFE'] ref=<ControllerRef.ALL_OPPONENTS: 'ALL_OPPON
+    Peer into the Abyss | seq=False choice=False verbs=['LOSE_LIFE'] ref=<ControllerRef.TARGET_PLAYER: 'TARGET_PL
+    Pursued Whale | seq=False choice=False verbs=['CREATE_TOKEN', 'MANDATE_ATTACK', 'PREVENT_EFFECT'] ref=<ControllerRef.ALL_OPPONENTS: 'ALL_OPPON
+    Run Afoul | seq=False choice=True verbs=['SACRIFICE'] ref=<ControllerRef.TARGET_OPPONENT: 'TARGET_
+    Thieves' Guild Enforcer | seq=False choice=False verbs=['MOVE_ZONE'] ref=<ControllerRef.ALL_OPPONENTS: 'ALL_OPPON
+    Transmogrify | seq=True choice=False verbs=['MOVE_ZONE', 'SHUFFLE'] ref=Selector(count=QConst(value=1), mode=<Se
+  M20 deal pool: 2 hits on 2 cards
+    Dragon Mage | seq=False choice=False verbs=['DRAW'] ref=<ControllerRef.ANY: 'ANY'>
+    Yarok's Fenlurker | seq=False choice=True verbs=['MOVE_ZONE'] ref=<ControllerRef.ALL_OPPONENTS: 'ALL_OPPON
+  FDN deal pool: 4 hits on 4 cards
+    Arbiter of Woe | seq=False choice=True verbs=['MOVE_ZONE'] ref=<ControllerRef.ALL_OPPONENTS: 'ALL_OPPON
+    Bloodtithe Collector | seq=False choice=True verbs=['MOVE_ZONE'] ref=<ControllerRef.ALL_OPPONENTS: 'ALL_OPPON
+    Burglar Rat | seq=False choice=True verbs=['MOVE_ZONE'] ref=<ControllerRef.ALL_OPPONENTS: 'ALL_OPPON
+    Dragon Mage | seq=False choice=False verbs=['DRAW'] ref=<ControllerRef.ANY: 'ANY'>
+
+== F23: a counter-threshold trigger (CR 603.8 state trigger compiled as an event)
+  M21 deal pool: 0 hits on 0 cards
+  M20 deal pool: 0 hits on 0 cards
+  FDN deal pool: 0 hits on 0 cards
+
+== F24: TRIGGER_ADDITIONAL (Yarok, Sanctum of All)
+  M21 deal pool: 1 hits on 1 cards
+    Sanctum of All | TriggeredAbility
+  M20 deal pool: 0 hits on 0 cards
+  FDN deal pool: 0 hits on 0 cards
+
+== F25f: FIGHT
+  M21 deal pool: 2 hits on 2 cards
+    Brash Taunter | ActivatedAbility
+    Primal Might | SpellAbility
+  M20 deal pool: 1 hits on 1 cards
+    Voracious Hydra | TriggeredAbility
+  FDN deal pool: 2 hits on 2 cards
+    Affectionate Indrik | TriggeredAbility
+    Primal Might | SpellAbility
+
+== F25d: a damage trigger with a dealer filter (source) that a creature-to-creature blow can match
+  M21 deal pool: 7 hits on 7 cards
+    Chandra's Incinerator | combat=False filter=FAtom(pred=<FAtomPred.OPPONENT_OF: 'OPPONENT_OF'>, string_value=None,  source=FAtom(pred=<FAtomPred.CONTROLLER_IS: 'CONTROLLER_IS'>, strin
+    Chandra's Pyreling | combat=False filter=FAtom(pred=<FAtomPred.OPPONENT_OF: 'OPPONENT_OF'>, string_value=None,  source=FAtom(pred=<FAtomPred.CONTROLLER_IS: 'CONTROLLER_IS'>, strin
+    Feline Sovereign | combat=True filter=FNot(inner=FAtom(pred=<FAtomPred.IS_PERMANENT: 'IS_PERMANENT'>, string source=FAnd(children=(FAtom(pred=<FAtomPred.CONTROLLER_IS: 'CONTROL
+    Garruk's Harbinger | combat=True filter=FOr(children=(FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value= source=FAtom(pred=<FAtomPred.IS_SOURCE: 'IS_SOURCE'>, string_value=
+    Hooded Blightfang | combat=None filter=FAtom(pred=<FAtomPred.SUPERTYPE_EQ: 'SUPERTYPE_EQ'>, string_value='Pla source=FAnd(children=(FAtom(pred=<FAtomPred.CONTROLLER_IS: 'CONTROL
+    Jeskai Elder | combat=True filter=FNot(inner=FAtom(pred=<FAtomPred.IS_PERMANENT: 'IS_PERMANENT'>, string source=FAtom(pred=<FAtomPred.IS_SOURCE: 'IS_SOURCE'>, string_value=
+    Subira, Tulzidi Caravanner | combat=True filter=FNot(inner=FAtom(pred=<FAtomPred.IS_PERMANENT: 'IS_PERMANENT'>, string source=FAnd(children=(FAtom(pred=<FAtomPred.CONTROLLER_IS: 'CONTROL
+  M20 deal pool: 2 hits on 2 cards
+    Dragon Mage | combat=True filter=FNot(inner=FAtom(pred=<FAtomPred.IS_PERMANENT: 'IS_PERMANENT'>, string source=FAtom(pred=<FAtomPred.IS_SOURCE: 'IS_SOURCE'>, string_value=
+    Tomebound Lich | combat=True filter=FNot(inner=FAtom(pred=<FAtomPred.IS_PERMANENT: 'IS_PERMANENT'>, string source=FAtom(pred=<FAtomPred.IS_SOURCE: 'IS_SOURCE'>, string_value=
+  FDN deal pool: 2 hits on 2 cards
+    Dragon Mage | combat=True filter=FNot(inner=FAtom(pred=<FAtomPred.IS_PERMANENT: 'IS_PERMANENT'>, string source=FAtom(pred=<FAtomPred.IS_SOURCE: 'IS_SOURCE'>, string_value=
+    Goldvein Pick | combat=True filter=FNot(inner=FAtom(pred=<FAtomPred.IS_PERMANENT: 'IS_PERMANENT'>, string source=FAtom(pred=<FAtomPred.IS_ATTACHED_TO_SOURCE: 'IS_ATTACHED_TO
+
+== F27: DEAL_DAMAGE whose recipients can include its controller ('each player', 'you', 'any target')
+  M21 deal pool: 6 hits on 6 cards
+    Chandra's Magmutt | ActivatedAbility mode=TARGET players=['ANY']
+    Chandra, Flame's Catalyst | ActivatedAbility mode=ALL players=['ALL_OPPONENTS']
+    Keral Keep Disciples | TriggeredAbility mode=CHOOSE players=['YOU']
+    Leafkin Avenger | ActivatedAbility mode=TARGET players=['ANY']
+    Storm Caller | TriggeredAbility mode=ALL players=['OPPONENT']
+    Turret Ogre | TriggeredAbility mode=ALL players=['OPPONENT']
+  M20 deal pool: 6 hits on 5 cards
+    Cavalier of Flame | TriggeredAbility mode=ALL players=['OPPONENT']
+    Chandra's Flame Wave | SpellAbility mode=ALL players=['TARGET_PLAYER']
+    Chandra's Outrage | SpellAbility mode=ALL players=['ANY']
+    Chandra, Flame's Fury | ActivatedAbility mode=ALL players=['ANY']
+    Chandra, Flame's Fury | ActivatedAbility mode=TARGET players=['ANY']
+    Pyroclastic Elemental | ActivatedAbility mode=TARGET players=['ANY']
+  FDN deal pool: 10 hits on 10 cards
+    Boltwave | SpellAbility mode=ALL players=['OPPONENT']
+    Boros Charm | SpellAbility mode=TARGET players=['ANY']
+    Firebrand Archer | TriggeredAbility mode=ALL players=['OPPONENT']
+    Firespitter Whelp | TriggeredAbility mode=ALL players=['OPPONENT']
+    Guttersnipe | TriggeredAbility mode=ALL players=['OPPONENT']
+    Impact Tremors | TriggeredAbility mode=ALL players=['OPPONENT']
+    Midnight Reaper | TriggeredAbility mode=ALL players=['YOU']
+    Mindsparker | TriggeredAbility mode=ALL players=['ANY']
+    Slagstorm | SpellAbility mode=ALL players=['ANY']
+    Spitfire Lagac | TriggeredAbility mode=ALL players=['OPPONENT']
+
+== F27l: grants or has lifelink
+  M21 deal pool: 11 hits on 11 cards
+    Alchemist's Gift | SpellAbility
+    Anointed Chorister | ?
+    Archfiend's Vessel | ?
+    Baneslayer Angel | ?
+    Basri's Acolyte | ?
+    Blood Glutton | ?
+    Indulging Patrician | ?
+    Mangara, the Diplomat | ?
+    Sigiled Contender | StaticAbility
+    Speaker of the Heavens | ?
+    Vito, Thorn of the Dusk Rose | ActivatedAbility
+  M20 deal pool: 7 hits on 7 cards
+    Blood Burglar | StaticAbility
+    Cavalier of Night | ?
+    Daybreak Chaplain | ?
+    Moment of Heroism | SpellAbility
+    Sorin, Imperious Bloodlord | ActivatedAbility
+    Tomebound Lich | ?
+    Vampire of the Dire Moon | ?
+  FDN deal pool: 10 hits on 10 cards
+    Bishop's Soldier | ?
+    Crossway Troublemakers | StaticAbility
+    Drogskol Reaver | ?
+    Felidar Savior | ?
+    Guarded Heir | ?
+    Healer's Hawk | ?
+    Nullpriest of Oblivion | ?
+    Regal Caracal | StaticAbility
+    Unflinching Courage | StaticAbility
+    Vampire Nighthawk | ?
+
+== F29: a TokenSpec with abilities (its record is keyed by name)
+  M21 deal pool: 26 hits on 23 cards
+    Angelic Ascension | Angel abilities=0 sha=32aa
+    Archfiend's Vessel | Demon abilities=0 sha=456a
+    Basri Ket | Soldier abilities=0 sha=6545
+    Basri Ket | Soldier abilities=0 sha=9c7a
+    Basri's Lieutenant | Knight abilities=0 sha=8708
+    Chrome Replicator | Construct abilities=0 sha=9854
+    Deathbloom Thallid | Saproling abilities=0 sha=02d5
+    Elder Gargaroth | Beast abilities=0 sha=841f
+    Experimental Overload | Weird abilities=0 sha=2c2f
+    Falconer Adept | Bird abilities=0 sha=a637
+    Fungal Rebirth | Saproling abilities=0 sha=02d5
+    Gadrak, the Crown-Scourge | Treasure abilities=1 sha=1898
+    Garruk, Unleashed | Beast abilities=0 sha=841f
+    Goblin Wizardry | Goblin Wizard abilities=0 sha=2d4c
+    Griffin Aerie | Griffin abilities=0 sha=85d7
+    Jolrael, Mwonvuli Recluse | Cat abilities=0 sha=97f0
+    Liliana's Devotee | Zombie abilities=0 sha=0bcc
+    Necromentia | Zombie abilities=0 sha=0bcc
+    Pursued Whale | Pirate abilities=2 sha=47f8
+    Rin and Seri, Inseparable | Cat abilities=0 sha=f3a1
+    Rin and Seri, Inseparable | Dog abilities=0 sha=dfc4
+    Secure the Scene | Soldier abilities=0 sha=6545
+    Speaker of the Heavens | Angel abilities=0 sha=32aa
+    Sporeweb Weaver | Saproling abilities=0 sha=02d5
+    Valorous Steed | Knight abilities=0 sha=8708
+  M20 deal pool: 23 hits on 23 cards
+    Ajani, Strength of the Pride | Ajani's Pridemate abilities=1 sha=6d82
+    Ancestral Blade | Soldier abilities=0 sha=6545
+    Bishop of Wings | Spirit abilities=0 sha=733c
+    Bloodsoaked Altar | Demon abilities=0 sha=456a
+    Boneclad Necromancer | Zombie abilities=0 sha=0bcc
+    Cavalier of Dawn | Golem abilities=0 sha=e979
+    Ferocious Pup | Wolf abilities=0 sha=eec9
+    Field of the Dead | Zombie abilities=0 sha=0bcc
+    Hanged Executioner | Spirit abilities=0 sha=733c
+    Howling Giant | Wolf abilities=0 sha=eec9
+    Ironroot Warlord | Soldier abilities=0 sha=6545
+    Kykar, Wind's Fury | Spirit abilities=0 sha=733c
+    Mask of Immolation | Elemental abilities=0 sha=e49d
+    Master Splicer | Phyrexian Golem abilities=0 sha=4579
+    Mu Yanling, Sky Dancer | Elemental Bird abilities=0 sha=82fb
+    Nightpack Ambusher | Wolf abilities=0 sha=eec9
+    Raise the Alarm | Soldier abilities=0 sha=6545
+    Rapacious Dragon | Treasure abilities=1 sha=1898
+    Scampering Scorcher | Elemental abilities=0 sha=e49d
+    Skyknight Vanguard | Soldier abilities=0 sha=9c7a
+    Undead Servant | Zombie abilities=0 sha=0bcc
+    Wolfkin Bond | Wolf abilities=0 sha=eec9
+    Wolfrider's Saddle | Wolf abilities=0 sha=eec9
+  FDN deal pool: 27 hits on 27 cards
+    An Offer You Can't Refuse | Treasure abilities=1 sha=1898
+    Brass's Bounty | Treasure abilities=1 sha=1898
+    Corsair Captain | Treasure abilities=1 sha=1898
+    Dragon Fodder | Goblin abilities=0 sha=dac4
+    Dragon Trainer | Dragon abilities=0 sha=a120
+    Faebloom Trick | Faerie abilities=0 sha=eb6e
+    Fake Your Own Death | Treasure abilities=1 sha=1898
+    Gleaming Barrier | Treasure abilities=1 sha=1898
+    Goblin Surprise | Goblin abilities=0 sha=dac4
+    Goldvein Pick | Treasure abilities=1 sha=1898
+    Guarded Heir | Knight abilities=0 sha=41ba
+    Hare Apparent | Rabbit abilities=0 sha=8b27
+    Heroic Reinforcements | Soldier abilities=0 sha=6545
+    Imperious Perfect | Elf Warrior abilities=0 sha=f48c
+    Infestation Sage | Insect abilities=0 sha=a2fb
+    Involuntary Employment | Treasure abilities=1 sha=1898
+    Maalfeld Twins | Zombie abilities=0 sha=0bcc
+    Mischievous Mystic | Faerie abilities=0 sha=eb6e
+    Prideful Parent | Cat abilities=0 sha=2e92
+    Rapacious Dragon | Treasure abilities=1 sha=1898
+    Regal Caracal | Cat abilities=0 sha=1ba2
+    Release the Dogs | Dog abilities=0 sha=dfc4
+    Resolute Reinforcements | Soldier abilities=0 sha=6545
+    Searslicer Goblin | Goblin abilities=0 sha=dac4
+    Seize the Spoils | Treasure abilities=1 sha=1898
+    Stroke of Midnight | Human abilities=0 sha=0a72
+    Suspicious Shambler | Zombie abilities=0 sha=0bcc
+
+== F30: a CounterPlacedEvent trigger (a watcher of placements)
+  M21 deal pool: 3 hits on 3 cards
+    Mazemind Tome | PAGE filter=FAnd(children=(FAtom(pred=<FAtomPred.IS_SOURCE: 'IS_SOURCE'>, string_v
+    Nine Lives | INCARNATION filter=FAnd(children=(FAtom(pred=<FAtomPred.IS_SOURCE: 'IS_SOURCE'>, string_v
+    Wildwood Scourge | PLUS_1_PLUS_1 filter=FAnd(children=(FAtom(pred=<FAtomPred.CONTROLLER_IS: 'CONTROLLER_IS'>, 
+  M20 deal pool: 0 hits on 0 cards
+  FDN deal pool: 2 hits on 2 cards
+    Mazemind Tome | PAGE filter=FAnd(children=(FAtom(pred=<FAtomPred.IS_SOURCE: 'IS_SOURCE'>, string_v
+    Wildwood Scourge | PLUS_1_PLUS_1 filter=FAnd(children=(FAtom(pred=<FAtomPred.CONTROLLER_IS: 'CONTROLLER_IS'>, 
+
+== F31: IS_EXILED_WITH_SOURCE (a reader of 'exiled with ~')
+  M21 deal pool: 1 hits on 1 cards
+    Idol of Endurance | ActivatedAbility
+  M20 deal pool: 1 hits on 1 cards
+    Bag of Holding | ActivatedAbility
+  FDN deal pool: 0 hits on 0 cards
+
+== F33: a cast-zone read (CAST_THIS_TURN_FROM or kin)
+  M21 deal pool: 1 hits on 1 cards
+    Archfiend's Vessel | TriggeredAbility CAST_THIS_TURN_FROM
+  M20 deal pool: 0 hits on 0 cards
+  FDN deal pool: 0 hits on 0 cards
+
+== F34: a referent 'target'/'result' selector in an ability whose designation or producer is plural
+  M21 deal pool: 10 hits on 8 cards
+    Chandra, Heart of Fire | ActivatedAbility PERMIT.source <- result
+    Duress | SpellAbility MOVE_ZONE.cards <- result
+    Fabled Passage | ActivatedAbility UNTAP.target <- result
+    Garruk, Savage Herald | ActivatedAbility MOVE_ZONE.cards <- result
+    Kitesail Freebooter | TriggeredAbility MOVE_ZONE.target <- result
+    Liliana, Waker of the Dead | ActivatedAbility GRANT_ABILITY.target <- result
+    Necromentia | SpellAbility MOVE_ZONE.target <- result
+    Transmogrify | SpellAbility MOVE_ZONE.cards <- result
+  M20 deal pool: 10 hits on 8 cards
+    Ancestral Blade | TriggeredAbility ATTACH.target <- result
+    Cavalier of Dawn | TriggeredAbility CREATE_TOKEN.controller <- plural target
+    Duress | SpellAbility MOVE_ZONE.cards <- result
+    Golos, Tireless Pilgrim | ActivatedAbility PERMIT.source <- result
+    Mask of Immolation | TriggeredAbility ATTACH.target <- result
+    Risen Reef | TriggeredAbility MOVE_ZONE.cards <- result
+    Vivien, Nature's Avenger | ActivatedAbility MOVE_ZONE.cards <- result
+    Wolfrider's Saddle | TriggeredAbility ATTACH.target <- result
+  FDN deal pool: 4 hits on 4 cards
+    Duress | SpellAbility MOVE_ZONE.cards <- result
+    Involuntary Employment | SpellAbility GRANT_ABILITY.target <- result
+    Pilfer | SpellAbility MOVE_ZONE.cards <- result
+    Spinner of Souls | TriggeredAbility MOVE_ZONE.cards <- result
+
+== F35l: a life-gain replacement
+  M21 deal pool: 0 hits on 0 cards
+  M20 deal pool: 1 hits on 1 cards
+    Angel of Vitality | Atom(verb=<Verb.GAIN_LIFE: 'GAIN_LIFE'>, args=AtomArgs(pairs=(('amount', QBin(op=<QBinOp.ADD: 'ADD'>
+  FDN deal pool: 1 hits on 1 cards
+    Angel of Vitality | Atom(verb=<Verb.GAIN_LIFE: 'GAIN_LIFE'>, args=AtomArgs(pairs=(('amount', QBin(op=<QBinOp.ADD: 'ADD'>
+
+== F35z: a zone-change replacement
+  M21 deal pool: 2 hits on 2 cards
+    Chandra, Flame's Catalyst | STACK/ANY -> GRAVEYARD/YOU subj=FAtom(pred=<FAtomPred.IS_SOURCE: 'IS_SOURCE'>, string_value= -> ['MOVE_ZONE']
+    Containment Priest | ANY/ANY -> BATTLEFIELD/ANY subj=FAnd(children=(FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, st -> ['MOVE_ZONE']
+  M20 deal pool: 0 hits on 0 cards
+  FDN deal pool: 0 hits on 0 cards
+  B3 (copy round) cards: 2
+    FDN Electroduplicate | STACK/ANY -> ANY/ANY subj=FAtom(pred=<FAtomPred.IS_SOURCE: 'IS_SOURCE'>, string_value= -> ['MOVE_ZONE']
+    FDN Self-Reflection | STACK/ANY -> ANY/ANY subj=FAtom(pred=<FAtomPred.IS_SOURCE: 'IS_SOURCE'>, string_value= -> ['MOVE_ZONE']
+
+== F36: an ALL selector over a library's top (the look window's partition)
+  M21 deal pool: 1 hits on 1 cards
+    Radha, Heart of Keld | StaticAbility role=source
+  M20 deal pool: 3 hits on 3 cards
+    Diviner's Lockbox | ActivatedAbility role=None
+    Goblin Ringleader | TriggeredAbility role=cards
+    Mystic Forge | StaticAbility role=source
+  FDN deal pool: 0 hits on 0 cards
+
+== F37: a CHOOSE with QUnbounded count ('any number')
+  M21 deal pool: 3 hits on 3 cards
+    Chandra, Heart of Fire | ActivatedAbility role=cards zones=[('GRAVEYARD', 'YOU'), ('LIBRARY', 'YOU')]
+    Necromentia | SpellAbility role=cards zones=[('GRAVEYARD', 'TARGET_OPPONENT'), ('HAND', 'TARGET_OPPONENT'), ('LIBRARY', 'TARGET_OPPONENT')]
+    Siege Striker | TriggeredAbility role=target zones=[('BATTLEFIELD', 'ANY')]
+  M20 deal pool: 2 hits on 2 cards
+    Battalion Foot Soldier | TriggeredAbility role=cards zones=[('LIBRARY', 'YOU')]
+    Cavalier of Flame | TriggeredAbility role=cards zones=[('HAND', 'YOU')]
+  FDN deal pool: 0 hits on 0 cards
+
+== F38: an EtBState effect (only CHOOSE_NAME runs)
+  M21 deal pool: 1 hits on 1 cards
+    Runed Halo | ['CHOOSE_NAME']
+  M20 deal pool: 2 hits on 2 cards
+    Diamond Knight | ['CHOOSE_NAME']
+    Icon of Ancestry | ['CHOOSE_NAME']
+  FDN deal pool: 1 hits on 1 cards
+    Diamond Mare | ['CHOOSE_NAME']
+
+== F41: a move into a library of cards picked from another player's zone
+  M21 deal pool: 1 hits on 1 cards
+    Teferi, Timeless Voyager | ActivatedAbility dest=OWNER
+  M20 deal pool: 2 hits on 2 cards
+    Cavalier of Gales | TriggeredAbility dest=OWNER
+    Eternal Isolation | SpellAbility dest=OWNER
+  FDN deal pool: 0 hits on 0 cards
+
+== F43: an OptionalEffect whose action needs an object (sacrifice, discard, pay with a cost)
+  M21 deal pool: 9 hits on 9 cards
+    Chandra, Flame's Catalyst | ActivatedAbility ['CAST', 'MOVE_ZONE']
+    Crypt Lurker | TriggeredAbility ['MOVE_ZONE', 'SACRIFICE']
+    Dire Fleet Warmonger | TriggeredAbility ['SACRIFICE']
+    Experimental Overload | SpellAbility ['MOVE_ZONE']
+    Garruk's Harbinger | TriggeredAbility ['MOVE_ZONE', 'REVEAL']
+    Ghostly Pilferer | TriggeredAbility ['PAY']
+    Liliana's Devotee | TriggeredAbility ['PAY']
+    Niambi, Esteemed Speaker | TriggeredAbility ['MOVE_ZONE']
+    Tolarian Kraken | TriggeredAbility ['PAY']
+  M20 deal pool: 11 hits on 10 cards
+    Boneclad Necromancer | TriggeredAbility ['MOVE_ZONE']
+    Brightwood Tracker | ActivatedAbility ['MOVE_ZONE', 'REVEAL']
+    Cavalier of Night | TriggeredAbility ['SACRIFICE']
+    Cavalier of Thorns | TriggeredAbility ['MOVE_ZONE']
+    Gravedigger | TriggeredAbility ['MOVE_ZONE']
+    Icon of Ancestry | ActivatedAbility ['MOVE_ZONE', 'REVEAL']
+    Keldon Raider | TriggeredAbility ['MOVE_ZONE']
+    Riddlemaster Sphinx | TriggeredAbility ['MOVE_ZONE']
+    Risen Reef | TriggeredAbility ['MOVE_ZONE']
+    Sorin, Imperious Bloodlord | ActivatedAbility ['MOVE_ZONE']
+    Sorin, Imperious Bloodlord | ActivatedAbility ['SACRIFICE']
+  FDN deal pool: 5 hits on 5 cards
+    Crossway Troublemakers | TriggeredAbility ['PAY']
+    High-Society Hunter | TriggeredAbility ['SACRIFICE']
+    Incinerating Blast | SpellAbility ['MOVE_ZONE']
+    Spinner of Souls | TriggeredAbility ['MOVE_ZONE', 'REVEAL']
+    Vivien Reid | ActivatedAbility ['MOVE_ZONE', 'REVEAL']
+
+== F44a: an Aura's enchant filter
+  M21 deal pool: 10 hits on 10 cards
+    Capture Sphere | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Demonic Embrace | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Dub | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Enthralling Hold | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Faith's Fetters | (FAtom(pred=<FAtomPred.IS_PERMANENT: 'IS_PERMANENT'>, string_value=None, color=None, colors=(), count=None, co
+    Furor of the Bitten | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Infernal Scarring | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Light of Promise | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Rousing Read | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Setessan Training | (FAnd(children=(FAtom(pred=<FAtomPred.CONTROLLER_IS: 'CONTROLLER_IS'>, string_value=None, color=None, colors=(
+  M20 deal pool: 10 hits on 10 cards
+    Angelic Gift | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Feral Invocation | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Gift of Paradise | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Land', color=None, colors=(), count=None, counter_ki
+    Glaring Aegis | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Hard Cover | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Maniacal Rage | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Oakenform | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Pacifism | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Sleep Paralysis | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Wolfkin Bond | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+  FDN deal pool: 5 hits on 5 cards
+    Blanchwood Armor | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Pacifism | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Starlight Snare | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Unflinching Courage | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+    Untamed Hunger | (FAtom(pred=<FAtomPred.TYPE_EQ: 'TYPE_EQ'>, string_value='Creature', color=None, colors=(), count=None, counte
+
+== F44b: changes control, types or creature-ness of a permanent (an Aura's host can stop matching)
+  M21 deal pool: 8 hits on 7 cards
+    Demonic Embrace | StaticAbility GRANT_TYPE duration=NoneType
+    Dub | StaticAbility GRANT_TYPE duration=NoneType
+    Enthralling Hold | SpellAbility GAIN_CONTROL duration=NoneType
+    Jolrael, Mwonvuli Recluse | ActivatedAbility SET_PT duration=DurationEot
+    Kinetic Augur | StaticAbility SET_PT duration=NoneType
+    Riddleform | TriggeredAbility GRANT_TYPE duration=DurationEot
+    Riddleform | TriggeredAbility SET_PT duration=DurationEot
+    Traitorous Greed | SpellAbility GAIN_CONTROL duration=DurationEot
+  M20 deal pool: 5 hits on 4 cards
+    Act of Treason | SpellAbility GAIN_CONTROL duration=DurationEot
+    Ironroot Warlord | StaticAbility SET_PT duration=NoneType
+    Sorin, Vampire Lord | ActivatedAbility GAIN_CONTROL duration=NoneType
+    Wakeroot Elemental | ActivatedAbility GRANT_TYPE duration=NoneType
+    Wakeroot Elemental | ActivatedAbility SET_PT duration=NoneType
+  FDN deal pool: 2 hits on 2 cards
+    Enigma Drake | StaticAbility SET_PT duration=NoneType
+    Involuntary Employment | SpellAbility GAIN_CONTROL duration=DurationEot
+
+== F45a: a DurationUntilLeaves
+  M21 deal pool: 2 hits on 2 cards
+    Idol of Endurance | TriggeredAbility source=source
+    Kitesail Freebooter | TriggeredAbility source=source
+  M20 deal pool: 0 hits on 0 cards
+  FDN deal pool: 2 hits on 2 cards
+    Banishing Light | TriggeredAbility source=source
+    Stasis Snare | TriggeredAbility source=source
+
+== F45p: phases a permanent out
+  M21 deal pool: 2 hits on 2 cards
+    Teferi, Master of Time | ActivatedAbility
+    Teferi, Timeless Voyager | ActivatedAbility
+  M20 deal pool: 0 hits on 0 cards
+  FDN deal pool: 0 hits on 0 cards
+
+== F45d: returns two or more permanent cards to the battlefield at once (an Aura among them)
+  M21 deal pool: 0 hits on 0 cards
+  M20 deal pool: 1 hits on 1 cards
+    Brought Back | SpellAbility cards mode=TARGET count=QAtMost(n=2)
+  FDN deal pool: 1 hits on 1 cards
+    Rise of the Dark Realms | SpellAbility cards mode=ALL count=QUnbounded()
+
+== F46: MOVE_ZONE top-n of a library into a hand with a non-YOU destination or another player's library
+  M21 deal pool: 0 hits on 0 cards
+  M20 deal pool: 0 hits on 0 cards
+  FDN deal pool: 0 hits on 0 cards
+
+== F47: a Conditional after a CREATE_TOKEN of two or more
+  M21 deal pool: 0 hits on 0 cards
+  M20 deal pool: 0 hits on 0 cards
+  FDN deal pool: 1 hits on 1 cards
+    Faebloom Trick | SpellAbility
+
+== F48: an effect that moves an object and then moves or acts on it again ('exile it, then return it')
+  M21 deal pool: 2 hits on 2 cards
+    Garruk, Savage Herald | ActivatedAbility then LIBRARY
+    Transmogrify | SpellAbility then BATTLEFIELD
+  M20 deal pool: 3 hits on 1 cards
+    Risen Reef | TriggeredAbility then HAND
+  FDN deal pool: 0 hits on 0 cards
+
+== F49n: a 'doesn't untap' prevention (PREVENT_EFFECT over an untap)
+  M21 deal pool: 3 hits on 3 cards
+    Capture Sphere | StaticAbility step=None duration=NoneType
+    Enthralling Hold | StaticAbility step=None duration=NoneType
+    Frost Breath | SpellAbility step=<Step.UNTAP: 'UNTAP'> duration=DurationUntilNextStep
+  M20 deal pool: 2 hits on 2 cards
+    Frost Lynx | TriggeredAbility step=<Step.UNTAP: 'UNTAP'> duration=DurationUntilNextStep
+    Sleep Paralysis | StaticAbility step=None duration=NoneType
+  FDN deal pool: 1 hits on 1 cards
+    Starlight Snare | StaticAbility step=None duration=NoneType
+
+== F49u: UNTAP of a permanent by an effect
+  M21 deal pool: 5 hits on 5 cards
+    Fabled Passage | ActivatedAbility
+    Rewind | SpellAbility
+    Sabertooth Mauler | TriggeredAbility
+    Tolarian Kraken | DelayedTrigger
+    Traitorous Greed | SpellAbility
+  M20 deal pool: 3 hits on 3 cards
+    Act of Treason | SpellAbility
+    Manifold Key | ActivatedAbility
+    Wakeroot Elemental | ActivatedAbility
+  FDN deal pool: 1 hits on 1 cards
+    Involuntary Employment | SpellAbility
+
+== F50: an effect that moves or sacrifices an object and then deals damage (same resolution)
+  M21 deal pool: 0 hits on 0 cards
+  M20 deal pool: 1 hits on 1 cards
+    Sorin, Imperious Bloodlord | ActivatedAbility
+  FDN deal pool: 0 hits on 0 cards
+
+== F52: a CAST or PERMIT over another player's cards
+  M21 deal pool: 2 hits on 1 cards
+    Chandra, Heart of Fire | ActivatedAbility PERMIT zones=[('ANY', 'ANY')] ref=result
+  M20 deal pool: 1 hits on 1 cards
+    Golos, Tireless Pilgrim | ActivatedAbility PERMIT zones=[('ANY', 'ANY')] ref=result
+  FDN deal pool: 0 hits on 0 cards
+
+== F53: a zone-change replacement on its own source from ANY zone
+  M21 deal pool: 0 hits on 0 cards
+  M20 deal pool: 0 hits on 0 cards
+  FDN deal pool: 0 hits on 0 cards
+
+== F56: a hybrid mana cost
+  M21 deal pool: 0 hits on 0 cards
+  M20 deal pool: 0 hits on 0 cards
+  FDN deal pool: 0 hits on 0 cards
+
+== F57: a singular OPPONENT/ALL_OPPONENTS/ANY ref on a one-player verb (raises at 3+ seats)
+  M21 deal pool: 0 hits on 0 cards
+  M20 deal pool: 0 hits on 0 cards
+  FDN deal pool: 0 hits on 0 cards
+
+== F02: a comparison of opponents' counts ('an opponent controls more ... than you')
+  M21 deal pool: 2 hits on 2 cards
+    Garruk, Unleashed | ActivatedAbility FAtom(pred=<FAtomPred.QTY_GE: 'QTY_GE'>, string_value=None, color=None, colors=(), count=QBin(op=<QBinOp.ADD: 'ADD'>, le
+    Thieves' Guild Enforcer | StaticAbility FAtom(pred=<FAtomPred.QTY_GE: 'QTY_GE'>, string_value=None, color=None, colors=(), count=QConst(value=8), counter_kind=N
+  M20 deal pool: 0 hits on 0 cards
+  FDN deal pool: 0 hits on 0 cards
+
+== F60: Verb.COPY (no executor handler)
+  M21 deal pool: 0 hits on 0 cards
+  M20 deal pool: 0 hits on 0 cards
+  FDN deal pool: 0 hits on 0 cards
+  B3 (copy round) cards: 2
+    M21 Double Vision | TriggeredAbility
+    M21 Sublime Epiphany | SpellAbility
+
+== F40: an EtBState CHOOSE_NAME (a token copy of it would enter choosing, or not)
+  M21 deal pool: 1 hits on 1 cards
+    Runed Halo | EtBState CHOOSE_NAME
+  M20 deal pool: 2 hits on 2 cards
+    Diamond Knight | EtBState CHOOSE_NAME
+    Icon of Ancestry | EtBState CHOOSE_NAME
+  FDN deal pool: 1 hits on 1 cards
+    Diamond Mare | EtBState CHOOSE_NAME
+
+== F61: a Saga or a postcombat-main trigger
+  M21 deal pool: 0 hits on 0 cards
+  M20 deal pool: 0 hits on 0 cards
+  FDN deal pool: 0 hits on 0 cards
+
+== F63: REVEAL of a hand (journalled as the library)
+  M21 deal pool: 24 hits on 14 cards
+    Alpine Houndmaster | TriggeredAbility count=QUnbounded()
+    Basri's Aegis | SpellAbility count=QConst(value=1)
+    Chandra's Firemaw | TriggeredAbility count=QConst(value=1)
+    Cultivate | SpellAbility count=QUnbounded()
+    Duress | SpellAbility count=QUnbounded()
+    Fierce Empath | TriggeredAbility count=QConst(value=1)
+    Garruk's Harbinger | TriggeredAbility count=QConst(value=1)
+    Garruk's Warsteed | TriggeredAbility count=QConst(value=1)
+    Garruk, Savage Herald | ActivatedAbility count=QConst(value=1)
+    Kitesail Freebooter | TriggeredAbility count=QUnbounded()
+    Liliana's Scorn | SpellAbility count=QConst(value=1)
+    Teferi's Wavecaster | TriggeredAbility count=QConst(value=1)
+    Track Down | SpellAbility count=QConst(value=1)
+    Transmogrify | SpellAbility count=QConst(value=1)
+  M20 deal pool: 24 hits on 14 cards
+    Battalion Foot Soldier | TriggeredAbility count=QUnbounded()
+    Brightwood Tracker | ActivatedAbility count=QConst(value=1)
+    Cavalier of Thorns | TriggeredAbility count=QConst(value=5)
+    Chandra's Flame Wave | SpellAbility count=QConst(value=1)
+    Diviner's Lockbox | ActivatedAbility count=QConst(value=1)
+    Duress | SpellAbility count=QUnbounded()
+    Ethereal Elk | TriggeredAbility count=QConst(value=1)
+    Goblin Ringleader | TriggeredAbility count=QConst(value=4)
+    Goldmane Griffin | TriggeredAbility count=QConst(value=1)
+    Icon of Ancestry | ActivatedAbility count=QConst(value=1)
+    Sorin's Guide | TriggeredAbility count=QConst(value=1)
+    Thought Distortion | SpellAbility count=QUnbounded()
+    Vivien, Nature's Avenger | ActivatedAbility count=QConst(value=1)
+    Yanling's Harbinger | TriggeredAbility count=QConst(value=1)
+  FDN deal pool: 5 hits on 5 cards
+    Duress | SpellAbility count=QUnbounded()
+    Fierce Empath | TriggeredAbility count=QConst(value=1)
+    Pilfer | SpellAbility count=QUnbounded()
+    Spinner of Souls | TriggeredAbility count=QConst(value=1)
+    Vivien Reid | ActivatedAbility count=QConst(value=1)

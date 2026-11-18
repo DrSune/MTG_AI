@@ -1,0 +1,28 @@
+{
+ "set": "M21",
+ "name": "A00_6_a_countered_recast_is_exiled_not_graveyarded",
+ "notes": "Printed: 'If that spell would be put into your graveyard, exile it instead.' The -2 waits on the stack (hold), resolves and casts the graveyard Shock at the opposing Bear (the {R} in the pool pays); Shock waits on the stack and the opponent counters it with Cancel (three of its four Islands). A countered spell would be put into its owner's graveyard, so it is exiled instead; the Bear lives; Cancel goes to the opponent's graveyard (it is no spell of Chandra's).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cf", "real": "Chandra, Flame's Catalyst", "zone": "battlefield", "controller": 0},
+  {"key": "shock", "real": "Shock", "zone": "graveyard", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1},
+  {"key": "cancel", "real": "Cancel", "zone": "hand", "controller": 1},
+  {"key": "i1", "real": "Island", "zone": "battlefield", "controller": 1},
+  {"key": "i2", "real": "Island", "zone": "battlefield", "controller": 1},
+  {"key": "i3", "real": "Island", "zone": "battlefield", "controller": 1},
+  {"key": "i4", "real": "Island", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 1}},
+ "steps": [
+  {"op": "act", "seat": 0, "words": ["act:cf:1"], "hold": true},
+  {"op": "resolve", "decisions": ["fire", "bear"]},
+  {"op": "cast", "key": "cancel", "real": "Cancel", "controller": 1, "targets": ["shock"], "tap": true}
+ ],
+ "expect": {
+  "zone": {"shock": "exile", "cancel": "graveyard", "bear": "battlefield"},
+  "counters": {"cf": {"LOYALTY": 3}},
+  "life": {"0": 20, "1": 20},
+  "graveyard": {"0": [], "1": ["Cancel"]}
+ }
+}

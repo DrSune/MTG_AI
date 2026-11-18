@@ -1,0 +1,74 @@
+{
+ "games": 300,
+ "crashed": 0,
+ "crashes": [],
+ "detector_hits": [
+  {
+   "detector": "d6_lifecycle",
+   "detail": "2 replacement records for one event \"DamageDealtEvent(amount=QX(), filter=FAnd(children=()",
+   "games": 2
+  },
+  {
+   "detector": "d6_lifecycle",
+   "detail": "delayed trigger still pending at game end (never drained, never expired): (4, 'Eot', 'card",
+   "games": 1
+  },
+  {
+   "detector": "d5_pt_recompute",
+   "detail": "recompute mismatch on card:5 (Hooded Blightfang): assert 2/5 vs fold -2/1 (anchor base -3/",
+   "games": 1
+  },
+  {
+   "detector": "d5_pt_recompute",
+   "detail": "recompute mismatch on card:10 (Thieves' Guild Enforcer): assert 4/3 vs fold 2/2 (anchor ba",
+   "games": 1
+  },
+  {
+   "detector": "d5_pt_recompute",
+   "detail": "recompute mismatch on card:6 (Pack Leader): assert 3/3 vs fold 5/4 (anchor base 4/3 + coun",
+   "games": 1
+  },
+  {
+   "detector": "d6_lifecycle",
+   "detail": "delayed trigger still pending at game end (never drained, never expired): (12, 'Eot', 'car",
+   "games": 1
+  },
+  {
+   "detector": "d5_pt_recompute",
+   "detail": "counter-invariant assert: card:26 died asserted 2/2 with pt-delta (0, 0) while a same-iden",
+   "games": 1
+  },
+  {
+   "detector": "d5_pt_recompute",
+   "detail": "counter-invariant assert: card:118 died asserted 2/2 with pt-delta (2, 2) while a same-ide",
+   "games": 1
+  },
+  {
+   "detector": "d5_pt_recompute",
+   "detail": "recompute mismatch on card:118 (Watcher of the Spheres): assert 2/2 vs fold 4/4 (anchor ba",
+   "games": 1
+  },
+  {
+   "detector": "d6_lifecycle",
+   "detail": "delayed trigger still pending at game end (never drained, never expired): (13, 'Eot', 'car",
+   "games": 1
+  },
+  {
+   "detector": "d6_lifecycle",
+   "detail": "delayed trigger still pending at game end (never drained, never expired): (8, 'Eot', 'card",
+   "games": 1
+  }
+ ],
+ "outliers": [],
+ "repeatable_activations": [],
+ "trigger_loops": [],
+ "cards_cast": 257,
+ "set": "M21",
+ "mode": "verified",
+ "unverified_records": false,
+ "deck_mode": "stress",
+ "seeds": [
+  1,
+  300
+ ]
+}

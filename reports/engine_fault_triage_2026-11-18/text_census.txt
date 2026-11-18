@@ -1,0 +1,7 @@
+F23 M21 | Nine Lives | When there are nine or more incarnation counters on this enchantment, exile it.
+F44 M21 | Setessan Training | Enchant creature you control
+F23 M21 | Mazemind Tome | When there are four or more page counters on this artifact, exile it.
+F16 M21 | Rookie Mistake | ['creature'] | Until end of turn, target creature gets +0/+2 and another target creature gets -2/-0.
+F27 FDN | Slagstorm | • Slagstorm deals 3 damage to each player.
+F23 FDN | Mazemind Tome | When there are four or more page counters on this artifact, exile it.
+F27 FDN | Midnight Reaper | Whenever a nontoken creature you control dies, this creature deals 1 damage to you and you draw a card.

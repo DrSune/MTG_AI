@@ -316,6 +316,14 @@ uses generated variants (§5, P2).
     commitment. A value read with the plan as input, V(state, plan), scores candidate plans. The
     learner can then compare "assemble and survive" with "all in now" without simulating, and the
     search refines it where it runs.
+  - **Settled (2026-11-18, fifth round): `docs/DESIGN_PLANNER.md`** holds the planner's design and its
+    logic check. It found three problems and fixed each:
+    - a plan read as input is not a plan followed, so plan-following by hindsight relabelling;
+    - a free mode collapses, so round styles are hindsight labels of observable statistics;
+    - per-object labels sampled one by one clash, so labels are forecasts.
+
+    It also holds search over plans, multi-turn, with the planner (the owner's request). The
+    bullets below are the history of how it was reached.
   - **The owner's per-card form (2026-11-18, fourth round; proposed to replace the slots).**
     - **What it is.** Every card the player could use carries its own intention instead of K plan
       slots: the hand, permanents with choices, and cards in other zones a permission reaches.

@@ -22,6 +22,10 @@ its seats get +1 (win), -1 (loss), --draw-reward (turn cap or stall) or 0 (both 
 and GAE turns that into per-decision advantages. Each update runs in the trainer process
 (trainer.py) while this process keeps serving the workers on the current weights.
 
+--planner (docs/DESIGN_PLANNER.md v1, planner.py): the networks are planner networks; their
+seats read back their forecasts, and the learner's decisions carry their hindsight labels into
+the update's side losses (ppo.planner_terms). Off, nothing of it runs.
+
 Evaluation: greedy play on fixed deals, each deal twice with the seats swapped (duplicate
 format); score = (wins + draws/2) / games, a voided game voids its pair. Ratings: Elo by
 Bradley-Terry over the ladder games, uniform random = 0.
@@ -71,8 +75,9 @@ from tools.selfplay import evalrows as ER
 from tools.selfplay import features as FT
 from tools.selfplay import model as M
 from tools.selfplay import packages as PK
+from tools.selfplay import planner as PL
 from tools.selfplay import simulator as S
-from tools.selfplay.actor import is_net, worker_main
+from tools.selfplay.actor import SEARCH_SUFFIX, is_net, worker_main
 from tools.selfplay.ppo import backward_step, pack_buffer, steps
 from tools.selfplay.search import CONTINUATIONS, ROOTS, WORLDS, ms_percentiles
 from tools.selfplay.trainer import trainer_main
@@ -304,7 +309,9 @@ class Learner:
                                      f"run: --init {Path(args.resume) / 'last.pt'} with them")
                 self.table_flags = start
         elif args.init:
-            self.model, self.table, extra = M.load(args.init, self.device)
+            # --planner makes a network from without the planner a planner network computing what
+            # it computed (model.load)
+            self.model, self.table, extra = M.load(args.init, self.device, planner=args.planner)
             self.log({"event": "init", "from": args.init,
                       "extra": {k: v for k, v in extra.items() if k != "state"}})
             extend = [code for code in args.extend_sets.split(",") if code]
@@ -331,7 +338,14 @@ class Learner:
             self.table = FT.CardTable.from_records(
                 {oid: r.card for oid, r in supply.pool.results.items()})
             self.model = M.build(self.table, d=args.d, layers=args.layers, heads=args.heads,
-                                 ff=args.ff, name_dropout=args.name_dropout).to(self.device)
+                                 ff=args.ff, name_dropout=args.name_dropout,
+                                 planner=args.planner).to(self.device)
+        if self.model.planner != args.planner:
+            # a planner network plays and trains with its read-back and side losses, and a run
+            # keeps the --planner it started with: never one without the other, silently
+            raise ValueError(f"--planner is {'on' if args.planner else 'off'} and the network is "
+                             f"{'a' if self.model.planner else 'no'} planner network (a resume "
+                             "keeps its run's --planner)")
         if args.mix_sets:
             missing = set(args.mix_sets.split(",")) - set(args.extend_sets.split(","))
             if missing:
@@ -548,9 +562,16 @@ class Learner:
         if kind in ("train", "eval") and deck_mode == "coherent" and PK.package_deal(
                 seed, self.args.package_share):
             deck_mode = "package"
-        return {"gid": self.gid, "kind": kind, "seed": seed, "seats": seats, "greedy": greedy,
-                "record": record, "deck_mode": deck_mode, "set_code": TRAIN_SET,
-                "pool_mode": self.args.pool}
+        job = {"gid": self.gid, "kind": kind, "seed": seed, "seats": seats, "greedy": greedy,
+               "record": record, "deck_mode": deck_mode, "set_code": TRAIN_SET,
+               "pool_mode": self.args.pool}
+        # A seat plans when its own network is a planner (actor.NetAgent), whatever --planner says:
+        # a planner network always reads its own forecasts, and one without (an --opp-ckpt from
+        # before) plays as it always did. No "plan" key without one: such jobs are as before
+        nets = [self.models.get(s.removesuffix(SEARCH_SUFFIX)) if is_net(s) else None for s in seats]
+        if any(net is not None and net.planner for net in nets):
+            job["plan"] = [net is not None and net.planner for net in nets]
+        return job
 
     def _deck_mode(self) -> str:
         p = self.args.coherent_share
@@ -711,8 +732,10 @@ class Learner:
                      for k, v in b.items()}
             # no autocast: a bf16 copy computes in bf16, an fp32 network in fp32 (without
             # --infer-bf16 inference is fp32 on every device; 192 §7.6's H1 found autocast here)
-            logits, value = model(b)
-            logits, value = logits.float(), value.float()
+            plan = any(len(it[2]) > 6 and it[2][6] == 4 for it in items)  # a planning seat's
+            out = model(b, plan=plan)
+            logits, value = out[0].float(), out[1].float()
+            forecast = M.forecasts(out[2]) if plan else None
             greedy = torch.tensor([bool(it[2][3]) for it in items], device=self.device)
             probs = torch.softmax(logits, -1)
             bad = ~torch.isfinite(probs).all(-1)
@@ -734,16 +757,19 @@ class Learner:
             logp_np = logp.cpu().numpy()
             val_np = value.cpu().numpy()
             probs_np = probs.float().cpu().numpy() if any(
-                len(it[2]) > 6 and it[2][6] >= 2 for it in items) else None
+                len(it[2]) > 6 and it[2][6] == 2 for it in items) else None
             for j, (mi, ri, req) in enumerate(items):
                 a = int(act_np[j])
                 # req[6] ("want"): 0/absent -> the action; 1 -> (action, value);
-                # 2 -> (action, value, option probabilities) for decision-time search
+                # 2 -> (action, value, option probabilities) for decision-time search;
+                # 4 -> (action, the forecast on its card rows) for a planning seat
                 want = req[6] if len(req) > 6 else 0
                 if want == 0:
                     answers[mi][ri] = a
                 elif want == 1:
                     answers[mi][ri] = (a, float(val_np[j]))
+                elif want == 4:
+                    answers[mi][ri] = (a, forecast[j, :req[5]["cards_i"].shape[0]].copy())
                 else:
                     k = req[5]["opts_i"].shape[0]
                     answers[mi][ri] = (a, float(val_np[j]),
@@ -826,6 +852,10 @@ class Learner:
 
     def _finish_train(self, r: dict, void: bool) -> None:
         a = self.args
+        # the rails a training game hit: each should read 0 (docs/BACKLOG.md "Scaffolds to remove")
+        self.counts["rail:turn_cap"] += r.get("outcome") == "draw-cap"
+        self.counts["rail:act_cap"] += r.get("act_cap_hits", 0)
+        self.counts["rail:quarantined"] += r.get("quarantined", 0) > 0
         rows, result = [], None
         for seat in (0, 1):
             steps = self.traj.pop((r["gid"], seat), None)
@@ -837,9 +867,21 @@ class Learner:
             # bootstrapping makes reaching it worth what the position was worth.
             z = vals[-1] if void else self.reward(r["outcome"], r["winner"], seat)
             adv = gae(vals, z, a.gamma, a.lam)
+            # --planner: the seat's hindsight labels, one per decision it recorded, computed by
+            # the worker at the game's end (actor.Worker.play), which keeps this serving thread
+            # free of the per-object work. A void game sends none: its future is unknown, and an
+            # object with no use left would read "never", so its rows train no side loss
+            plans = (r.get("plans") or (None, None))[seat] if a.planner else None
+            if plans is not None and len(plans) != len(steps):
+                # never expected: the k-th label pairs with the k-th row, and a count that
+                # differs would pair them wrongly, so the game's rows train none (counted)
+                self.counts["plan_misaligned"] += 1
+                plans = None
             # the game, the step and the seat ride along for --collect (held-out games, game
             # phase; the two seats of a self game share its id)
             for i, ((f, act, logp, v), ad) in enumerate(zip(steps, adv, strict=True)):
+                if a.planner:
+                    PL.attach(f, plans[i] if plans is not None else None)
                 rows.append((f, act, logp, v, ad, ad + v, r["gid"], i, len(steps), seat))
         if not void:  # one entry a game: the results of its learner seats, both in a self game
             seats = r["seats"]
@@ -1246,7 +1288,10 @@ class Learner:
                     by_set[set_code] += zs
             # per update, like "games": the void training games and the job requests refused
             # while a full batch waited
-            counts = {"voids": self.counts["train:void"], "throttled": self.counts["throttled"]}
+            counts = {"voids": self.counts["train:void"], "throttled": self.counts["throttled"],
+                      "turn_caps": self.counts["rail:turn_cap"], "act_caps": self.counts["rail:act_cap"],
+                      "quarantines": self.counts["rail:quarantined"],
+                      **({"plan_misaligned": self.counts["plan_misaligned"]} if a.planner else {})}
             per_update = {k: v - self._iter_counts.get(k, 0) for k, v in counts.items()}
             self._iter_counts = counts
             self.log({"event": "iter", "it": self.it, "stage": self.stage, **st, **tp,
@@ -1426,6 +1471,21 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--max-grad", type=float, default=1.0)
     p.add_argument("--target-kl", type=float, default=0.03)
     p.add_argument("--draw-reward", type=float, default=-1.0)
+    # the per-object planner (docs/DESIGN_PLANNER.md v1, planner.py)
+    p.add_argument("--planner", action="store_true",
+                   help="planner networks: each seat reads back its last forecast of every "
+                        "plannable object's next use and writes a new one; the update adds the "
+                        "hindsight and plan-following losses. An --init without the planner "
+                        "becomes a planner network computing what it did")
+    p.add_argument("--plan-coef", type=float, default=0.05,
+                   help="--planner: the hindsight loss's weight (the four heads' cross-entropy "
+                        "against each object's actual next use)")
+    p.add_argument("--follow-coef", type=float, default=0.1,
+                   help="--planner: the plan-following loss's weight (the policy's NLL of its "
+                        "action with the read-back replaced by the previous decision's labels)")
+    p.add_argument("--follow-share", type=float, default=0.25,
+                   help="--planner: the share of decisions given the plan-following pass (an "
+                        "importance weight 1/share keeps the loss's expectation)")
     # opponents
     p.add_argument("--p-heuristic", type=float, default=0.25)
     p.add_argument("--coherent-share", type=float, default=0.5)
@@ -1557,6 +1617,9 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
                 "--draft-critic")
     if not 0 <= args.package_share <= 1:
         p.error(f"--package-share {args.package_share} is not a share")
+    if not 0 < args.follow_share <= 1:
+        p.error(f"--follow-share {args.follow_share} is not a share above 0 (--follow-coef 0 "
+                "turns plan-following off)")
     if args.p_self < 0 or args.p_heuristic + args.p_past + args.p_self > 1 + 1e-9:
         p.error(f"--p-self {args.p_self}: the heuristic, past and self shares sum above 1")
     return args

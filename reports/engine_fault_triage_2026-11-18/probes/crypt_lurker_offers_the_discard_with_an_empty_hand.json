@@ -1,0 +1,12 @@
+{
+ "set": "M21",
+ "notes": "PROBE of today's behaviour (215, F43 / BACKLOG B-64): passes on main 8d85e0a7 because the phantom option exists. Crypt Lurker (verified, M21): 'When this creature enters, you may sacrifice a creature or discard a creature card. If you do, draw a card.' With an empty hand the trigger's Choose still offers both actions, '0' (sacrifice) and '1' (discard a creature card), and the second can do nothing (CR 609.3; AGENTS §10: a decision with no consequence). Wave W-D makes the ask offer only what can be done; this probe then fails and is replaced by a pack pinning the narrowed ask.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cl", "real": "Crypt Lurker", "zone": "hand", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enter", "key": "cl", "decisions": ["fire"], "expect_raise": "needs a decision from ('0', '1')"}
+ ],
+ "expect": {"zone": {"cl": "battlefield"}}
+}

@@ -25,9 +25,9 @@ are neutral; each one is teaching the agent something.
 | **Package decks** (2026-11-12, docs/PLAN_CEILING.md §14.3): a deck holds 8 copies of its package's consumers (4 when its pair holds one) and 8 copies of other producers, the rest filled as a coherent deck; a package is kept only when a colour pair holds a consumer and 8 producer copies (a consumer that produces, and a basic at 12, count); the pair is the one holding the most consumers, then the most producer copies; consumers and producers are drawn uniformly | `tools/selfplay/packages.py` `CONSUMER_COPIES`, `PRODUCER_COPIES`, `derive`, `build` | Chosen so that a player sees a consumer in 93% of games (16 cards of 60 by their ninth turn, an 18-turn game), not measured to be best; they set how much of a deck is the package and which packages exist at all. Remove when decks come from the drafter fitted on a pilot that plays synergies (§14.4 "Later"), or when the Teacher sets a package's density from measured skill headroom (§9.1, §14.1) |
 | **Coherent-deck recipe (B-45)**: 2 seeded colours, 24 basics, 36 cards uniform within the colour pair | `core/executor/games.py` `build_coherent_deck` / `COHERENT_LANDS` (branch `sets/onboarding` 36adf48) | It chooses colours and land count, never which spells. Remove when decks come from a learned deckbuilder (draft/sealed or constructed), or replace the land count with a learned or sampled quantity. Opt-in only; the default stays the stress pile. |
 | **Trigger quarantine after `MAX_TRIGGER_FIRES = 200`** (registered 2026-10-24) | `core/executor/binding.py:31-34,147,1458` | A rules deviation: the runaway source's trigger is switched off for the rest of the game, so combos silently die. Replace with the loop shortcut and CR 104.4b handling in [`DESIGN_INFINITIES.md`](DESIGN_INFINITIES.md). |
-| **`TURN_CAP = 60`** (registered 2026-10-24) | `core/executor/games.py:138,1554`; `tools/selfplay/learner.py` `reward` (`--draw-reward`) | A non-rules safety rail. Scored as a draw (0 > loss = -1) it would pay a losing policy to stall (D10), so self-play scores it `--draw-reward` (default -1, a loss for both seats) and reports it as `draw-cap`. Remove once a real match clock exists. Owner, 2026-11-11: "I think the rails are good for now, we can raise them once they are only hit in genuinly close games, not just unintelligent ones." To tell, count the hits per game and read the games that hit them (not counted yet). |
+| **`TURN_CAP = 2 * (DECK_SIZE + 1) + 3` (125)** (registered 2026-10-24 at 60; raised 2026-11-18 by the owner's order: no artificial end may cut real play) | `core/executor/games.py` `TURN_CAP`; `tools/selfplay/learner.py` `reward` (`--draw-reward`), the iter rows' `turn_caps` | A rail for a game that would never end, scored as a draw-cap, a loss for both seats (D10: a draw paying a losing policy to stall). At 60 it ended 0.17% of r29's training games (100 of 60,000, all network stalls; heuristic games never pass turn 40), games the rules would have ended by decking. It now sits just above the rules' own end: a library holds at most DECK_SIZE cards, so no game without an effect returning cards to a library outlasts it, and the cap binds only on a loop the stall rule misses. Counted per update (`turn_caps`); the target is 0. Remove once a real match clock exists. |
 | **Stall rule = draw after 3 identical rounds** (registered 2026-10-24) | `core/executor/games.py:159,1499-1511` | Same incentive problem as the cap; self-play scores it like the cap (`draw-stall`). Keep it as a progress probe until optional-loop actions exist. |
-| **10 actions per player per step** (registered 2026-10-24 as "10 acts per main phase, one main phase per turn"; 10 in each main phase from 2026-11-06, B-74; per player and step since 2026-11-11, when the loop gave priority in every step, DESIGN_PRIORITY §2.6) | `core/executor/games.py` `MAX_ACTS_PER_STEP` (`_play_turns`; `Executor.acted` counts); the pack runner's `act` op | A rail, not a rule: CR 117 sets no limit on how often a player who keeps priority acts. It makes a player who never passes pass after its tenth action in a step (a free ability activated forever), recorded as any pass is. Priority did not remove it. Remove when the loop shortcut and the optional-loop action exist ([`DESIGN_INFINITIES.md`](DESIGN_INFINITIES.md), CR 104.4b) or a real match clock makes never passing lose. Owner, 2026-11-11: "I think the rails are good for now, we can raise them once they are only hit in genuinly close games, not just unintelligent ones." To tell, count the hits per game and read the games that hit them (not counted yet). |
+| **30 actions per player per step** (`MAX_ACTS_PER_STEP`; 10 until 2026-11-18) | `core/executor/games.py` `MAX_ACTS_PER_STEP`, `Game.act_cap_hits`; the iter rows' `act_caps` | A rail against a player who never passes (CR 117: acting keeps priority, so a step would never end), not a rule. No heuristic game of 1,000 (M21, M20) took more than 7 actions in a step; 30 leaves real play untouched and still stops such a loop. Every binding is counted per game (`act_cap_hits`) and per update (`act_caps`), and the target is 0; the trigger quarantine (`quarantines`) likewise. Remove once a real match clock exists. |
 | **Automatic payment: the pool first, then the mana sources the engine picks** (2026-10-29, B-90 option (a); the act window too since 2026-11-05; costly sources since 2026-11-11) | `core/executor/legality.py` `plan_mana_taps` / `tap_for_payment`; callers `core/executor/menu.py` (`cast_taps`, `activation_taps`: the menu every player acts from), `verbs._v_pay` with `query.optional_offer`, the `unless` lane of `verbs._v_counter_spell`, and since engine wave E3 (2026-11-18) a spell an ability casts (`stack.cast_card`, its offer `query._cast_option_payable`: Chandra, Flame's Catalyst's −2 was paid from the pool alone before, so never in a game) | CR 601.2g / 605.3a let the payer activate mana abilities while paying. A free source is a non-creature permanent whose mana ability costs only {T} (lands, plain mana rocks). A cast, activation or payment is offered when the pool plus the untapped free sources pay it, and the engine taps an inclusion-minimal set by one rule: for each shortfall (coloured symbols first), the source whose loss leaves the most colours the other free sources make, then the one making the fewest colours, then the lowest Handle (colourless is not a colour, so a colourless source pays a generic shortfall first, and the pool pays generic costs with colourless mana first: 2026-11-06; the rule ignores a source's other abilities, so a colourless utility land such as Animal Sanctuary or Cryptic Caves spends its own {T} ability paying a {1}); a coloured choice that leads nowhere tries the next source, so a payment is found whenever one exists ({R}{W} from an R/W and a B/R dual). Since 2026-11-11 (DESIGN_PRIORITY §2.7, §11 step 4) mana abilities are no menu rows: a cast or activation from the menu is also paid, where the free sources fall short, by a creature's {T} mana ability, then by one that sacrifices its own permanent (Treasure), by the same rule within each tier (`legality._source_tier`), never sacrificing a permanent the spell or ability targets (its targets are chosen before the costs are paid, CR 601.2c, 601.2h, so the spell would lose them; tapping one is allowed; packs `treasure_*`, 2026-11-11). Never paid for the player: a mana-cost filter (Prismite, Three Tree Mascot; `cards/M21/prismite_1.json` pins that no game pays with Prismite's, and the packs that activated it wait in `known_bugs/2026-11-17/payer_never_pays_a_filter/`) and a sacrifice of another permanent (Kykar's Spirit); a payment inside a resolution uses free sources only. Every mana ability of a permanent is a way it pays, and it taps once (2026-11-17: only the first was priced, so Gift of Paradise's granted ability never paid on a land with a mana ability of its own). A mana ability whose effect is a Conditional is priced by the branch the state picks (M20 Leafkin Druid, 2026-11-17: it made no mana in a game before, its packs having activated it directly); `test_executor_legality.TestManaAbilitiesWhilePaying.test_every_verified_mana_ability_is_one_the_payer_prices` pins every mana ability of the M21, M20 and FDN verified deal pools as priced, Prismite's and Kykar's excepted (their costs, not their effects). Given up with the rows: a mana ability activated for its side effect (a Treasure sacrificed in response to its removal, CR 605.3a), and the filters entirely. The design asked the payer which costly source pays when there is more than one way; the engine picks instead, because the free sources are already its pick and a payment choice for the costly ones alone would be replaced by the learned one. The engine chooses the payment sources, a decision hidden from the player (AGENTS §10). Remove with a learned payment choice: the PAYMENT asks of DESIGN_ACTION_SPACE §1.3. The owner, 2026-11-18: keep the engine's payment for now. Network quality and maturity come first; realism of play is a later learning point, not the current bottleneck, and that deferral covers mana activation only. The end state: the network activates its own mana abilities (CR 601.2g), at any priority point too, with no auto-pay option, so tap triggers (M20's Leyline of Abundance, Manabarbs), convoke and spend restrictions are its choices (OWNER_VISION_LEARNING §12, PLAN_PLANNING §3). |
 | **Pack `mana` op** (2026-10-29, V2) | `tools/run_scenarios.py` | Mana empties as each step and phase ends (CR 500.5), so a pack that pays in a later step adds the mana at that step, standing in for the lands the player taps there. Since 2026-11-11 a cast step may instead tap real lands with `"tap": true` (the menu's automatic payment, the row above); the op stays as the short form. Remove when payment folds into the move (DESIGN_ACTION_SPACE §1.3). |
 | **Benchmark: 3 strikes per decision, then the do-nothing choice** (2026-10-24) | `MTG_bot/bench/llm.py` | Bounds a non-answering model. Remove when tool mode gives structured answers; until then forfeits are always reported. |
@@ -42,6 +42,8 @@ are neutral; each one is teaching the agent something.
 | **Simulator data: each capture seat records a share 0.4 of its decisions; capture games are half network against itself, half against the heuristic; games whose seed is a multiple of 25 are held out** (2026-11-06, E0) | `tools/selfplay/learner.py` `capture` (`--capture-p`); `tools/selfplay/simulator.py` `HOLDOUT` | Collection knobs of E0's offline data. Remove when the simulator retrains on a sliding window of the league's own recent games (PLAN_LEARNING §4), held-out games drawn there. |
 | **Entropy bonus in outcome PPO: 0.004 in r27, 0.0075 in r26** (2026-11-10, r26; r20-r23 ran 0.002; r27 since 2026-11-12) | `tools/selfplay/ppo.py` `ppo_train` (`--ent`); the unit text in `KNOWLEDGE/2026-11-10/189` §9 and the command in `KNOWLEDGE/2026-11-11/191` §2 | The one term in the loss that is not winning, sized by hand. Without it this learner lowers its own entropy by about 0.003 per update at lr 2e-5 (r25), and 0.002 does nothing against that (one update measured term by term, 189 §8). 0.0075 was the size whose measured push balances the fall; it overshot, and r26's entropy rose to 0.43-0.45 (189 §10-11). At r27's 0.004 an action costing 0.3 points of win probability keeps about 15% of the best action's weight (191 §2). It is one level for every kind of decision: r27's mulligan, the binary choice with the noisiest gradient, may carry what r26's bonus put there (191 §7). Remove when exploration no longer hangs on sampling noise: targets from search (PLAN_LEARNING Phase 2), or a learner whose entropy holds without it. |
 | **r28's guard: stop the run at 1.80 mulligan declarations per learner seat (per game while every game had one; a 10-update mean), or at a 50-update heuristic win rate 0.05 under the first 50 updates'** (2026-11-12, KNOWLEDGE 199 §3) | `tools/selfplay/guard.py`, unit `mtg-r28-guard` | A safety rail on r27's runaway, not a learning signal: the network never sees it. Ends with r28; drop it once the mulligan's learning holds without it (R1 met to the read at 400). |
+| **The planner's vocabularies: when (A1, A2, A3, A4+, later this turn, their next turn, my next turn, the two turns after, later, never) and the window kinds (my main phase, my combat, in response to their spell, to their ability, their combat, another instant-speed point)** (2026-11-18, planner v1, DESIGN_PLANNER §6, §7) | `tools/selfplay/planner.py` `WHEN`, `WINDOWS`, `window`, `_when` | Hand-chosen discretisations of an observable future, not policy rules: A4+ is the last ordered use and "the two turns after" the last bounded turn, so a plan further out reads only "later", and a window outside the six kinds reads "other". They decide what a plan can say, and so what plan-following can make the policy carry out. Remove when a learned form reads plans at least as well on the puzzles and L: a distribution over the number of decisions or turns to the next use, and the window as the journal's own event kinds before the use (PLAN_PLANNING §5's "event before its use"). |
+| **The planner's side losses: `--plan-coef 0.05` (hindsight), `--follow-coef 0.1` and `--follow-share 0.25` (plan-following, each sampled decision weighted 1/share)** (2026-11-18, planner v1, DESIGN_PLANNER §6, §7) | `tools/selfplay/learner.py` (the flags), `tools/selfplay/ppo.py` `planner_terms` | Weights set by hand, not measured: the hindsight loss starts near 9.7 nats, so 0.05 puts it near the value loss's weight inside the clipped gradient; plan-following's 0.1 is near PPO's own terms. Too high, they pull the trunk from winning; too low, the forecasts are noise and the plan is not followed. The share only buys compute (the 1/share weight keeps the expectation). Remove when the weights are measured: the registered A/B over a small grid on the puzzle categories and L, or a learned balance of the terms' gradients; the hindsight target itself gives way to the search's best plan where the search runs (DESIGN_PLANNER §2, P3). |
 | **One fixed `TEST_MASTER_SEED` for the test suite** (2026-09-11) | `MTG_bot/conftest.py:24` | It is the right default now, but a conformance suite should eventually run over k seeds and assert the result is seed-independent, which is what P13's seed band is for. Once P13 exists, replace the constant with a parametrised seed sweep. |
 
 ---
@@ -55,6 +57,7 @@ are neutral; each one is teaching the agent something.
     the comparison of two counts) sums all opponents at three or more seats;
   - party size can count one multi-class creature several times;
   - `templates_b6` emits `Verb.DISCARD`, which has no handler.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F01-F04):* F01 CLOSED on main (`binding.TriggerBinder._designate` removes the ability; `test_executor_hexproof` and pack `runed_halo_names_brash_taunter` pin it), removal proposed in W0; F02 multiplayer only (W5); F03 latent, no party card is dealt; F04 latent, 0 trees in the deal pools (I8's fold).
 - **Compiler faults found by the 2026-11-06 lean pass** (none live in the M21, M20 or FDN verified
   pools: every verified card that places counters places the printed kind, and the verified
   "as long as" statics carry their condition as a while-duration):
@@ -62,6 +65,7 @@ are neutral; each one is teaching the agent something.
   - the b4 keyword-grant template raises KeyError on a keyword it does not map (loud, refuses the card);
   - rebuilding a static ability during kicker or continuation merges drops the ability's condition;
   - search scores a drawn playout as -1.0 regardless of --draw-reward (matches today's default).
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F05-F08):* F05-F07 latent (census: every pool placement prints its kind; the verified statics carry their condition), compiler riders of W4 with a 0-verified-tree diff; F08 is the search's, not the engine's.
 - **The search's determinisation deals the opponent impossible hands** (red team of the learning
   plan, 2026-11-06): `search.py` (~72-79) re-draws the opponent's hidden cards from the whole
   five-colour pool, while training deals two-colour coherent decks. Measured on 12 deals: the
@@ -70,13 +74,16 @@ are neutral; each one is teaching the agent something.
   pass" flips on 6 of 14 clear positions. Every eval+search number so far was measured against
   crippled imagined opponents. Fix (~30 lines): sample hidden cards the way the deck generator builds
   decks (prototype matches the true-cards control, +0.15 vs +0.14). Prerequisite of DECISIONS D20.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F09):* not the engine; still open (`search.py` docstring: coherent decks sampled as five-colour piles). The search's owner fixes it before any search A/B or P3.
 
 Each reproduction is a scenario pack in `tools/scenarios/known_bugs/`. It holds the outcome the
 printed text demands, so it FAILS today and passes once the bug is fixed; then it moves to
 `tools/scenarios/`, or is deleted when a regression test already covers it. Run them with
 `tools/run_scenarios.py --dir tools/scenarios/known_bugs`; they are outside the default sweep. The
 M20 mappers' repros, run against their draft trees, are in `tools/scenarios/known_bugs/2026-11-05/`
-(its README lists them and says how to run each).
+(its README lists them and says how to run each). The 2026-11-18 triage of every entry below, with
+its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repros are in
+`tools/scenarios/known_bugs/2026-11-18/`.
 
 ### Combat
 
@@ -105,6 +112,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     no-op: the flag would gather the combat rows. Such a card is needs-atom (none compiles).
   - A dealer trigger with no recipient ("whenever this creature deals damage") split by trample
     or several blockers still fires per DAMAGE row, not once per step (none compiled).
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F10a-d):* latent (refused at bind or not compiled; census: no dealer trigger without a recipient in the deal pools). Fixed with the first card that holds the shape; W0's guard test flags it.
 - **A blocker of several attackers** (2026-11-17, engine wave E2). Since that wave a blocked
   creature's controller divides its combat damage among its blockers as they choose, asked
   blocker by blocker (`divide:<blocker>:<attacker>:<turn>`, CR 510.1c, 702.19b). CR 510.1d's
@@ -112,13 +120,16 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   blocks one attacker (`Executor._assign_damage`, `_declare_blockers`). No card of the deal
   pools blocks more (10E High Ground, M10/M11 Palace Guard and M19 Ghastbark Twins print it; no
   tree holds it). The lane comes with the first such tree.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F11):* latent (no tree). With the first card (Commander has many); W0's guard flags it.
 
 ### Casting, the stack and targets
 
 - **The bench labels a multi-mode `choose` token "choice N"** (`bench/protocol.py` maps tokens to
   bullets only when every option set is one mode); it is representable but not described.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F12):* not the engine: the LLM benchmark, deferred with its items.
 - **Target recheck gap (not reachable in current games)**: Enthralling Hold's "as you cast it"
   restriction is re-read at resolution, so it fizzles if its target untaps.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F13):* REACHABLE in M21 (Tolarian Kraken untaps the target in response): pack `known_bugs/2026-11-18/cast_time_target_restriction_rechecked_at_resolution/` fails on main. WEAKER. Wave W2.
 - **An ability whose source left and came back still acts on the source** (CR 400.7, found
   2026-11-11). Targets are rechecked against zone changes since they were chosen
   (`stack.recheck_targets`, `returns.moved_since`), but an ability's own source is not: "this
@@ -147,18 +158,22 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     resolution has lost its last known information before the binder matches its departure, so a
     look-back trigger there reads the controller and the granted abilities, keywords and types of
     the new object.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F14, F14b, F14c):* REACHABLE: M20 through Brought Back (packs: a Griffin Protector pump lands on the new object; an equip attaches a returned Colossus Hammer, a 12/12 Bear) and M21 through Obsessive Stitcher (Watcher of the Spheres); FDN by census (Fake Your Own Death with Ball Lightning, weaker). STRONGER. The chosen-quality case is reachable in M20 (Icon of Ancestry with Brought Back). Wave W1, with the CR 400.7e exception for Angelic Destiny.
 - **B-54 [2026-10-29, first mapping batch] `legal_casts` offers a spell whose required target has
   no legal candidate** (CR 601.2c), and casting it raises. The bench router hides such rows; the
   probe now skips them.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F15):* CLOSED for play: games build their menu with `menu.menu`, which leaves out a row `stack.can_designate` refuses; `query.legal_casts` is read only by tools/cards (probe, respond), which move to the menu in W0.
 - **Two "target" words with the same text share one target slot** (found 2026-11-06): the slot
   query keys a slot by its selector (`query.spell_target_slots` dedupes by repr, which is how the
   compiled anaphora of "target creature ... its power" stays one target), so "Target creature gets
   +1/+1. Target creature gets -1/-1" would be one slot and could not take two creatures (CR 601.2c,
   115.3). Latent: no card in the M21, M20 or FDN verified pools has two such words. Needs the
   compiler to tell a second target word from a reference back (a slot id on the selector).
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F16):* latent (the one deal-pool card with two target words, M21 Rookie Mistake, has distinct selectors). Needs a slot id (IR); with the first card.
 - **The folded `activate` takes its targets before it asks X** (2026-10-29, the activation X
   lane), so X is announced after the designation (CR 601.2b orders X before 601.2c targets). No
   carrier has both: Ugin's [−X] has no target.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F17):* latent (census: no activation with X and a target in the deal pools). A cheap rider of W2.
 - **A triggered ability's per-slot designation: what is left** (2026-11-13; the designation itself
   is `binding.TriggerBinder._designate_slots`, as spells and activations designate).
   - A target whose legal set reads the player designated beside it ("exile target creature target
@@ -187,11 +202,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     should write an empty result. Of the 12 skippable atoms with a result reader after them
     (Duress, Pilfer, Kitesail Freebooter, Necromentia, Transmogrify), each is the single required
     designation's, never skipped: with that target illegal the ability does not resolve.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F18a-f):* the slot-less `target:` ask is REACHABLE (Drakuseth, M20 and FDN): an observation gap for the network-readiness plan's schema change. The rest are latent: with the card, G0's lint, or W4 (the skipped producer).
 - **A player's keywords are not in the observation** (2026-11-13). Hexproof and protection on a
   player (Leyline of Sanctity, Veil of Summer, Runed Halo) change the opponent's target menus,
   which the engine computes, but `tools/selfplay/features.py` encodes keywords per card only, so
   the network sees the Leyline on the battlefield, not "you have hexproof" (a resolved Veil leaves
   no permanent behind). A features change, with the network's owner.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F19):* REACHABLE (Runed Halo in M21, Veil of Summer in M20): an observation gap, not a rules fault; the network-readiness plan's schema change.
 
 ### Triggers, events and the journal
 
@@ -213,17 +230,20 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   an EachPlayer beside another player's card (the dies records are a spell's, which no move ends).
   The fix is the one above: every player chooses, then the moves happen and ask together
   (`verbs._replaced_moves`).
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F20):* latent in two-player games (every deal-pool EachPlayer names one player or has one instruction). Wave W5 (multiplayer).
 - **An effect finds every object it moved itself, a hidden zone included** (2026-11-13, the
   one-event fix). `TriggerBinder._gone` judges "it"/"they" as the trigger begins to resolve (CR
   400.7), so a later instruction of the same effect finds an object an earlier one moved: right
   for a public zone (CR 400.7: other parts of the effect can find it), not for a hand or a
   library. No printed trigger moves its event's object into a hidden zone and acts on it again.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F21):* latent. A cheap rider of W4.
 - **A reflexive trigger cannot read the target of the ability that created it** (2026-11-12, gate
   round 6 m1). `fire_reflexive` carries its resolution's bindings without `target`, so the
   reflexive trigger's own targets are its own (CR 603.12); IKO Back for More's "Return target
   creature card ... When you do, it fights up to one target creature you don't control" needs
   "it", the creator's target, in a register of its own (a distinct binding name), not in
   `target`. Unparsed; build it with the card.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F22):* latent (unparsed). With the card.
 - **A state trigger triggers again while it waits** (2026-11-12, found reading Nine Lives'
   rulings). CR 603.8: "When there are four or more page counters on this artifact" (Mazemind
   Tome), "nine or more incarnation counters" (Nine Lives) trigger once and not again until the
@@ -232,6 +252,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   triggers, so every further counter placed while the first waits queues another one (it does
   nothing: the permanent is already exiled). Fix with a state-trigger encoding, or a guard keyed
   on the waiting instance.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F23):* REACHABLE in M21 (Nine Lives: two damage events at eight counters queue two exile triggers): WRONG, no outcome change today; STRONGER once the copy round verifies Sublime Epiphany (a countered exile trigger leaves Nine Lives on the battlefield, where its ruling has it trigger again at once). IR change: a state-trigger node, gate round W3, before Sublime Epiphany is stamped.
 
 - **Yarok, the Desecrated and Sanctum of All make their extra trigger with a trigger of their own
   (2026-11-11).** CR 603.2d: the ability triggers that many times at once, so the copies go on
@@ -242,6 +263,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   original and the extra copy, and the trigger-order ask offers the carrier's trigger as an
   option (`test_executor_t5d.py`). Life totals agree in the packs. Fix: count the copies when
   the ability triggers and queue them with the original, with no carrier trigger.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F24):* REACHABLE in M21 (Sanctum of All with six Shrines: very rare, package decks). WRONG. IR change (the ability is a static), gate round W3.
 
 - **B-92 [vfix V8, 2026-10-29; updated at the d955f67 merge, 2026-10-30] A fight's two DAMAGE
   journal rows both name the fight's source as the cause** (CR 701.12b: each creature deals damage
@@ -262,11 +284,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     without the decision).
   - Fix: a per-row cause. The V3 dealer lane (`verbs.damage_source`, the Atom lane's DEAL_DAMAGE
     cause) is the one-dealer model; FIGHT needs two.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F25):* latent (no dealer-filtered reader of creature damage in the deal pools). A rider of W2 (a per-row cause).
 - **CounteredEvent has no trigger or history reader**: the countered spell has left the stack
   when its COUNTER row is matched, so a "spell" filter cannot be judged afterwards
   (binding._UNSUPPORTED_EVENTS refuses a trigger on it; the history atoms reject it). Needs the
   spell's last known information on the row before "whenever a spell is countered" or "if a spell
   was countered this turn" can be written.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F26):* a capability (refused at bind), latent. With the card.
 - **The journal records a player's net life change per atom** (events.py `record_atom`): a
   lifelink source dealing damage to its own controller (10E Orcish Artillery with Loxodon
   Warhammer) leaves no DAMAGE, LIFE_LOST or LIFE_GAINED row, though that player lost 3 and gained 3
@@ -274,6 +298,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   LIFE_GAINED_THIS_TURN_GE, "whenever you gain life", and since 2026-11-13 the life events'
   `ordinal`: such a loss does not use up Vengeful Warchief's "first time"). Fix: journal player
   damage and lifelink gains from the verbs' own tuples, not the life diff.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F27):* REACHABLE: FDN pack `known_bugs/2026-11-18/lifelink_damage_to_its_own_controller_is_no_life_gain/` (Midnight Reaper with lifelink never feeds Ajani's Pridemate) fails on main; M21 and M20 by census. WEAKER. Wave W2.
 - **The trigger lane and the activation lane read CR 113.6m with two classifiers** (2026-11-12,
   found with the activation-zone fix): `binding.functions_from_graveyard` and
   `legality.activation_zone`. Since 2026-11-13 the trigger one reads 113.6m's "unless its trigger
@@ -283,6 +308,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   so the old graveyard binding would have missed the death) and the polarity of IS_SOURCE
   ("another" is not the card). Fold the two into one classifier when a card needs the trigger
   lane to read another zone than the graveyard.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F28):* no behaviour difference; folded in W4.
 - **A created token's ability record is keyed by its name alone** (2026-11-06): `_v_create_token`
   (verbs.py ~1340) registers the binder record under `token_oracle_id(spec.name)` once per game, so
   two different token specs sharing a name (two different "Spirit" tokens) would both get the first
@@ -290,6 +316,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   and Ajani's Pridemate tokens carry abilities, one definition each. Fix before a pool has a clash:
   hash the spec's abilities into the id (an emblem's record is keyed by a hash of its EmblemSpec
   since 2026-11-12, `verbs.emblem_record`).
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F29):* latent in the deal pools; REACHABLE with the copy round (FDN token copies with and without Electroduplicate's added abilities share a name). A merge condition of B3.
 - **A planeswalker's entering loyalty is journalled on the cast lane only** (2026-11-17, found
   with the fix that journals the counters a permanent enters with, CR 122.6). CR 306.5b: its
   loyalty counters are put on it as it enters. A cast planeswalker's seed
@@ -306,6 +333,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     placement (Mazemind Tome, Nine Lives, Wildwood Scourge) read their own counters or +1/+1
     counters, so no game plays differently. A returned planeswalker is seeded with its printed
     loyalty as a new object, rightly.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F30):* latent, WEAKER (as graded). A rider of W2.
 - **Three moments "exiled with ~" still reads wrong** (2026-11-17, the residue of wave E1's
   review and of the CR 400.7 audit's fresh-eyes review; latent, CR 603.7d, 607.2a). Since the
   audit an exile row carries the moment its ability came from (`GameEvent.origin`), and
@@ -323,6 +351,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - a cost an effect asks for inside a resolution (`legality.pay_costs` through `apply_effect`)
     runs with no origin, so its exile is placed when it arrived (fix: pass the resolving
     context's origin).
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F31a-c):* latent (the verified readers are now M20 Bag of Holding and M21 Idol of Endurance; neither reaches the three moments). Wave W4.
 - **An Equipment unattached by a state-based action is not attached to a creature that dies in
   the same check** (2026-11-17, the audit of handle-keyed state after the attachment fix; not
   live in the verified pools). The CR 704.5n lane of `Executor._state_checks` pops the edge
@@ -336,6 +365,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     of Resistance) deals none, so the two never meet in one check; no verified card turns an
     equipped creature into a noncreature as it dies. Fix: pop the edges after the check's
     departures are snapshotted.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F32):* latent, WEAKER (as graded). A rider of W1.
 - **CAST_THIS_TURN_FROM reads every cast of the card this turn for an object off the stack and
   the battlefield** (2026-11-17, named by wave E1's review; graded in the CR 400.7 audit: WRONG,
   latent). `quantity.py`'s lane reads the object's own cast row (`_object_cast_row`) on the
@@ -348,6 +378,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   older row can only add to it, and nothing in the M21 pool casts a creature card from a
   graveyard, so no game plays differently. Fix: read the cast row of the card's last stack or
   battlefield residency.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F33):* latent, WRONG (as graded). A rider of W1.
 
 ### Effects, zones and replacements
 
@@ -361,6 +392,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   MOVE_ZONE's own count clamp (`verbs._v_move_zone`, which still moved the first of "them" until
   gate round 10's fixes); `result` and `target` keep the slice until their plural reads are
   audited, card by card.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F34):* latent (Necromentia's exile of the result follows its search's own exile, a no-op; a resolving PERMIT reads the whole register). Wave W4, card by card.
 - **The life-gain replacement lane applies records in record order and never asks** (2026-11-13):
   `ReplacementRegistry.replacement_for_life_gained` returns the first live record, where CR 616.1
   lets the gaining player choose the order (the damage lane asks, `_choose`). The zone-change lane
@@ -370,12 +402,14 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   Vitality commute, so nothing compiled today is affected; a "+1" beside "twice that much" (Rhox
   Faithmender, Alhammarret's Archive) does not (3 life: 8 or 7). Ask the order before compiling
   "twice that much life".
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F35):* latent (one life-gain replacement per pool: Angel of Vitality's copies commute; no two zone-change replacements share an event). A new ask kind: wave W5, or with the first non-commuting pair.
 - **An ALL over the top of a library writes the look window's partition state on every read**
   (2026-11-13, gate round 7, m2): `selectors.resolve_selector` sets `ctx.one_of_window` and
   `ctx.one_of_picks` for any read of such a selector, a count included, and the window closes
   after any atom that is not a look (`verbs.run_atom`'s close after LOOK_AT/REVEAL). Write that
   state only when `journal_partition` is set (the move's own read). Not live: Goblin Ringleader is
   the only ALL over a library top, read once, by its move.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F36):* latent but no longer single: four verified readers (Radha, Mystic Forge, Goblin Ringleader, Diviner's Lockbox), none harmed (a static reads only the filter). Wave W4.
 - **"Any number" over a menu the engine cannot ask takes all of it** (2026-11-13, the review of
   the any-number fix). `selectors.resolve_selector` asks "any number" (and "up to N") pick by pick
   only where `_choose_lift_allowed` lets a choice be asked. Elsewhere, as an exact count there
@@ -385,22 +419,26 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   and Conspicuous Snoop's CAST source is a population read (`reports/m20_faults_2026-11-12/
   census.json`). Fix with the first card that needs one: who decides each of those menus is not
   encoded.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F37):* latent (every deal-pool case is asked). With the card.
 - **"As this enters" runs only CHOOSE_NAME** (2026-11-12, gate round 4, e6f9358): an EtBState
   `effect` is run inside the zone-change bookkeeping (`Executor.run_as_enters`, CR 614.1c), and any
   verb but Runed Halo's CHOOSE_NAME (since ontology R9 of any quality: a card name, a colour, a
   creature type) raises NotImplementedError there. It goes when a card that needs
   another (Sutured Ghoul, Devouring Hellion, Rescuer Sphinx) is mapped with its own tests.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F38):* a tripwire, latent (every deal-pool EtBState effect is CHOOSE_NAME). With the card.
 - **Tripwire: colours are the printed ones** (gate round 9, n3). COLOR_HAS and the chosen-colour
   read (NAME_CHOSEN COLOR, `quantity.py`) read an object's printed colours: the engine carries
   no colour-setting effect, since none compiles today (Witness Protection, Eaten by Piranhas,
   Turn to Frog, Frogify, Scuttlemutt are unparsed). The first such card to compile makes both
   read the colour its layer sets (CR 105.3, 613.1d), with a test of each.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F39):* a tripwire, latent. With the card.
 - **Tripwire: a copy that entered without choosing** (gate round 9, n4). A chosen-quality read
   with no choice raises (`quantity.py`, NAME_CHOSEN): every entry chooses, and no copy-making
   sentence compiles in a pool that deals a chooser. When "becomes a copy" or "enters as a copy"
   lands, a copy that did not choose reads "nothing was chosen" (the rulings: Icon of Ancestry's
   copy that entered without a choice gives no creature +1/+1), a False, not a raise; change the
   read with that card's tests.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F40):* REACHABLE with the copy round (a token copy of Runed Halo, Icon of Ancestry, Diamond Knight or Diamond Mare). A merge condition of B3.
 - **Cards a controller picks from a look at another player's library or hand raise as they go
   into that library** (2026-11-12, ontology gate round 5, m4; `verbs._library_order`,
   `_looked_at`): a tripwire. CR 401.4 has the owner arrange cards put into their library together,
@@ -408,17 +446,21 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   "Look at target player's hand and choose two cards from it. Put them on top of that player's
   library in any order." No compiled card in the 19 sets does it, so the engine raises rather
   than guess who orders. When one compiles: ask its controller, with its tests.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F41):* a tripwire, latent. With the card.
 - **B-30 `identity_of` drops oracle text and stamps `set_code="M21"` on every card**
   (`core/executor/games.py:402` `identity_of`).
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F42):* no reader in play (features and the bench read the record and the oracle index). Wave W4.
 - **B-64 [verifier, FDN round 2] A may-offer, and a Choose inside it, still offer an action that
   cannot be done** (Crypt Lurker's discard with no creature card), a phantom option (AGENTS §10).
   Weaker side only since V12: "if you do" reads whether the optional action changed anything
   (CR 118.12). **Fix.** Offer the may only when the action can be done (CR 609.3).
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F43):* REACHABLE in M21 (Crypt Lurker with an empty hand asks '0' or '1', the discard included): a phantom decision, wave W-D with the network-readiness plan's item 7.
 - **B-65 [verifiers, FDN rounds 1-2] Nothing removes an Aura whose host its enchant filter no
   longer allows** (CR 704.5m). `Executor._unattached_auras` buries an Aura that is unattached or
   whose host has protection from it (V44), not one whose host stops matching (an "Enchant
   creature" Aura on a permanent that stops being a creature). The cast-time host filter is fixed
   (ENCHANT carries the filter).
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F44):* REACHABLE in M21: pack `known_bugs/2026-11-18/aura_stays_on_a_host_its_enchant_no_longer_allows/` (Dub stays on Riddleform after its animation) fails on main; Setessan Training with Traitorous Greed by census. STRONGER. Wave W1.
 - **B-97 [2026-10-29, branch `engine/r5a-until-leaves`; renumbered from B-76 at the integration merge] Ontology R5-1: zone moves "until" an event
   (CR 610.3) are built; what is left.**
   - **"For as long as ~ remains on the battlefield" (CR 611.2b)** ends when the object phases out
@@ -438,6 +480,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - Kitesail Freebooter's "You choose ... from it" is still asked when Freebooter left before its
     trigger resolved. CR-correct (the choice is made, nothing is exiled), but the ask has no
     consequence.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F45a-e):* 'simultaneity' is REACHABLE in M20: pack `known_bugs/2026-11-18/aura_returned_with_its_creature_enchants_it/` (Brought Back returns a Bear and its Oakenform; the Aura enchants the Bear, a 5/5, where the card's ruling keeps it in the graveyard) fails on main. STRONGER, wave W1. Freebooter's ask after it left is a phantom decision (W-D); the rest are latent or unparsed.
 - **The top-n lane of MOVE_ZONE reads the destination's player's library** (2026-11-12, found
   with the SHUFFLE fix; latent: no compiled tree in the 19 sets takes the lane):
   `verbs._v_move_zone`'s "top n of a library into a hand" lane takes the cards from
@@ -445,9 +488,11 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   the ability controller's library, and a selector over another player's library is ignored.
   The library is the selector zone's player, and its cards go to their owner's hand (CR 108.3,
   400.3). Left for the agent changing MOVE_ZONE (the `arrange` role), with a test that fails first.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F46):* latent (census: no deal-pool tree takes the lane). Wave W4.
 - **A Conditional after a step that made two or more tokens judges nothing**
   (`executor._conditional_subject` takes the result register only when it holds one object): no
   tree has such a step today; "if they ..." over several tokens would need its own reading.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F47):* latent (FDN Faebloom Trick holds the shape, but its Conditional is MAY_DONE, not a test of the tokens). With the card.
 - **CR 111.8 holds between resolutions only** (2026-11-17, the residue of B-112, whose trigger
   window the bug-hunt fix closed: a token now ceases at the check after it left, and nothing finds
   it). Inside one resolution, a later instruction can still move a token an earlier one moved off
@@ -455,16 +500,20 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   exile and cease (`verbs._v_move_zone` moves any card it is given). No tree of the 19 sets moves
   one object twice in a resolution (Transmogrify returns another card). Fix: MOVE_ZONE leaves a
   token that is not on the battlefield where it is.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F48):* latent. A rider of W1.
 - **Starlight Snare's "doesn't untap during its controller's untap step" blocks every untap of
   the creature** (FDN round 1, 2026-11-06; CR 502.3: only the untap step). Check the verified
   "next untap step" cards too (Frost Breath M21, Frost Lynx M20); it matters only when an untap
   effect is in play.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F49):* CLOSED on main: only the untap step reads the prevention (`Executor._untap_step`); the closed check `reports/engine_fault_triage_2026-11-18/closed_checks/act_of_treason_untaps_a_creature_sleep_paralysis_holds.json` and its control pass. Removal proposed in W0.
 - **Damage to a permanent that left the battlefield during resolution** is still marked on the
   card (round-3 verification, 2026-11-06: Sorin, Imperious Bloodlord's sacrificed Vampire took 3
   in the graveyard, CR 608.2b; that mapping is gone, the reflexive target is now chosen after the
   sacrifice, but the marking is not fixed).
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F50):* latent (Sorin's reflexive target now follows the sacrifice). A rider of W1.
 - **The reveal record of "reveals their hand" lists the library, not the hand** (verbs.py ~1485;
   round-3 verification, 2026-11-06); nothing reads it today.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F51):* the same fault as F63 ('The journal is not a record of what players know'), wave W3.
 - **Zone moves that do not ask the replacements yet** (2026-11-17, engine wave C1; review of
   the wave): every verb that moves a card, the state-based actions, a spell's put off the stack
   and the end-of-turn exile ask `ReplacementRegistry.replacement_for_zone_change`, the moves of
@@ -478,6 +527,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   the exiled card), as the enter lane did before. Separately, a resolved or countered spell goes
   to its caster's graveyard (`stack.resolve_top`, `verbs._v_counter_spell`), its owner's only
   while nobody casts another player's card (CR 400.3).
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F52):* latent (no compiled replacement reads a draw, cast, land drop or token; no deal-pool card casts another player's card). Wave W5 or with the card.
 - **A replacement that moves its own card "from anywhere" works only while the card is on the
   battlefield** (2026-11-17, engine wave C1): every move asks the zone-change replacements since
   then, but a permanent's records live while their source is on the battlefield
@@ -486,6 +536,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   replace their discard or mill (the cards' rulings: the ability works from a hand or a library).
   For round B13 (ZONEREPLACE with SHUFFLEIN): a record whose event's subject is its own source
   and whose origin is ANY lives in every zone.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F53):* latent (Darksteel Colossus and Progenitus are not compiled). A merge condition of round B13.
 
 ### Mana and payment
 
@@ -495,14 +546,17 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   `Executor.empty_mana_pools`. The rest of B-90 (no mana outside the active player's main phase)
   is the automatic-payment scaffold: option (a) built, (b) the `PAYMENT:PTR` asks of
   `DESIGN_ACTION_SPACE.md` §1.3 the design target.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F54):* a capability, latent. With the card.
 - **The payment rule's "most colours stay makeable" is greedy**: 102 of 32,717 random boards
   (0.31%; 0 of 7,204 real-game casts) had a payment leaving a strict superset of colours
   (Conclave Mentor with Blossoming Sands, Temple of Silence, Thornwood Falls, Swiftwater Cliffs).
   Part of the automatic-payment scaffold; a learned payment choice retires it.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F55):* inside the automatic-payment scaffold (0 of 7,204 real casts); retired with the network's own payment, by the owner's deferral.
 - **Hybrid costs (latent; no verified card has one)**: the engine's `build_payment_plan` assigns
   hybrid symbols greedily by printed colour (CR 118.13a lets the payer choose) and ignores
   Chromatic Orrery for hybrid; the planner's Orrery shortcut misses 56 of 2,646 synthetic hybrid
   payments the engine accepts.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F56):* latent (census: no hybrid cost in the deal pools). With the card (common in Commander).
 
 ### Multiplayer
 
@@ -534,6 +588,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - Two-seat consumers: `games.py:1175` deals `GameWorld(num_players=2)`. Scenario packs may
     have three or more seats since 2026-11-13 (`"world": {"players": N}`;
     `tools/scenarios/teferis_ageless_insight_three_players.json`).
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F57):* multiplayer only. Wave W5 (the 'an opponent' chooser is an ask to design with the network's owner).
 - **A player who loses a game of three or more stays in it** (2026-11-13): `_player_losses`
   records the loser and ends the game only when one player is left, but the player does not
   leave it (CR 800.4a: its objects leave, its turns are skipped; `next_turn_seat` still gives it
@@ -541,6 +596,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   name, so no pack passes over it. Since 2026-11-17 one part of 800.4a is done: the control
   effects that gave the loser control of objects end (`Executor._expire_control(players=...)`;
   `test_executor_give_control.py`); its own objects still stay.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F58):* multiplayer only. Wave W5.
 - **Multiplayer combat**: `selectors.defending_players` reads the engine's one defending player.
   With several (CR 506.2a) it must be resolved per attacking creature (CR 508.5a) from
   `Executor.attacked`, and kept for a creature removed from combat (CR 508.5, second sentence;
@@ -549,6 +605,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     (`Executor._turn_based_actions`, BEGIN_COMBAT). With three or more players the active player
     never chooses whom each creature attacks (CR 506.2, 508.1b; Commander plays with the attack
     multiple players option, CR 802), so a three-seat pack's combat attacks that seat only.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F59):* multiplayer only. Wave W5 (attacking each opponent is an ask to design with the network's owner).
 
 ### Rules not modelled
 
@@ -569,18 +626,29 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     gets a new timestamp as it becomes attached (CR 613.7e, `LayerRegistry.restamp`). A verb's
     P/T entry took the raw event count where a static's took the journal clock; one clock now,
     and 7a is told from 7b (M21 Kinetic Augur under Jolrael's X/X: 7/7, not 3/7).
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F60):* copies are round B3's; the dependency pass and the timestamps are latent (no dependent pair, only characteristic-defining P/T). With the card.
 - **Not modelled, because no card in the pools needs it** (B-74 residue; the postcombat main phase
   landed 2026-11-06, 46c7288): a trigger at the beginning of a second
   main phase (the frozen `Phase` has no member for it; the three Sanctums' "first main phase"
   fires once, in the first main phase, CR 505.1a), additional main phases (Relentless Assault,
   10E), and CR 505.4's Saga lore counters (precombat main phase only).
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F61):* latent (no Saga or second-main trigger in the deal pools). With the card.
 
 ### To triage
 
+- **The London mulligan's moves are not journalled** (2026-11-18, found by planner v1's review;
+  DESIGN_PLANNER §7). `games.mulligans` puts the hand into the library, draws a new one and puts
+  cards on the bottom by editing the zones itself, so no ZONE_CHANGE row records them, and every
+  reader of CR 400.7 through the journal (`returns.moved_since`, the planner's object identity)
+  sees a card drawn again as the object it was in the old hand. Nothing in two-player verified
+  play reads it before the first turn; the planner renews the moved cards itself
+  (`planner.Tracker._renew`). Proposed: journal the moves as one atom boundary (the shuffle's
+  already is), then drop the renewal.
 - **The heuristic activates only a planeswalker's first ability row** (2026-11-12, KNOWLEDGE 201 §5).
   `heuristic.py` `_act` never uses Garruk, Savage Herald's -2, and if it did it would judge both
   target slots of an activation by the whole card. A weaker training and evaluation baseline, not
   a rules fault.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F62):* not the engine (`heuristic._act` still takes the first row): the league plan's, where the heuristic is an anchor.
 - **CLOSED 2026-11-17: the G1 probe's GameOver at setup on M21 Sanctum of Calm Waters** (2026-11-12,
   201 §5, and the 2026-11-17 review's entry). Cause: a two-player ScenarioRunner filled the
   libraries after the opening turn, so the board card's draw met an empty library; the probe also
@@ -595,11 +663,13 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   network input reads these rows (features show only offered and scried cards). Anything that
   rebuilds knowledge from the journal is wrong: `search.reshuffle_unknown` did, and was replaced by
   a whole-library shuffle. Fix: a zone role on REVEAL, and SCRY rows that name the cards.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F63, with F51):* latent for play (no reader), but a honesty hazard for memory v1, which would read a revealed hand as the opponent's library. IR change (REVEAL names its zone), gate round W3, before memory v1.
 - **Teferi, Master of Time's -3 duration (suspected, check the ruling)** (2026-11-12, 197): "phases
   out until your next turn" compiles as plain PHASE_OUT, and the pack
   `teferi_master_of_time_phased_out_waits_for_its_controller.json` pins classic phasing (it phases
   in at its controller's next untap step). With his loyalty abilities usable on any player's turn,
   the two readings can differ; check the Comprehensive Rules and the card's rulings.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F64):* NOT A FAULT: the printed text's reminder reads 'until its controller's next turn', classic phasing, which the pack pins. Removal proposed in W0.
 
 - **B-73 [2026-10-29 soaks] The anomaly detectors flag about 2% of M21 games on `main`.**
   - Measured: 18 flags in 800 castable games (400 stress + 400 coherent), all pre-existing. On
@@ -621,6 +691,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - Since then B-50 (CR 400.7, f908287) and B-69 (two replacements on one event, a528b03) are
     fixed, and the M20 verified-pool soak found 0 detector hits in 300 games (/184 §12):
     re-measure on the castable pool before triaging.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F65):* re-measured: 300 verified-mode games per pool, 0 crashes; M20 0 hits; every M21 and FDN hit traced to a detector artefact (D5 folds counters across lives and ignores static and end-of-turn P/T; D6 counts a game that ended inside a delayed trigger's turn, and two copies of one replacement) or to an end-of-turn mandate record left on a dead card with no reachable effect. Detector fixes in W0; the record in W1.
 
 ---
 
@@ -1572,6 +1643,23 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Gates, probe, soak and the pack runner
 
+- **G3's draw-idiom rule is coarser than the executor's draw lane** (2026-11-18, verification
+  wave 6).
+  - `gates._draw_idiom` (`gates.py` ~646, used by the dead-role rule ~765) treats every
+    MOVE_ZONE from a library top into a hand as the draw idiom. But an ALL over a library's top is
+    a partition (`verbs.py` ~378-381) and skips the draw lane (~389-399), the only reader of
+    `destination.controller`. `selectors.move_destination` returns the owner for any
+    non-battlefield destination.
+  - So See the Truth keeps a critical survivor that plays byte-identically (`controller
+    YOU->OPPONENT` at `1/0/effect/steps/1/then_effect/args/destination/controller`). It is judged
+    OK by wave 6's blind verifier (`runs/verify_wave6_2026-11-18/verdicts/A/A04.json`), and it
+    stamps once the rule matches the executor's lane.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, G1):* tooling; it holds See the Truth's stamp. Wave W0.
+- **A cast step with `"tap": true` reports "cannot pay" for any refusal** (2026-11-18, wave 6). A
+  window or timing refusal says the same, because `menu.cast_taps` returns None whenever
+  `spell_castable` fails. An `expect_raise: "cannot pay"` can therefore pass for the wrong reason:
+  pair each refusal with a positive control.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, G2):* tooling. Wave W0.
 - **Pack-runner traps found by mapper wave 5** (2026-11-18):
   - In a two-player pack, a player's loss (an empty library) silently skips the remaining steps,
     so the pack can pass vacuously. Pin `"lost"` in multi-turn packs until the runner fails a
@@ -1581,6 +1669,7 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   - A card key such as "p1" would shadow the player word.
   - The notes of the top-level packs `chandra_heart_of_fire_branch01` and
     `chandra_catalyst_recast_draw_journalled_once` are stale since round 13.
+  - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, G3):* tooling under every wave's acceptance packs, so wave W0 comes first.
 - **The probe moves no two objects at once** (2026-11-13, ontology round R10). Since a zone change
   of several objects gathers, G3 offers the critical "each occurrence -> once per event" mutant on
   every per-object zone-change trigger over another object: 20 more verified trees (8 -> 28,
@@ -1879,6 +1968,11 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   spell copy copies. A token copy and its original read alike but for the token column.
   Candidate: a "copy of" entity pointer and an exception row at the next observation-schema
   change. `tools/selfplay/` was not edited by the round, so old checkpoints compute what they did.
+- **A decision of nothing: ordering identical triggers** (2026-11-18, wave 6). Two triggers of
+  the same ability of one source from one event (two fliers entering at once under Watcher of the
+  Spheres: `card:0`, `card:0:2`) ask their controller for an order (CR 603.3b), though the outcome
+  is the same either way. Each such ask costs the policy a decision that carries no information.
+  Skip the ask when the waiting triggers are copies of one ability with the same source and event.
 - **A permission shows only as the rows it offers** (2026-11-17, ontology round R13). A card a
   permission lets the seat play is an option of the act ask (its entity carries its zone; a
   `:via:` row points at the permission's source), but no card column says "playable from here"

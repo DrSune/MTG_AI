@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "name": "A01_3_the_reduction_is_exactly_one_generic",
+ "notes": "Printed: 'Creature spells with flying you cast cost {1} less to cast.' Mistral Singer ({2}{U}) costs {1}{U} with the Watcher out: two mana. Seat 0 has ONE Island: the cast is refused (it would cost {U} only if the reduction were two). Then one {U} floats in the pool (the mana op) and the same cast succeeds with the Island and the pool: Island tapped, pool empty. The success is the control that the refusal was about the price.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "w", "real": "Watcher of the Spheres", "zone": "battlefield", "controller": 0},
+  {"key": "mist", "real": "Mistral Singer", "zone": "hand", "controller": 0},
+  {"key": "i1", "real": "Island", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "cast", "key": "mist", "real": "Mistral Singer", "tap": true, "expect_raise": "cannot pay"},
+  {"op": "mana", "seat": 0, "add": {"U": 1}},
+  {"op": "cast", "key": "mist", "real": "Mistral Singer", "tap": true}
+ ],
+ "expect": {
+  "zone": {"mist": "battlefield"},
+  "tapped": {"i1": true},
+  "mana_pool": {"0": {}}
+ }
+}

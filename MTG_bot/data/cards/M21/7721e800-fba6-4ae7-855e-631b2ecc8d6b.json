@@ -1,0 +1,76 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "7721e800-fba6-4ae7-855e-631b2ecc8d6b",
+ "name": "Chandra, Flame's Catalyst",
+ "text_sha": "d273375234520556d59d1d1d4e3bbaa3dc92e35e586fe04dcb9dc5d89bb9b78d",
+ "verified": {
+  "tree_sha": "f9a76c8c1c9cc4c6783232d188c4ea0c5bdb474cc990c5a49d832c1e1cba7123",
+  "probe_sha": "0ad88c04d7991d622bc89cecc34b87fd5a507e18bee8d2513adc89c96705d06a",
+  "date": "2026-11-18",
+  "reviewer": "claude-sonnet-verifier-wave6",
+  "clauses": [
+   {
+    "clause": "[+1]: Chandra deals 3 damage to each opponent.",
+    "status": "OK",
+    "evidence": "[activate [0] from battlefield]: 'card gets 1 LOYALTY counter(s) (by card/PUT_COUNTER)' (5 -> 6), then 'opp is dealt 3 damage (by card/DEAL_DAMAGE)', opp life 20 -> 17, you unchanged. abilities[0] = CostLoyalty(+1) and DEAL_DAMAGE 3 to an ALL selector over Zone(PLAYER, ALL_OPPONENTS), the compiler's own tree for this sentence (parse: B5c-loyalty-chandra-dmg-opps). The two-player trace cannot tell 'each opponent' from 'the opponent': pack A00_1 (three players) shows 17 and 17 for the two opponents and 20 for the controller.",
+    "issue": ""
+   },
+   {
+    "clause": "[−2]: You may cast target red instant or sorcery card from your graveyard.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe skips it: 'ability [1] skipped: a target slot needs 1, the board offers 0' (no red instant or sorcery in the standard graveyard). abilities[1] = CostLoyalty(-2) and OptionalEffect(CAST, source = TARGET over FAnd(FOr(Instant, Sorcery), COLOR_HAS R) in Zone(GRAVEYARD, YOU)), the shape of the guide and of the compiler's exemplar (B5c-loyalty-may-cast-graveyard). Packs: A00_2 (the target ask offers exactly the red instant and the red sorcery of your graveyard: not a blue instant, not a red creature card, not the opponent's red instant; the card chosen is cast and the four others stay), A00_3 (a sorcery is cast as the ability resolves, paid by tapping a Mountain, the instant stays), A00_4 ('may': 'skip' declines, nothing is spent, the loyalty is paid), A00_5 and A00_6 (casts, hits the opponent). All pass on the live tree and on the packet's tree.",
+    "issue": ""
+   },
+   {
+    "clause": "If that spell would be put into your graveyard, exile it instead.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No -2 is played in the trace. The rider rides the CAST's 'replace' role (ZoneChangeEvent stack -> your graveyard, MOVE_ZONE to Zone(EXILE, OWNER) of the event's card; parse: B19-spell-rider). Packs: A00_2 and A00_5 (the recast Shock resolves and is in exile, the graveyard holds nothing of it), A00_3 (the sorcery, after it drew its card, is in exile), A00_6 (the recast Shock is countered by Cancel: exiled, not graveyarded), A00_5 again (a second Shock cast normally from the hand goes to the graveyard: the rider covers only that spell).",
+    "issue": ""
+   },
+   {
+    "clause": "[−8]: Discard your hand, then draw seven cards.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe cannot activate it: 'ability [2] not activatable from battlefield: cost:loyalty:5<8'. abilities[2] = CostLoyalty(-8) and Seq(MOVE_ZONE of the ALL of Zone(HAND, YOU) to Zone(GRAVEYARD, YOU), DRAW 7 for YOU, PERMIT): the first two steps are the compiler's exemplar (B5c-loyalty-discard-draw). Pack A00_7: at 9 loyalty the hand (Forest, Opt) is discarded to the graveyard first, then seven cards are drawn (hand 7, the drawn cards not discarded, two fillers left), the opponent's hand (1 card) and library are untouched, nothing is exiled, loyalty 9 -> 1. Pack A00_8 also ends with the hand it drew.",
+    "issue": ""
+   },
+   {
+    "clause": "Until end of turn, you may cast spells from your hand without paying their mana costs.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Not reachable in the probe (the -8 is not activatable at 5 loyalty). abilities[2] step 3 = PERMIT(alternative Cost(), duration DurationEot(), source ALL over Zone(HAND, YOU)), the compiler's own tree (parse: B19-cast-from-hand-free-eot). Packs: A00_8 (no land, empty pool: a creature (5-mana Gnarled Sage, 2-mana Walking Corpse) and an instant (Shock) are each cast from the hand through the permission, more than one spell, nothing paid; the opponent's own Shock with no mana is an illegal cast), A00_9 (two turns later, on seat 0's next turn, the menu no longer offers the free cast of the Sage).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/chandra_flame's_catalyst_1.json",
+   "tools/scenarios/cards/M21/chandra_flame's_catalyst_2.json",
+   "tools/scenarios/cards/M21/chandra_flame's_catalyst_3.json",
+   "tools/scenarios/cards/M21/chandra_flame's_catalyst_4.json",
+   "tools/scenarios/cards/M21/chandra_flame's_catalyst_5.json",
+   "tools/scenarios/cards/M21/chandra_flame's_catalyst_6.json",
+   "tools/scenarios/cards/M21/chandra_flame's_catalyst_7.json",
+   "tools/scenarios/cards/M21/chandra_flame's_catalyst_8.json",
+   "tools/scenarios/cards/M21/chandra_flame's_catalyst_9.json"
+  ],
+  "mutation": {
+   "mutants": 20,
+   "killed": 7,
+   "score": 0.35,
+   "survived": [
+    "optional->mandatory at 1/1/effect",
+    "widen filter (drop part 0) at 1/1/effect/inner/args/source/filter",
+    "widen filter (drop part 1) at 1/1/effect/inner/args/source/filter",
+    "controller YOU->OPPONENT at 1/1/effect/inner/args/source/zones/0/controller",
+    "drop step 0 at 1/2/effect",
+    "drop step 1 at 1/2/effect",
+    "drop step 2 at 1/2/effect",
+    "controller YOU->OPPONENT at 1/2/effect/steps/0/args/controller",
+    "zone GRAVEYARD->EXILE at 1/2/effect/steps/0/args/destination",
+    "amount+1 at 1/2/effect/steps/1/args/amount",
+    "amount-1 at 1/2/effect/steps/1/args/amount",
+    "controller YOU->OPPONENT at 1/2/effect/steps/1/args/controller",
+    "until-end-of-turn->permanent at 1/2/effect/steps/2/args/duration"
+   ]
+  }
+ }
+}

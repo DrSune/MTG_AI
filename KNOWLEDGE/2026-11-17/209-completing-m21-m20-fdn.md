@@ -345,3 +345,8 @@ census's rounds follow, renumbered.
 now ride with the rounds whose cards need them. The rounds that complete M21 and M20 cards come
 first: B3, then B6, B4 + B12, B13 with I5, and on. Why, and at what cost:
 `docs/PLAN_PLANNING.md` §6.
+
+**Amended 2026-11-18 (owner).** When every card of M21 and M20 is finished, the new components
+those cards added get a redundancy review before FDN's rounds build on them. The review asks
+whether any new component breaks down into existing ones, folding it in from the start, as 210's
+review did for the components then.

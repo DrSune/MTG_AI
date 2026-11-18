@@ -1,0 +1,20 @@
+{
+ "set": "FDN",
+ "notes": "KNOWN BUG (KNOWLEDGE/2026-11-18/215, fault F27; BACKLOG 'The journal records a player's net life change per atom'). Fails on main 8d85e0a7; passes once player damage and lifelink gains are journalled from the verbs' own results, not from the life total's net change. Midnight Reaper (verified, FDN): 'Whenever a nontoken creature you control dies, this creature deals 1 damage to you and you draw a card.' It wears Unflinching Courage (verified, FDN: '+2/+2 and has trample and lifelink'). A Bear dies: the Reaper deals 1 damage to seat 0, and lifelink makes seat 0 gain 1 (CR 120.3a, 702.15b): seat 0 stays at 20, draws a card, and Ajani's Pridemate (verified, FDN: 'Whenever you gain life, put a +1/+1 counter on this creature') gets a counter. On main the damage atom's loss and gain net to 0, so the journal has no LIFE_GAINED row and the Pridemate gets nothing: WEAKER than printed. Reachable in the FDN pool (and in M21: Chandra's Magmutt at its own controller with Alchemist's Gift's lifelink, Vito as the watcher).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "reaper", "real": "Midnight Reaper", "zone": "battlefield", "controller": 0},
+  {"key": "uc", "real": "Unflinching Courage", "zone": "hand", "controller": 0},
+  {"key": "pm", "real": "Ajani's Pridemate", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "enchant", "aura": "uc", "host": "reaper"},
+  {"op": "move", "key": "bear", "to": "graveyard"}
+ ],
+ "expect": {
+  "zone": {"bear": "graveyard", "uc": "battlefield"},
+  "life": {"0": 20, "1": 20},
+  "counters": {"pm": {"PLUS_1_PLUS_1": 1}}
+ }
+}

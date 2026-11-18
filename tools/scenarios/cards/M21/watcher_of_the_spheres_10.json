@@ -1,0 +1,54 @@
+{
+ "set": "M21",
+ "name": "A01_7_two_fliers_entering_at_once_trigger_it_twice",
+ "notes": "Printed: 'Whenever another creature you control with flying enters, this creature gets +1/+1 until end of turn.' There is no 'one or more': it triggers once for EACH creature. Two Mistral Singers enter in one instruction (one event, CR 603.2c: the move op with keys), so the Watcher gets two triggers: 2/2 -> 4/4. The engine asks the controller the order of the two waiting triggers (CR 603.3b); either order gives the same result.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Watcher of the Spheres",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "m1",
+   "real": "Mistral Singer",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "m2",
+   "real": "Mistral Singer",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "move",
+   "keys": [
+    "m1",
+    "m2"
+   ],
+   "to": "battlefield",
+   "decisions": [
+    "first-legal"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "m1": "battlefield",
+   "m2": "battlefield"
+  },
+  "power": {
+   "w": 4
+  },
+  "toughness": {
+   "w": 4
+  }
+ }
+}

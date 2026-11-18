@@ -1,0 +1,51 @@
+{
+ "set": "M21",
+ "name": "A01_6_the_watchers_boost_lasts_until_end_of_turn",
+ "notes": "Printed: 'Whenever another creature you control with flying enters, this creature gets +1/+1 until end of turn.' Your Mistral Singer enters: the Watcher is 3/3 for the turn (the Singer is the only change). The turn ends and the next one begins (seat 1's): the Watcher is 2/2 again (CR 514.2).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Watcher of the Spheres",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mine",
+   "real": "Mistral Singer",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "enter",
+   "key": "mine"
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "mine": "battlefield"
+  },
+  "turn_seats": [
+   0,
+   1
+  ],
+  "power": {
+   "w": 2
+  },
+  "toughness": {
+   "w": 2
+  },
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "name": "A01_9_an_opponents_flier_entering_under_your_control_triggers_the_watcher",
+ "notes": "Printed: 'Whenever another creature you control with flying enters, this creature gets +1/+1 until end of turn.' The 'you control' is the controller of the creature as it enters, not its owner (CR 110.2, 603.6a). Liliana, Waker of the Dead's -7 emblem puts the OPPONENT's Mistral Singer (printed flying, owned by seat 1) from its graveyard onto the battlefield under seat 0's control at the beginning of combat: the Singer is seat 0's creature (controller lane 0) and the Watcher becomes 3/3.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "w", "real": "Watcher of the Spheres", "zone": "battlefield", "controller": 0},
+  {"key": "lil", "real": "Liliana, Waker of the Dead", "zone": "battlefield", "controller": 0},
+  {"key": "osing", "real": "Mistral Singer", "zone": "graveyard", "controller": 1}
+ ],
+ "steps": [
+  {"op": "loyalty", "key": "lil", "set": 7},
+  {"op": "activate", "key": "lil", "idx": 2, "seat": 0},
+  {"op": "combat", "seat": 0, "attack": {}}
+ ],
+ "expect": {
+  "zone": {"osing": "battlefield", "lil": "graveyard"},
+  "controller": {"osing": 0},
+  "power": {"w": 3},
+  "toughness": {"w": 3}
+ }
+}

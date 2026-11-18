@@ -27,7 +27,8 @@ protocol (`MTG_bot/bench`) and its seat router are reused unchanged.
 | `heuristic.py` | Rule-based player for the bench protocol: the anchor opponent and the BC teacher (rules in its docstring). Beats uniform random ~96%. |
 | `rig.py` | `SeatRouter` subclass adding the per-ask context the engine has not applied yet (scried card, attackers and blockers declared so far this combat); `play_game`. |
 | `search.py` | Decision-time search: determinised forks, candidate acts, attack plans, block plans, leaf value. The true-future labeller (`Labeller`, docs/PLAN_LEARNING.md §1.1-1.2): at a reservoir of unsure act decisions it compares k alternatives played to the game's end on d true futures (the second reshuffles both libraries whole), and `mmd_target` turns the results into the mirror-descent target; a job with `label` options runs it (`actor.py`). |
-| `model.py` | Transformer over [global, me, opponent, cards..., options...]; pointer logits per option, tanh value from the global token. Card token = name embedding + mean component-token embedding (`ir_tokens` of the compiled tree, every token, pooled as a count matrix times the embedding table; no card name is a component token: KNOWLEDGE 210 §8) + live state. Name dropout makes it read components too. `load` grows an older checkpoint's ask and option-type embeddings: an appended row starts as what it was encoded as before (`features.ASK_GROWN_FROM`: `act_second_main` from `act`; the mulligan kinds and the `keep`/`mulligan` options from `other`, so an old network playing greedily keeps); and its card, player and global inputs: an appended column starts with zero weights, so an old network computes what it did before. `grow` makes the same function in a deeper or wider network (zero-output layers, zero-weight new units; PLAN_CEILING §4.1's capacity probe). |
+| `model.py` | Transformer over [global, me, opponent, cards..., options...]; pointer logits per option, tanh value from the global token. Card token = name embedding + mean component-token embedding (`ir_tokens` of the compiled tree, every token, pooled as a count matrix times the embedding table; no card name is a component token: KNOWLEDGE 210 §8) + live state. Name dropout makes it read components too. `load` grows an older checkpoint's ask and option-type embeddings: an appended row starts as what it was encoded as before (`features.ASK_GROWN_FROM`: `act_second_main` from `act`; the mulligan kinds and the `keep`/`mulligan` options from `other`, so an old network playing greedily keeps); and its card, player and global inputs: an appended column starts with zero weights, so an old network computes what it did before. `grow` makes the same function in a deeper or wider network (zero-output layers, zero-weight new units; PLAN_CEILING §4.1's capacity probe). A planner network (`--planner`, planner.py) also reads the read-back columns and has the forecast heads (`forward(b, plan=True)`); `load(..., planner=True)` makes an older network one, its planner layers at zero, computing what it did. |
+| `planner.py` | The per-object planner, v1 (docs/DESIGN_PLANNER.md §7): the vocabularies of a forecast (when, verb, window; the target a pointer), the plannable objects, one object per handle and zone-change clock (CR 400.7), the `Tracker` a planning seat carries (the read-back of its last forecast as four card columns, `features.C_PLAN_*`; the record of every decision), and the hindsight labels and plan-following's read-back computed from that record after the game. Numpy only: the workers run it. |
 | `actor.py` | Worker processes. Each runs N game threads with baton passing (one runs at a time, so no engine races); network decisions of one slot group go to the learner in one message while the other group runs. Workers do no torch work (spawn still imports torch in them: it re-imports `learner.py` as each worker's main module). A game that holds the baton `HANG_S` seconds is hung: the worker's watchdog voids it (`void-timeout`) and its other games go on. |
 | `learner.py` | GPU inference server (batches all workers' asks), the curriculum (teacher inter-play BC for a network trained from scratch, then PPO against the teacher and gated frozen self-play), duplicate-format evaluation on fixed deals, Elo, resume, run manifest. |
 | `ppo.py`, `trainer.py` | The PPO update (GAE advantages from the learner; clipped policy and value loss, entropy bonus, KL early stop) and the process it runs in, so the workers keep playing during an update. |
@@ -84,6 +85,22 @@ on (more than 64 options, or a name ask); the network answers every ask since
 its `self` entry is 0.5 over decided games by construction (one seat wins, the other loses), a
 check of the crediting, and self games stay out of `win_set`. A game that holds its worker
 `actor.HANG_S` (600 s) without handing the baton back is hung and voided (`void-timeout`).
+
+**The per-object planner (`--planner`, off by default; docs/DESIGN_PLANNER.md §7).** The
+networks are planner networks: at each decision a seat reads back, on each object it can plan with
+(its hand, its permanents, its cards a permission lets it play), its last forecast of that
+object's next use, and the network writes a new one (when, verb, window, target). An `--init`
+without the planner becomes a planner network computing what it did; a run's network and
+`--planner` must agree (a planner checkpoint without the flag, or a resume with another setting,
+is refused). The update adds two side losses to PPO's, whose inputs stay as played:
+`--plan-coef` (default 0.05) weighs the hindsight loss, the four forecast heads' cross-entropy
+against each object's actual next use; `--follow-coef` (0.1) weighs plan-following, the policy's
+NLL of the action taken in a second pass whose read-back is the previous decision's realized
+labels, on a `--follow-share` (0.25) of the decisions, each weighted 1/share. The `iter` rows
+gain `plan` (the hindsight loss per decision, each head's accuracy, the plan-following NLL, the
+objects and rows they cover) and `plan_misaligned`. The defaults are hand-set (BACKLOG
+"Scaffolds to remove"). `tools/puzzles/runner.py` reports a planner network's forecast at each
+puzzle's root.
 
 **Card pool (`--pool`, default `verified`).** Every game, training, mixed-set and evaluation,
 deals from one pool mode of `MTG_bot/core/executor/games.py` `compile_supply`: `verified` (cards
@@ -237,6 +254,16 @@ heuristic reads an aura by what it does to what it enchants, and never destroys 
 Lives. Every game a worker plays comes back once: r29's first start (2026-11-17) never trained,
 because a slot took the worker's outbox as its game began and the worker replaces it at every
 send, so nine in ten results went into lists nobody read (fails on c13165e9).
+
+`test_planner.py` (12 tests, DESIGN_PLANNER §7): the hindsight labels on scripted games (a
+main-phase sequence A1, A2, A3; an attack later this turn; "never" for a card the game ends before;
+a blocker with its attacker as target; Cancel held through the opponent's turn and cast in
+response to their spell; an opponent's action ending a sequence; a cost choice; an "up to" choice
+left empty, no use); a mulligan making every card of the hand a new object; the read-back
+from the previous forecast, dropped after a zone change; plan-following's input equal to the
+previous decision's labels; both side losses falling on a fixed batch; nothing changed without the
+planner; an older network made a planner computing bitwise what it did, and a seeded build keeping
+every older layer's weights; a planner training game reaching the update with its labels aligned.
 
 `test_simulator.py` (4 tests): capture leaves a game byte-identical and keeps the truth apart;
 rewriting every hidden card and both libraries' order leaves the simulator's input and output

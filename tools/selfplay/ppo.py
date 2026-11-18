@@ -29,6 +29,16 @@ the means, so a policy that always passes, or an act menu that moves far, would 
 kind: the decisions, the share that declined to act (PASS, DECLINE, NONE, skip, keep), the mean
 advantage, and from each decision's last minibatch the entropy normalised by log |A| over asks
 with two options or more (METRICS §17 VAR-1) and the KL from the behaviour policy.
+
+With ``a.planner`` (docs/DESIGN_PLANNER.md v1) two side losses join each decision's
+(``planner_terms``): the hindsight loss (``--plan-coef``) and plan-following (``--follow-coef``) on
+a ``--follow-share`` of the decisions that have a previous one, drawn once per update. PPO, the
+value and the entropy stay on the inputs as played: a relabelled input would make the importance
+ratio compare the behaviour policy with another function (DESIGN_PLANNER §3.1). Each term is a
+mean over decisions, as PPO's are, so ``backward_step`` weighs it as it weighs them; a decision in
+the plan-following share counts 1/share, so the term's expectation is the mean over every
+eligible decision whatever the share: the share buys compute, the coefficient alone sets the
+weight. ``plan`` in the result: the hindsight loss, each head's accuracy, the plan-following NLL.
 """
 
 from __future__ import annotations
@@ -40,9 +50,11 @@ from typing import Any
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 from tools.selfplay import features as FT
 from tools.selfplay import model as M
+from tools.selfplay import planner as PL
 
 #: the options that decline to act; the mulligan's is "keep" (its pass share was 0 without it)
 _DECLINE = [FT.OPT_INDEX[t] for t in ("PASS", "DECLINE", "NONE", "skip", "keep")]
@@ -121,6 +133,11 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
     n_steps = len(step_list)
     micro = [ch for step in step_list for ch in step]
     kl_stop = a.target_kl > 0
+    planner = getattr(a, "planner", False)
+    plan_tot: dict[str, float] = defaultdict(float)  # the update's planner counts
+    follow = np.zeros(n, dtype=bool)
+    if planner and a.follow_coef > 0:  # the decisions plan-following trains, once per update
+        follow = (rng.random(n) < a.follow_share) & (packed.plan_m == 1)
     lp0_arr = np.empty(n if kl_stop else 0, dtype=np.float32)
     with torch.no_grad():
         for ch in micro if kl_stop else ():
@@ -157,7 +174,8 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
                 R = torch.from_numpy(ret[ch].astype(np.float32)).to(device)
                 V0 = torch.from_numpy(v_old[ch].astype(np.float32)).to(device)
                 with torch.autocast(device.type, dtype=torch.bfloat16, enabled=cuda):
-                    logits, v = model(b)
+                    fwd = model(b, plan=planner)
+                logits, v = fwd[0], fwd[1]
                 logp_all = torch.log_softmax(logits, -1)
                 lp = logp_all.gather(1, act_t[:, None]).squeeze(1)
                 ent = -(logp_all.exp() * logp_all).sum(-1)
@@ -166,8 +184,18 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
                 v_clip = V0 + (v - V0).clamp(-a.vclip, a.vclip)
                 vloss = torch.max((v - R) ** 2, (v_clip - R) ** 2).mean()
                 loss = pg + a.vcoef * vloss - a.ent * ent.mean()
+                w = len(ch)
+                if planner:
+                    hind, nll, counts = planner_terms(model, b, fwd[2], act_t, follow[ch], cuda)
+                    # per decision, as every term here: plan-following's rows weighted 1/share
+                    loss = (loss + a.plan_coef * hind.mean()
+                            + a.follow_coef * nll.sum() / (a.follow_share * w))
+                    plan_tot["hind"] += float(hind.detach().sum())
+                    plan_tot["follow"] += float(nll.detach().sum())
+                    plan_tot["follow_rows"] += len(nll)
+                    for key, value in counts.items():
+                        plan_tot[key] += value
                 with torch.no_grad():
-                    w = len(ch)
                     kl_each = (ratio - 1) - (lp - old_logp)
                     n_opt = b["opt_mask"].sum(-1).float()
                     ent_n = torch.where(n_opt >= 2, ent / torch.log(n_opt.clamp(min=2)),
@@ -186,7 +214,7 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
                     (loss * (w / m)).backward()  # the step's gradient: the mean over its rows
                 else:
                     finite = False
-                del b, act_t, old_logp, A, R, V0, logits, v, loss
+                del b, act_t, old_logp, A, R, V0, fwd, logits, v, loss
             kl_upd = acc["kl_update"] / m
             # Stop before a step on rows this update has already moved by 1.5x the target (as
             # SB3 does); a check only between epochs would never act at --epochs 1.
@@ -224,7 +252,48 @@ def ppo_train(model: torch.nn.Module, opt: torch.optim.Optimizer,
                 "steps": n, "epochs": stats["epochs"][-1] if stats["epochs"] else 0,
                 "kl_stop": stop, "ev": round(ev, 4), "adv_std": round(float(adv.std()), 4),
                 "kinds": per_kind(packed, act, adv, ent_last, kl_last)})
+    if planner:  # over every pass of the update
+        t = plan_tot
+        out["plan"] = {
+            "hind": round(t["hind"] / max(t["rows"], 1), 4),  # per decision with a label
+            "acc": {h: round(t[h] / max(t["labelled"], 1), 4) for h in PL.HEADS},
+            "follow": round(t["follow"] / t["follow_rows"], 4) if t["follow_rows"] else None,
+            "labelled": int(t["labelled"]), "follow_rows": int(t["follow_rows"])}
     return out
+
+
+def planner_terms(model: torch.nn.Module, b: dict[str, torch.Tensor], heads: tuple,
+                  act: torch.Tensor, rows: np.ndarray, cuda: bool) -> tuple[torch.Tensor, ...]:
+    """The planner's side losses on a micro-batch (DESIGN_PLANNER §2, §3.1):
+    - hindsight, per decision: the mean over its plannable objects of the four heads'
+      cross-entropies, summed, against what the object's next use actually was (``plan_y``,
+      planner.hindsight); 0 for a decision with none. The mean, so a decision weighs the same
+      whatever its board's size, as in PPO's terms;
+    - plan-following, for the decisions ``rows``: the policy's negative log-likelihood of the
+      action taken, in a second pass whose read-back is the previous decision's realized labels
+      (``plan_x``, planner.Tracker.result) instead of its forecast.
+    Returns the hindsight [B], the plan-following NLL per row of ``rows``, and the counts the
+    update reports: each head's right forecasts, the labelled objects and decisions."""
+    y = b["plan_y"]
+    mask = y[..., 0] >= 0
+    ce = torch.zeros(y.shape[:2], device=y.device)
+    counts = {"labelled": int(mask.sum()), "rows": int(mask.any(1).sum())}
+    for name, logits, label in zip(PL.HEADS, heads, y.unbind(-1), strict=True):
+        logits, label = logits.float(), label.clamp(min=0)
+        ce = ce + F.cross_entropy(logits.flatten(0, 1), label.flatten(),
+                                  reduction="none").view_as(label)
+        counts[name] = int(((logits.argmax(-1) == label) & mask).sum())
+    hind = (ce * mask).sum(1) / mask.sum(1).clamp(min=1)
+    nll = ce.new_zeros(0)
+    if rows.any():
+        sel = torch.from_numpy(np.flatnonzero(rows)).to(y.device)
+        fb = {k: v[sel] for k, v in b.items()}
+        cards_i = fb["cards_i"].clone()
+        cards_i[..., FT.C_PLAN_WHEN:FT.C_PLAN_TARGET + 1] = fb["plan_x"]
+        with torch.autocast(y.device.type, dtype=torch.bfloat16, enabled=cuda):
+            logits, _ = model({**fb, "cards_i": cards_i})
+        nll = F.cross_entropy(logits.float(), act[sel], reduction="none")
+    return hind, nll, counts
 
 
 def per_kind(packed: M.Packed, act: np.ndarray, adv: np.ndarray, ent: np.ndarray,

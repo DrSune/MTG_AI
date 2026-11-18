@@ -1587,7 +1587,8 @@ def test_the_appended_asks_start_as_other_and_an_old_network_computes_what_it_di
 
     new = ("exile", "remove_counter", "divide")
     assert FT.ASK_KINDS[-3:] == new and set(new) <= SITE_KINDS and not set(new) & set(FT.ASK_GROWN_FROM)
-    assert (FT.CI, FT.CF, FT.PF, FT.GF, FT.OI) == (9, 62, 24, 23, 6)
+    # (cards_i's last four, the planner's read-back, came after: 0 for every network without it)
+    assert (FT.CI, FT.CF, FT.PF, FT.GF, FT.OI) == (13, 62, 24, 23, 6)
     net = M.build(table, d=32, layers=1, heads=4, ff=64).eval()
     with torch.no_grad():
         for p in net.parameters():
@@ -1768,6 +1769,41 @@ def test_the_turn_so_far_is_observed(table) -> None:
     assert not before.any()
     assert [round(float(v), 3) for v in after[0]] == [0.3, 0.0, 0.667, 0.0, 0.0, 0.0]
     assert not after[1].any()  # the opponent's turn so far is its own
+
+
+class _Passive:
+    """A seat that never acts: it keeps its hand, passes, declines and blocks with nothing."""
+
+    name = "passive"
+
+    def decide(self, ask, obs):
+        tokens = [o.token for o in ask.options]
+        for word in ("keep", "PASS", "DECLINE", "NONE", "UNBLOCKED"):
+            if word in tokens:
+                return tokens.index(word)
+        return 0
+
+
+def test_a_stalled_game_ends_by_the_rules_not_the_turn_cap() -> None:
+    """Two seats that never act deck out (CR 704.5b): the game is won, past turn 60, the old cap
+    that ended 0.17% of r29's training games as draws, and below TURN_CAP, which no game without
+    an effect returning cards to a library reaches."""
+    from MTG_bot.core.executor.games import TURN_CAP
+
+    res = play_game(11, [_Passive(), _Passive()], deck_mode="coherent")
+    assert res["crash"] is None and res["outcome"] == "win"
+    assert 60 < res["turns"] < TURN_CAP and res["act_cap_hits"] == 0 and res["quarantined"] == 0
+
+
+def test_the_action_rail_counts_its_hits(monkeypatch) -> None:
+    """A player at MAX_ACTS_PER_STEP is made to pass, and every such priority point is counted, so
+    a training run reports the rail binding (none in 1,000 heuristic games at the cap of 30)."""
+    from MTG_bot.core.executor import games as G
+
+    res = play_game(5, [HeuristicAgent(), HeuristicAgent()], deck_mode="coherent")
+    assert res["act_cap_hits"] == 0
+    monkeypatch.setattr(G, "MAX_ACTS_PER_STEP", 1)
+    assert play_game(5, [HeuristicAgent(), HeuristicAgent()], deck_mode="coherent")["act_cap_hits"] > 0
 
 
 def test_heuristic_never_casts_an_x_spell_for_x_zero() -> None:

@@ -32,6 +32,25 @@ def test_the_root_is_read_as_a_game_asks_it(slot_table) -> None:
     assert len(row["searched"]) == 1 and row["searched"][0] in row["options"]
 
 
+def test_a_planner_network_reports_its_forecast_at_the_root(slot_table) -> None:
+    """A planner network (docs/DESIGN_PLANNER.md v1) is read as any other, its read-back blank at
+    the root (the prelude is scripted), and its forecast is reported for each plannable object
+    of the decider: its hand and its permanents, never the opponent's; a network without the
+    planner reports none."""
+    from tools.selfplay import planner as PL
+
+    _, table = slot_table
+    net = M.build(table, d=16, layers=1, heads=2, ff=32, planner=True).eval()
+    pz = P.load(P.SUITE / "b1_counter_the_answer_lethal.json")
+    row = R.read(M.LocalSlot({R.SPEC: net}), table, pz)
+    mine = {c["key"] for c in pz["cards"] if c["controller"] == 0 and c["zone"] != "library"}
+    assert set(row["forecast"]) == mine
+    words = row["forecast"]["cancel"]
+    assert (words["when"], words["verb"], words["window"]) in [
+        (w, v, x) for w in PL.WHEN for v in PL.VERBS for x in PL.WINDOWS]
+    assert "forecast" not in R.read(slot_table[0], table, pz)
+
+
 def test_a_category_passes_only_when_both_twins_do() -> None:
     puzzles = {n: {"category": "X", "twin": t} for n, t in (("a", "b"), ("b", "a"), ("c", "d"), ("d", "c"))}
 
