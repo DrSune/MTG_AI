@@ -2950,6 +2950,18 @@ replacement, a delayed trigger and a turn history refuse it (the game is over wh
   battlefield (`_move_all`, MOVE_ZONE's `cards` and `target` lanes, SEARCH), before the
   replacements (a move that can't happen is not replaced): the card stays, out of `result`, with a
   MOVE_PROHIBITED audit row; `query.optional_offer` narrows a may whose every card can't enter.
+  A pick made as the effect resolves (a CHOOSE or ONE_OF in MOVE_ZONE's `cards` lane) onto the
+  battlefield offers only the cards that can enter (`verbs._possible_entries`, the `possible`
+  narrowing of `selectors.resolve_selector`): a player can't choose an impossible option (CR
+  608.2d), and a pick with none left asks nothing and chooses nothing (CR 101.3). Blood for Bones
+  under the Cage returns its "another creature card" to hand from all of them; a look's partition
+  sends the cards no pick could take with the rest (Loot, Exuberant Explorer: all six to the
+  bottom, as Collected Company's under the Cage). A SEARCH that delivers onto the battlefield
+  itself does the same: a found card that can't enter would stay in the library, unrevealed and
+  out of `result`, the same as finding nothing (CR 701.23b), so finding it is no option (Garruk,
+  Unleashed's emblem under the Cage finds nothing and asks nothing). Not inside a partition, where
+  a found card may go to the other destination (Cultivate). A target is never narrowed: it is
+  chosen on cast (CR 601.2c), and its move just doesn't happen.
 - Life: `_v_gain_life` (`:618`) before the replacements (Leyline of Punishment's ruling); lifelink
   goes through it.
 - The game's end: `Executor.lose` (`__init__.py:1827`) is the one place a loss lands; the
@@ -3000,9 +3012,16 @@ one (Silence) has no entity, as no resolved effect has (BACKLOG).
 9. The network can learn the opening-hand action from the may row and the card's tokens; if the
    pregame context needed its own row, a new ask kind would be its fix (an observation-schema
    change).
+10. A partition's REST takes every card of the window or the found set its pick did not choose,
+   so with the pick narrowed a card that can't enter goes with the rest: right for "the rest"
+   (Loot; Collected Company's ruling). A "put one onto the battlefield and the other into your
+   hand" split over cards a prohibition stops would hand the other destination both cards
+   (stronger); the 19 sets have none (Cultivate's split is over land cards, which the Cage never
+   stops; BACKLOG).
 
-**CR basis**: 101.2, 103.5, 103.6, 103.6a, 104.1, 104.2b, 104.3b-c, 104.3e, 117, 119.7, 302.6,
-400.7, 601.2, 601.3, 601.3e, 603.3, 611.2c, 614.1a, 614.6, 704.5a-b, 702.15b, 707.10.
+**CR basis**: 101.2, 101.3, 103.5, 103.6, 103.6a, 104.1, 104.2b, 104.3b-c, 104.3e, 117, 119.7,
+302.6, 400.7, 601.2, 601.2c, 601.3, 601.3e, 603.3, 608.2d, 611.2c, 614.1a, 614.6, 701.23b,
+704.5a-b, 702.15b, 707.10.
 
 **Rejected.**
 - A TriggeredAbility on a "game begins" event for the Leylines: it would use the stack and could be

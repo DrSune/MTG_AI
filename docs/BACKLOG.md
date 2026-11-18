@@ -1341,6 +1341,14 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
   - "Each opponent who ..." and "each player this creature attacked this turn ... loses the game"
     (WAR Nicol Bolas, Dragon-God's -8; ZNR Angel of Destiny): EachPlayer around LOSE_GAME(YOU) with
     their conditions, which do not parse.
+  - A "one ... the other" split over cards that can't enter (gate round B12's MINOR 3,
+    assumption 10): a pick onto the battlefield offers only the cards that can enter (CR 608.2d)
+    and the REST takes every card the pick did not choose. That is right for "the rest" (Loot,
+    Exuberant Explorer; Collected Company's ruling), but "search for two creature cards, put one
+    onto the battlefield and the other into your hand" under the Cage would put both in hand
+    (stronger). No card of the 19 sets has one (Cultivate's split, M11 and M21, is over land
+    cards: `reports/b12_2026-11-18/pick_census.txt`). Its fix comes with such a card: the REST of
+    a split reads the split's count.
 - **The copy lane still blocked** (2026-11-18, the copy round B3, DESIGN_ATOM_ONTOLOGY §18; the
   wordings: `reports/copy_2026-11-18/copy_scan.txt`, 71 cards, 81 printings of the 19 sets). Each
   waits on one piece, refused by the IR or unparsed until its card brings tests:

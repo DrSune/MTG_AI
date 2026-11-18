@@ -157,6 +157,24 @@ def _cant_enter(ctx: ExecCtx, moves: Sequence[tuple[Handle, Handle, str]]) -> se
     return cant
 
 
+def _possible_entries(
+    ctx: ExecCtx, dest_ir: Zone, dest_kind: str
+) -> Callable[[Handle], bool] | None:
+    """The ``possible`` predicate of a pick made as the effect resolves that puts the picked
+    cards onto the battlefield (``selectors.resolve_selector``): a card :func:`_cant_enter`
+    would keep where it is, judged under the player it would enter under, is an impossible
+    option, which the player can't choose (CR 608.2d). None for any other destination."""
+    if dest_kind != ZONE_BATTLEFIELD or ctx.replacements is None:
+        return None
+    registry = ctx.replacements
+
+    def possible(card: Handle) -> bool:
+        owner, controller = move_destination(ctx, dest_ir, dest_kind, card)
+        return not registry.prevents_entering(card, controller or owner)
+
+    return possible
+
+
 def _off_the_stack(
     ctx: ExecCtx, moves: Sequence[tuple[Handle, Handle, str]]
 ) -> list[tuple[Handle, Handle, str]]:
@@ -427,10 +445,15 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
                         (len(ctx.events), "MOVE", str(card), "library->hand")
                     )
             return
+        # A pick onto the battlefield offers only the cards that can enter (_possible_entries).
         pool = [
             h
             for h in resolve_selector(
-                sel, ctx, journal_partition=partition, ask_choose=True
+                sel,
+                ctx,
+                journal_partition=partition,
+                ask_choose=True,
+                possible=_possible_entries(ctx, dest_ir, dest_kind),
             )
             if h.namespace == "card"
         ]
@@ -1860,7 +1883,9 @@ def _v_draw(ctx: ExecCtx, atom: Atom) -> None:
         ctx.events.append((len(ctx.events), "DRAW", str(player), run))
 
 
-def _search_designation(atom: Atom, ctx: ExecCtx) -> list[Handle]:
+def _search_designation(
+    atom: Atom, ctx: ExecCtx, possible: Callable[[Handle], bool] | None = None
+) -> list[Handle]:
     """The SEARCH ``cards`` role designation — the shared enumeration the
     handler runs and :func:`MTG_bot.core.executor.query.legal_search`
     mirrors. Explicit bindings take precedence (the caller designated the
@@ -1868,7 +1893,7 @@ def _search_designation(atom: Atom, ctx: ExecCtx) -> list[Handle]:
     controller's pick when there is a choice (``ask_choose``), RANDOM =
     seeded ctx.rng draw, ONE_OF = the channel ask (Handle-sorted candidate
     vocabulary; exhaustion stays loud); TARGET reads the spell's designation
-    or raises."""
+    or raises. ``possible``: the pick's narrowing (:func:`_v_search`)."""
     cards = ctx.binding_handles("cards")
     if cards is not None:
         return cards
@@ -1887,6 +1912,7 @@ def _search_designation(atom: Atom, ctx: ExecCtx) -> list[Handle]:
             journal_partition=sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST),
             ask_choose=True,  # a CHOOSE search designation is a decision
             search=True,  # its searcher sees the searched zones, hidden or not (CR 701.23a)
+            possible=possible,
         )
         if h.namespace == "card"
     ]
@@ -1908,7 +1934,14 @@ def _v_search(ctx: ExecCtx, atom: Atom) -> None:
             f"executor: SEARCH to {dest_ir.kind.name} is not a card zone (13a)"
         )
     tapped_on_enter = bool(atom.args.get("tapped_on_enter"))
-    cards = _search_designation(atom, ctx)
+    # A search may find nothing (CR 701.23b). A found card that can't enter the battlefield
+    # stays in the library, unrevealed and out of ``result`` (below), so finding it is the same
+    # as finding nothing: when this atom delivers onto the battlefield itself, only the cards
+    # that can enter are offered (Garruk, Unleashed's emblem under Grafdigger's Cage finds
+    # nothing and asks nothing). Not inside a partition: there a found card may go to the other
+    # destination, so finding it has a consequence (Cultivate's "the other into your hand").
+    possible = None if ctx.search_partition else _possible_entries(ctx, dest_ir, dest_kind)
+    cards = _search_designation(atom, ctx, possible)
     if ctx.search_partition:
         # Cultivate: the Seq's sibling MOVE_ZONE atoms are a ONE_OF/REST
         # PARTITION ("put one onto the battlefield tapped and the other into
@@ -1926,9 +1959,10 @@ def _v_search(ctx: ExecCtx, atom: Atom) -> None:
             ctx.events.append((len(ctx.events), "SEARCH", str(card), "designated"))
         return
     # The owner's zone, a non-owner controller as a control entry. A card that can't enter stays
-    # (_cant_enter), unreplaced.
+    # (_cant_enter), unreplaced. A permanent's side is the player it would enter under, as in
+    # MOVE_ZONE's cards lane and the narrowing above.
     dests = {card: move_destination(ctx, dest_ir, dest_kind, card) for card in cards}
-    moves = [(card, dests[card][0], dest_kind) for card in cards]
+    moves = [(card, dests[card][1] or dests[card][0], dest_kind) for card in cards]
     stayed = _cant_enter(ctx, moves)
     replaced = _replaced_moves(ctx, [move for move in moves if move[0] not in stayed])
     for card in cards:

@@ -23,6 +23,7 @@ from MTG_bot.core.ability_tree import (
     FAnd,
     FAtom,
     FAtomPred,
+    FOr,
     GameOutcomeEvent,
     OpeningHandAbility,
     Seq,
@@ -36,6 +37,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneChangeEvent,
     ZoneKind,
+    ZonePosition,
     begin_on_battlefield,
     event_player,
 )
@@ -569,3 +571,104 @@ def test_a_card_that_cant_enter_is_no_it_of_its_instruction() -> None:
         Atom(Verb.MOVE_ZONE, AtomArgs(pairs=(("cards", it), ("destination", exile)))),
     )), source=r.seats[0], controller=r.seats[0], bindings={"target": [r.handles["dead"]]})
     assert _zone(r, "dead") == ZONE_GRAVEYARD
+
+
+# ------------------------------------------------------------------ a pick of an impossible move
+
+
+def _bones(*graveyard: str) -> ScenarioRunner:
+    """M20 Blood for Bones in hand under Grafdigger's Cage: "As an additional cost to cast this
+    spell, sacrifice a creature. Return a creature card from your graveyard to the battlefield.
+    Return another creature card from your graveyard to your hand." The sacrifice is a token, so
+    the graveyard's creature cards are exactly ``graveyard``."""
+    cards = [_real("cage", "Grafdigger's Cage"), _real("bones", "Blood for Bones", zone="hand"),
+             {"key": "fodder", "name": "Fodder", "power": "1", "toughness": "1",
+              "type": "Creature", "zone": "battlefield", "controller": 0, "token": True}]
+    cards += [_real(key, "Vampire of the Dire Moon", zone="graveyard") for key in graveyard]
+    return _runner("M20", cards, {"0": {"B": 4}})
+
+
+def test_a_pick_no_card_can_make_chooses_nothing() -> None:
+    """Blood for Bones under the Cage with one creature card in the graveyard: no card can make
+    the return to the battlefield, so that instruction chooses nothing (CR 608.2d: no impossible
+    option is chosen; CR 101.3) and "another creature card" returns the card to hand. The base
+    chose it for the battlefield (where it could not go: a MOVE_PROHIBITED row) and then again
+    as the "another" card."""
+    r = _bones("dead")
+    _cast(r, "bones")
+    assert _zone(r, "dead") == ZONE_HAND
+    assert not any(e[1] == "MOVE_PROHIBITED" for e in r.ex.events)
+
+
+@pytest.mark.parametrize("returned, stays", [("dead0", "dead1"), ("dead1", "dead0")])
+def test_the_one_ask_is_which_card_returns_to_hand(returned: str, stays: str) -> None:
+    """With two creature cards the only ask is the hand's, over both, and either may return (the
+    base first asked a battlefield pick that changed nothing, then offered the same two again)."""
+    r = _bones("dead0", "dead1")
+    r.run_step({"op": "cast", "key": "bones", "real": "Blood for Bones", "controller": 0,
+                "decisions": [returned]})
+    both = tuple(str(h) for h in sorted((r.handles["dead0"], r.handles["dead1"])))
+    assert [(what.split(":")[0], vocab) for what, vocab in r.asks_seen] == [("one_of", both)]
+    assert (_zone(r, returned), _zone(r, stays)) == (ZONE_HAND, ZONE_GRAVEYARD)
+    assert not r.unoffered
+
+
+def test_a_pick_offers_only_the_cards_that_can_make_the_move() -> None:
+    """"Return an artifact or creature card from your graveyard to the battlefield" under a
+    graveyard Cage: the creature card is no option (CR 608.2d), so the artifact card is the one
+    filler and enters, unasked (the base asked over both)."""
+    r = _runner("M20", [_real("dead", "Vampire of the Dire Moon", zone="graveyard"),
+                        _real("forge", "Mystic Forge", zone="graveyard")])
+    creature = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
+    _ruled(r, 1, StaticAbility(prohibit(ZoneChangeEvent(
+        Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY), Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+        subject=creature))))
+    pick = Selector(QConst(1), SelectorMode.ONE_OF,
+                    FOr((creature, FAtom(pred=FAtomPred.TYPE_EQ, string_value="Artifact"))),
+                    (Zone(ZoneKind.GRAVEYARD, YOU),))
+    r.ex.execute(Atom(Verb.MOVE_ZONE, AtomArgs(pairs=(("cards", pick),
+                                                      ("destination", TO_BATTLEFIELD)))),
+                 source=r.seats[0], controller=r.seats[0])
+    assert (_zone(r, "dead"), _zone(r, "forge")) == (ZONE_GRAVEYARD, ZONE_BATTLEFIELD)
+
+
+def test_a_partitions_cards_that_cant_enter_go_with_the_rest() -> None:
+    """Loot, Exuberant Explorer's shape ("Look at the top six cards of your library. You may
+    ... put a creature card from among them onto the battlefield. Put the rest on the bottom")
+    under the Cage: no creature card can be chosen, so the rest is all six and goes to the bottom
+    (as Collected Company's six do under the Cage). The base let the player pick one, which then
+    stayed on top while the other five went to the bottom."""
+    r, deep = _library_creature()  # under the runner's six filler creature cards
+    top = Zone(ZoneKind.LIBRARY, YOU, ZonePosition.TOP)
+    creature = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
+    library = r.world.players[r.seats[0]].zone(ZONE_LIBRARY).entries
+    window = set(library[-6:])
+    r.ex.apply_effect(Seq(steps=(
+        Atom(Verb.LOOK_AT, AtomArgs(pairs=(("controller", YOU), ("count", QConst(6))))),
+        Atom(Verb.MOVE_ZONE, AtomArgs(pairs=(
+            ("cards", Selector(QConst(1), SelectorMode.ONE_OF, creature, (top,))),
+            ("destination", TO_BATTLEFIELD)))),
+        Atom(Verb.MOVE_ZONE, AtomArgs(pairs=(
+            ("arrange", "RANDOM"),
+            ("cards", Selector(QConst(1), SelectorMode.REST, FAnd(()), (top,))),
+            ("destination", Zone(ZoneKind.LIBRARY, YOU, ZonePosition.BOTTOM))))),
+    )), source=r.seats[0], controller=r.seats[0])
+    assert library[-1] == deep and set(library[:6]) == window
+    assert not r.world.players[r.seats[0]].zone(ZONE_BATTLEFIELD).entries
+
+
+def test_a_search_onto_the_battlefield_finds_only_cards_that_can_enter() -> None:
+    """Garruk, Unleashed's emblem ("search your library for a creature card, put it onto the
+    battlefield, then shuffle") under the Cage: a creature card found would stay in the library,
+    unrevealed and no "it" of the instruction, the same as finding nothing (CR 701.23b), so the
+    search offers only the cards that can enter. None can here: nothing is asked (the base asked
+    over the seven creature cards) and nothing moves."""
+    r, deep = _library_creature()
+    pick = Selector(QConst(1), SelectorMode.ONE_OF,
+                    FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                    (Zone(ZoneKind.LIBRARY, YOU),))
+    r.ex.execute(Atom(Verb.SEARCH, AtomArgs(pairs=(("cards", pick),
+                                                   ("destination", TO_BATTLEFIELD)))),
+                 source=r.seats[0], controller=r.seats[0])
+    assert r.world.zone_of(deep).kind == ZONE_LIBRARY
+    assert not r.world.players[r.seats[0]].zone(ZONE_BATTLEFIELD).entries

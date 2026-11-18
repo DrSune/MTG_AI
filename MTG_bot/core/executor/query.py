@@ -493,7 +493,10 @@ def legal_search(
     :func:`MTG_bot.core.executor.verbs._search_designation` resolves at
     effect time, so the query and the handler can never disagree about what
     was searchable. Handle-sorted, card-namespace only. ``node`` is the
-    SEARCH Atom or its ``cards`` Selector directly."""
+    SEARCH Atom or its ``cards`` Selector directly. The population before any
+    prohibition: a SEARCH that delivers onto the battlefield itself drops the
+    cards that can't enter as it resolves (``verbs._v_search``), which needs
+    the effect around the atom (a partition keeps them)."""
     from MTG_bot.core.executor.legality import enumerate_candidates
 
     selector = node.args.get("cards") if isinstance(node, Atom) else node
