@@ -1,0 +1,12 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "52b3a979-3b93-4441-9237-0c8a754e5523",
+ "name": "Furious Rise",
+ "text_sha": "25cf0567f08abfb08650c22c3c2702201966f5c32383df1597f80d2db94ff7b4",
+ "needs_atom": {
+  "missing": "'You may play that card until you exile another card with this enchantment.' (sentence 2; sentence 1, the end-step trigger that exiles the top card, compiles and is kept as the compiler's tree). Since ontology round R13 the permission itself has its form: a resolving PERMIT with lands True over the exile's `result`. Missing: its window. It ends when this enchantment exiles another card (CR 607.2a: the cards are linked to its ability), and per the card's ruling it lasts for as long as the card remains exiled once Furious Rise has left the battlefield. The PERMIT takes only DurationEot, DurationUntilEndOfNextTurn and DurationPermanent: Eot is weaker than printed (the card exiled at your end step could never be played on your next turn); UntilEndOfNextTurn is stronger in the end step that exiles the next card (both playable) and weaker once Furious Rise has left; Permanent ('for as long as it remains exiled') is stronger (every card it ever exiled stays playable). Needs an event-ended duration (until the source's ability exiles another card), or a designation of 'the card most recently exiled with this' (B-100; known-bug pack tools/scenarios/known_bugs/furious_rise_play_the_exiled_card.json).",
+  "author": "mapper-wave5-2026-11-18",
+  "date": "2026-11-18"
+ }
+}

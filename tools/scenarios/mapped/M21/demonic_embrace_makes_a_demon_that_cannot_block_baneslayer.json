@@ -1,0 +1,83 @@
+{
+ "set": "M21",
+ "name": "demonic_embrace_makes_a_demon_that_cannot_block_baneslayer",
+ "notes": "Printed: 'Enchanted creature ... is a Demon in addition to its other types.' You cast Demonic Embrace on the opponent's Walking Corpse (a 5/3 flier now); Baneslayer Angel (protection from Demons, CR 702.16e) attacks and the enchanted creature, a Demon, is never offered the block: Baneslayer deals 5 to the opponent and you gain 5 (lifelink).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "de",
+   "real": "Demonic Embrace",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s1",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s3",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bane",
+   "real": "Baneslayer Angel",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:de",
+    "corpse"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "bane": true
+   }
+  }
+ ],
+ "expect": {
+  "attached": {
+   "de": "corpse"
+  },
+  "power": {
+   "corpse": 5
+  },
+  "not_asked_to_block": [
+   "corpse"
+  ],
+  "life": {
+   "0": 25,
+   "1": 15
+  },
+  "zone": {
+   "corpse": "battlefield",
+   "bane": "battlefield"
+  }
+ }
+}

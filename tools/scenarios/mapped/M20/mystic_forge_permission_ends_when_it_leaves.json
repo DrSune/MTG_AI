@@ -1,0 +1,69 @@
+{
+ "set": "M20",
+ "name": "mystic_forge_permission_ends_when_it_leaves",
+ "notes": "Printed: 'You may cast artifact spells and colorless spells from the top of your library.' A static ability: it works while the Forge is on the battlefield (CR 604.2, 611.3a). Bag of Holding on top is cast from the library for {1}; the Forge is then destroyed (another effect), and the second Bag of Holding, now on top, is not offered although {1} is left in the pool.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "forge",
+   "real": "Mystic Forge",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bag2",
+   "real": "Bag of Holding",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "bag1",
+   "real": "Bag of Holding",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:bag1"
+   ]
+  },
+  {
+   "op": "move",
+   "key": "forge",
+   "to": "graveyard"
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:bag2"
+   ],
+   "expect_raise": "words no ask took"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "bag1": "battlefield",
+   "bag2": "library",
+   "forge": "graveyard"
+  },
+  "mana_pool": {
+   "0": {
+    "C": 1
+   }
+  }
+ },
+ "mana": {
+  "0": {
+   "C": 2
+  }
+ }
+}

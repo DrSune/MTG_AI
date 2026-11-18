@@ -1,0 +1,74 @@
+{
+ "set": "M21",
+ "name": "demonic_embrace_enchanted_creature_gets_plus_three_plus_one_and_flying",
+ "notes": "Printed: 'Enchant creature. Enchanted creature gets +3/+1, has flying, and is a Demon in addition to its other types.' Cast from hand through the menu (three Swamps tapped) on Walking Corpse: 2/2 -> 5/3 with flying.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "de",
+   "real": "Demonic Embrace",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s1",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s3",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:de"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "de": "battlefield"
+  },
+  "attached": {
+   "de": "corpse"
+  },
+  "power": {
+   "corpse": 5
+  },
+  "toughness": {
+   "corpse": 3
+  },
+  "battlefield_keywords": {
+   "Walking Corpse": [
+    "FLYING"
+   ]
+  },
+  "tapped": {
+   "s1": true,
+   "s2": true,
+   "s3": true
+  }
+ }
+}

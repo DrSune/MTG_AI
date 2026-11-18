@@ -1,0 +1,47 @@
+{
+ "set": "M21",
+ "name": "radha_plays_a_land_from_the_top_as_the_land_drop",
+ "notes": "Printed: 'you may play lands from the top of your library.' The Mountain on top is played from the library (CR 305.1) and is the turn's land play (CR 305.2a): the Forest in hand is no longer offered.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "radha",
+   "real": "Radha, Heart of Keld",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "top",
+   "real": "Mountain",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "land:top",
+    "land:forest"
+   ],
+   "expect_raise": "words no ask took: ['land:card:2']"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "top": "battlefield",
+   "forest": "hand"
+  }
+ }
+}

@@ -1,0 +1,60 @@
+{
+ "set": "M21",
+ "name": "demonic_embrace_from_the_graveyard_needs_a_card_to_discard",
+ "notes": "Printed: '... by paying 3 life and discarding a card in addition to paying its other costs.' With an empty hand the additional cost cannot be paid (CR 601.2f-h), so the cast from the graveyard is never offered: the menu has nothing to offer and the word is never asked.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "de",
+   "real": "Demonic Embrace",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s1",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s3",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:de:via:de",
+    "corpse"
+   ],
+   "expect_raise": "words no ask took"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "de": "graveyard"
+  },
+  "life": {
+   "0": 20
+  }
+ }
+}

@@ -1,0 +1,96 @@
+{
+ "set": "M20",
+ "name": "mystic_forge_cast_from_the_top_can_be_countered",
+ "notes": "Printed: 'You may cast artifact spells and colorless spells from the top of your library.' A spell cast this way is cast as any other (CR 601.2, 601.3): Prismite goes on the stack ('hold'), the opponent casts Convolute on it and its controller does not pay {4}: Prismite is countered into its owner's graveyard.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "forge",
+   "real": "Mystic Forge",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w2",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "prism",
+   "real": "Prismite",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "conv",
+   "real": "Convolute",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "i1",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "i2",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "i3",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:prism"
+   ],
+   "hold": true
+  },
+  {
+   "op": "cast",
+   "key": "conv",
+   "real": "Convolute",
+   "controller": 1,
+   "targets": [
+    "prism"
+   ],
+   "tap": true
+  }
+ ],
+ "expect": {
+  "zone": {
+   "prism": "graveyard",
+   "conv": "graveyard",
+   "forge": "battlefield"
+  },
+  "kick_rows": {
+   "prism": {
+    "from": "library"
+   }
+  },
+  "tapped": {
+   "w1": true,
+   "w2": true
+  }
+ }
+}

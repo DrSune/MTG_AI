@@ -1,0 +1,84 @@
+{
+ "set": "M21",
+ "name": "chandra_heart_of_fire_plus_one_permission_ends_with_the_turn",
+ "notes": "Printed: 'Until end of turn, you may play cards exiled this way.' The +1 exiles Shock (and two more); nothing is played. On your next turn, with {R} in the pool, Shock is not offered (CR 611.2a, 514.2) and stays in exile.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "ch",
+   "real": "Chandra, Heart of Fire",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x2",
+   "real": "Opt",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x3",
+   "real": "Opt",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:ch:0"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "R": 1
+   }
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:shock",
+    "p1"
+   ],
+   "expect_raise": "does not offer 'cast:card:1'"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "shock": "exile"
+  },
+  "life": {
+   "1": 20
+  },
+  "turn_seats": [
+   0,
+   1,
+   0
+  ],
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ }
+}

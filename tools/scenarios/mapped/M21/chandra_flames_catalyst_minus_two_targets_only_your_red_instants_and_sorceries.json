@@ -1,0 +1,77 @@
+{
+ "set": "M21",
+ "name": "chandra_flames_catalyst_minus_two_targets_only_your_red_instants_and_sorceries",
+ "notes": "Printed: '[-2]: You may cast target RED INSTANT OR SORCERY card from YOUR graveyard.' Your graveyard holds Shock (red instant), Crash Through (red sorcery), Opt (blue instant) and Goblin Arsonist (a red creature card); the opponent's holds Sure Strike (red instant). With {R} in the pool the -2's target ask offers Shock and Crash Through alone (card:1, card:2): Opt is refused, and the raise names the words offered.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cf",
+   "real": "Chandra, Flame's Catalyst",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "crash",
+   "real": "Crash Through",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "opt",
+   "real": "Opt",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "gob",
+   "real": "Goblin Arsonist",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "ss",
+   "real": "Sure Strike",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:cf:1",
+    "opt"
+   ],
+   "expect_raise": "it offers ('card:1', 'card:2')"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "shock": "graveyard",
+   "crash": "graveyard",
+   "opt": "graveyard",
+   "gob": "graveyard",
+   "ss": "graveyard"
+  },
+  "counters": {
+   "cf": {
+    "LOYALTY": 5
+   }
+  }
+ },
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ }
+}

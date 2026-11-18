@@ -1,0 +1,81 @@
+{
+ "set": "M21",
+ "name": "chandra_heart_of_fire_plus_one_discards_the_hand_and_exiles_the_top_three",
+ "notes": "Printed: '[+1]: Discard your hand, then exile the top three cards of your library.' The Forest and Opt in hand are discarded; the top three cards (Goblin Arsonist, Mountain, Shock) are exiled; Walking Corpse, fourth, stays in the library. Loyalty 5 -> 6.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "ch",
+   "real": "Chandra, Heart of Fire",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "f1",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "o1",
+   "real": "Opt",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "l4",
+   "real": "Walking Corpse",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "l3",
+   "real": "Shock",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "l2",
+   "real": "Mountain",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "l1",
+   "real": "Goblin Arsonist",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:ch:0"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "f1": "graveyard",
+   "o1": "graveyard",
+   "l1": "exile",
+   "l2": "exile",
+   "l3": "exile",
+   "l4": "library"
+  },
+  "hand": {
+   "0": 0
+  },
+  "counters": {
+   "ch": {
+    "LOYALTY": 6
+   }
+  }
+ }
+}

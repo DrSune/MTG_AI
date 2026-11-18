@@ -115,6 +115,15 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Casting, the stack and targets
 
+- **A spell an ability casts is paid from the mana pool only** (2026-11-18, mapper wave 5).
+  WEAKER than printed. When an ability casts a spell (the CAST atom), both
+  `query._cast_option_payable` and `stack.cast_card` price and pay it through
+  `legality.build_payment_plan`, which reads the pool and never taps an untapped land (CR 601.2g
+  lets the payer do so). `query._clamp_cast_target_slot` then drops the target the pool cannot pay
+  for. So Chandra, Flame's Catalyst's −2, with Shock in the graveyard and an untapped Mountain, is
+  not offered; mana never floats in a dealt game. Pack:
+  `tools/scenarios/known_bugs/2026-11-18/ability_cast_pays_from_the_pool_only/`. The Catalyst
+  waits for this fix before its blind verification.
 - **The bench labels a multi-mode `choose` token "choice N"** (`bench/protocol.py` maps tokens to
   bullets only when every option set is one mode); it is representable but not described.
 - **Target recheck gap (not reachable in current games)**: Enthralling Hold's "as you cast it"
@@ -606,6 +615,14 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Compiler and ontology
 
+- **An "Activate only as a sorcery" gate with no activated ability to attach to refuses the whole
+  card** (2026-11-18, mapper wave 5). When a card's cost sentence does not parse, the gate sentence
+  still matches its template, and the gate loop (`compiler.py` ~2390) raises
+  `StateCorruptionError` instead of leaving the gate unparsed. The cost sentence here is M20
+  Bloodsoaked Altar's "{T}, Pay 2 life, Discard a card, Sacrifice a creature: ...". Cards refused
+  this way: Bloodsoaked Altar, Diviner's Lockbox (M20), Ravenous Amulet and Suspicious Shambler
+  (FDN). A verified record rescues a refused card in games (`compiler.py` ~2541-2558,
+  `games._rescued`), so the Altar's correct record is enough once it is stamped.
 - **Orphaned sentences on a permanent's cast carrier** (2026-11-14, found by G0's `carrier`
   lint, KNOWLEDGE/2026-11-14/207 §5.1). 26 partly compiled cards hold an effect on a permanent
   spell's SpellAbility, so it happens as the card is cast. WAR Teferi, Time Raveler's "Draw a
@@ -1481,6 +1498,15 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Gates, probe, soak and the pack runner
 
+- **Pack-runner traps found by mapper wave 5** (2026-11-18):
+  - In a two-player pack, a player's loss (an empty library) silently skips the remaining steps,
+    so the pack can pass vacuously. Pin `"lost"` in multi-turn packs until the runner fails a
+    pack that ends early.
+  - A target slot with one legal candidate is never asked, so a decision word meant for it drifts
+    onto the next ask.
+  - A card key such as "p1" would shadow the player word.
+  - The notes of the top-level packs `chandra_heart_of_fire_branch01` and
+    `chandra_catalyst_recast_draw_journalled_once` are stale since round 13.
 - **The probe moves no two objects at once** (2026-11-13, ontology round R10). Since a zone change
   of several objects gathers, G3 offers the critical "each occurrence -> once per event" mutant on
   every per-object zone-change trigger over another object: 20 more verified trees (8 -> 28,

@@ -1,0 +1,84 @@
+{
+ "set": "M21",
+ "name": "idol_of_endurance_exiles_your_creature_cards_of_mana_value_three_or_less",
+ "notes": "Printed: 'When this artifact enters, exile all creature cards with mana value 3 or less from your graveyard until this artifact leaves the battlefield.' Cast through the menu (three Plains): Walking Corpse (2) and Sparkhunter Masticore (3) are exiled; Gnarled Sage (5) and Shock (not a creature) stay, and so does the opponent's Alpine Watchdog (2).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "idol",
+   "real": "Idol of Endurance",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "w1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w2",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w3",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wc",
+   "real": "Walking Corpse",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "sm",
+   "real": "Sparkhunter Masticore",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "gs",
+   "real": "Gnarled Sage",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "sh",
+   "real": "Shock",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "aw",
+   "real": "Alpine Watchdog",
+   "zone": "graveyard",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:idol"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "idol": "battlefield",
+   "wc": "exile",
+   "sm": "exile",
+   "gs": "graveyard",
+   "sh": "graveyard",
+   "aw": "graveyard"
+  }
+ }
+}

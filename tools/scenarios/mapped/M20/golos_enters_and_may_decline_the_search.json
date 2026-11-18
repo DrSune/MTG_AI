@@ -1,0 +1,69 @@
+{
+ "set": "M20",
+ "name": "golos_enters_and_may_decline_the_search",
+ "notes": "Printed: 'When Golos enters, you MAY search your library ...' The search is declined ('skip'): the Forest stays in the library.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "golos",
+   "real": "Golos, Tireless Pilgrim",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "w1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w2",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w3",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w4",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w5",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:golos",
+    "skip"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "golos": "battlefield",
+   "forest": "library"
+  }
+ }
+}

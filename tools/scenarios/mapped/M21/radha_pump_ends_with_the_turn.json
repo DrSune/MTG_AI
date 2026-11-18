@@ -1,0 +1,81 @@
+{
+ "set": "M21",
+ "name": "radha_pump_ends_with_the_turn",
+ "notes": "Printed: 'Radha gets +X/+X UNTIL END OF TURN.' Pumped to 9/9 with six lands, she is 3/3 again on the opponent's turn (CR 514.2).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "radha",
+   "real": "Radha, Heart of Keld",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "m1",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "m2",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "m3",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "g1",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "g2",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "g3",
+   "real": "Forest",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:radha:2"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "power": {
+   "radha": 3
+  },
+  "toughness": {
+   "radha": 3
+  },
+  "turn_seats": [
+   0,
+   1
+  ],
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ }
+}

@@ -1,0 +1,104 @@
+{
+ "set": "M21",
+ "name": "chandra_flames_catalyst_minus_two_countered_spell_is_exiled",
+ "notes": "Printed: 'If that spell would be put into your graveyard, exile it instead.' The -2 waits on the stack ('hold'); it resolves and casts Shock at the Bear (the {R} in the pool pays); Shock waits on the stack, and the opponent counters it with Cancel. A countered spell is put into its owner's graveyard (CR 701.6a), so the rider exiles it instead (CR 614.1a). The Bear lives.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "cf",
+   "real": "Chandra, Flame's Catalyst",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "cancel",
+   "real": "Cancel",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "i1",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "i2",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "i3",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:cf:1"
+   ],
+   "hold": true
+  },
+  {
+   "op": "resolve",
+   "decisions": [
+    "fire",
+    "bear"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "cancel",
+   "real": "Cancel",
+   "controller": 1,
+   "targets": [
+    "shock"
+   ],
+   "tap": true
+  }
+ ],
+ "expect": {
+  "zone": {
+   "shock": "exile",
+   "cancel": "graveyard",
+   "bear": "battlefield"
+  },
+  "counters": {
+   "cf": {
+    "LOYALTY": 3
+   }
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ },
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ }
+}

@@ -1,0 +1,77 @@
+{
+ "set": "M21",
+ "name": "idol_of_endurance_returns_its_cards_when_it_leaves",
+ "notes": "Printed: '... until this artifact leaves the battlefield.' (CR 610.3) The Idol exiles Walking Corpse and Sparkhunter Masticore; Thrashing Brontodon is sacrificed to destroy it, and both cards return to your graveyard.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "idol",
+   "real": "Idol of Endurance",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "w1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w2",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w3",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w4",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wc",
+   "real": "Walking Corpse",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "sm",
+   "real": "Sparkhunter Masticore",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "tb",
+   "real": "Thrashing Brontodon",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:idol",
+    "act:tb:0"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "idol": "graveyard",
+   "tb": "graveyard",
+   "wc": "graveyard",
+   "sm": "graveyard"
+  }
+ }
+}
