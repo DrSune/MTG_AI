@@ -5,14 +5,15 @@ become part of the copy's copiable values (CR 707.9a-b). Where the copy goes is 
 
 * "Create a token that's a copy of <object>[, except <exceptions>]." is ``CREATE_TOKEN`` with the
   CopyOf as its ``tokens`` (CR 707.5): the object is "target <noun phrase>" (B11's grammar, with
-  "another" and "target permanent"), "this creature", or "it" (the card the instruction before
-  moved: the ``result`` register, Abyssal Harvester). The exceptions printed in the 19 sets that
+  "another" and "target permanent") or "this creature"; "it" is a record's (it reads the
+  ``result`` register, which only an earlier move or token writes). The exceptions printed in the 19 sets that
   the value carries: "it's a <Subtype> in addition to its other types", "it has haste and "At the
   beginning of the end step, sacrifice this token."" (Electroduplicate, Chandra, Flameshaper).
   As a clause it takes any trigger frame (frames.py: Extravagant Replication's upkeep, Homunculus
   Horde's second card drawn).
-* "Copy target instant or sorcery spell[ you control]." is ``COPY`` with no ``target`` (CR
-  707.10): a copy put onto the stack (Twincast, Reverberate).
+* "Copy target instant or sorcery spell[ you control]." is ``COPY`` with no ``cards`` (CR
+  707.10): a copy put onto the stack (Twincast, Reverberate), its target the counterspells'
+  ``target_spell`` selector.
 * "Whenever you cast an instant or sorcery spell, copy it for each other instant and sorcery spell
   you've cast before it this turn." (Thousand-Year Storm): COPY of the cast spell, ``count`` its
   ordinal among them less one (QProp ORDINAL). Double Vision's "copy that spell" is B2b's.
@@ -65,6 +66,7 @@ from MTG_bot.core.compiler.templates import (
     SentenceOutcome,
     Template,
 )
+from MTG_bot.core.compiler.templates_b5a import target_spell
 from MTG_bot.core.compiler.templates_b11 import _KEYWORDS, _NP_RE, _np_filter
 
 _BUCKET: Final[str] = "B20"
@@ -126,8 +128,11 @@ _END_RE: Final[str] = (
     r"sacrifice this token\.\"))"
     r"|\.)"
 )
+#: Not "it": a sentence alone cannot tell whether the instruction before it moved or made the
+#: object (a first sentence, or after "Destroy target creature.", which writes no register, made
+#: no token: gate round B3, M3a). Abyssal Harvester's "it" is its record's.
 _OBJECT_RE: Final[str] = (
-    rf"(?P<obj>this creature|it|target permanent|(?P<another>another )?{_NP_RE})"
+    rf"(?P<obj>this creature|target permanent|(?P<another>another )?{_NP_RE})"
 )
 _COPY_TOKEN_RE: Final[str] = rf"Create a token that's a copy of {_OBJECT_RE}{_END_RE}"
 
@@ -138,8 +143,6 @@ def _copied(m: re.Match[str]) -> CopyOf:
         source = Selector(
             QConst(1), SelectorMode.CHOOSE, FAtom(pred=FAtomPred.IS_SOURCE), zones=(_BATTLEFIELD,)
         )
-    elif obj == "it":
-        source = _referent("result")  # the card the instruction before moved
     else:
         filter_ = (
             FAtom(pred=FAtomPred.IS_PERMANENT) if obj == "target permanent" else _np_filter(m)
@@ -168,11 +171,10 @@ def copy_token_sentence(sentence: str) -> SentenceOutcome:
 
 
 def _build_copy_target_spell(m: re.Match[str]) -> SentenceOutcome:
+    # "target instant or sorcery spell" is the counterspells' one selector (templates_b5a's
+    # target_spell: STACK_KIND_EQ SPELL beside the types, Miscast's bytes): one encoding.
     filter_ = FAnd(children=(_INSTANT_OR_SORCERY, _YOU)) if m.group("you") else _INSTANT_OR_SORCERY
-    target = Selector(
-        QConst(1), SelectorMode.TARGET, filter_, zones=(Zone(ZoneKind.STACK, ControllerRef.ANY),)
-    )
-    return EffectOutcome(effect=copy_spell(CopyOf(target)))
+    return EffectOutcome(effect=copy_spell(CopyOf(target_spell(filter_))))
 
 
 def _build_storm_copies(m: re.Match[str]) -> SentenceOutcome:

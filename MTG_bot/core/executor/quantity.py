@@ -793,6 +793,13 @@ def _resolve_prop(prop: QProp, ctx: ExecCtx) -> int:
 
 _TYPE_LINE_SEPARATORS = ("//", "/", ",")
 
+#: An ``Executor.name_choices`` value: the permanent became a copy of an object with an "as this
+#: enters, choose" ability, which it never ran (it did not enter, CR 707.4, and the original's
+#: choice is not copied, 707.6), so NAME_CHOSEN reads it as nothing chosen: Diamond Knight's
+#: ruling, a Knight with no colour chosen never triggers. ``layers._apply_copies`` writes it and
+#: takes it back as the copy effect ends; any other missing choice still raises (round 9).
+NOTHING_CHOSEN: Final[str] = ""
+
 # The four party classes, as MTG_bot/data/ZNR.json prints on every party
 # card: "Your party consists of up to one each of Cleric, Rogue, Warrior,
 # and Wizard." Party size = |present ∩ this set| ∈ 0..4, one per class.
@@ -1095,6 +1102,8 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
                 f"executor: NAME_CHOSEN of a {quality or 'card name'} needs a CHOOSE_NAME record "
                 f"of the source {ctx.source} (nothing chosen yet, or it chose none)"
             )
+        if chosen == NOTHING_CHOSEN:
+            return False  # a permanent that became a copy chose nothing (CR 707.4, 707.6)
         identity = card_identity(handle, ctx)
         if identity is None:
             return False
@@ -1487,7 +1496,7 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             # copies the original's kick (CR 707.10), which its stack object carries, as it
             # resolves too (SpellStack.left).
             stack = ctx.executor.stack
-            frame = next((f for f in stack.frames if f.handle == handle), stack.left.get(handle))
+            frame = next((f for f in (*stack.frames, *reversed(stack.left)) if f.handle == handle), None)
             return frame is not None and frame.kicked
         kicked = False
         for e in _turn_rows(ctx, pred.name):

@@ -13,9 +13,11 @@ handler, and the cards' records were needs-atom.
 
 from __future__ import annotations
 
+import dataclasses
 from functools import cache
 
 import numpy as np
+import pytest
 
 from MTG_bot.core.executor.events import KIND_CAST
 from MTG_bot.core.executor.games import compile_supply
@@ -359,6 +361,231 @@ def test_a_token_copy_of_an_aura_enters_attached_to_what_its_controller_chooses(
     r.run_step({"op": "advance_turn", "decisions": ["bear2"]})  # the target is the one legal
     [token] = _tokens(r, "Pacifism")
     assert r.ex.attachments[token] == r.handles["bear2"]
+
+
+# ------------------------------------------------- the gate round's findings (B3, KNOWLEDGE 215)
+
+
+def _pt(r: ScenarioRunner, key: str) -> tuple:
+    handle = r.handles[key]
+    state = r.world.cards[handle]
+    return r.ex.ledger.effective_pt(state.identity, handle, state.counters)
+
+
+def test_a_permanent_that_becomes_a_diamond_knight_chose_no_colour() -> None:
+    """M1 (215's F40): Prismite becomes a copy of Diamond Knight (which chose red): it did not
+    enter (CR 707.4) and the Knight's choice is not copied (707.6), so its copied trigger reads
+    no colour and never triggers (the card's ruling). Shock gives the Knight a counter, the copy
+    none; before the fix the copy's trigger raised (no CHOOSE_NAME record)."""
+    r = _runner("M20", [
+        _real("mr", "Masterful Replication", zone="hand"),
+        _real("knight", "Diamond Knight", zone="hand"),
+        _real("prismite", "Prismite"),
+        _real("shock", "Shock", zone="hand"),
+    ], mana={"0": {"U": 6, "R": 1, "C": 3}})
+    r.run_step({"op": "enter", "key": "knight", "decisions": ["R"]})
+    r.run_step({"op": "cast", "key": "mr", "real": "Masterful Replication", "targets": ["knight"],
+                "decisions": ["1"]})
+    assert r.world.cards[r.handles["prismite"]].identity.name == "Diamond Knight"
+    r.run_step({"op": "cast", "key": "shock", "real": "Shock", "targets": ["p1"]})
+    assert r.world.cards[r.handles["knight"]].counters.get("PLUS_1_PLUS_1", 0) == 1
+    assert r.world.cards[r.handles["prismite"]].counters.get("PLUS_1_PLUS_1", 0) == 0
+
+
+def test_a_permanent_that_becomes_an_icon_of_ancestry_chose_no_type_and_gets_its_own_back() -> None:
+    """M1: a Diamond Knight that chose red becomes a copy of Icon of Ancestry (which chose Elf):
+    the copy's anthem reads no creature type (the Elf is 2/2, one Icon), and as the copy effect
+    ends at cleanup the Knight has its own red again (CR 707.6: the copy's choices were never its
+    own), so the next Shock gives it a counter."""
+    r = _runner("M20", [
+        _real("mr", "Masterful Replication", zone="hand"),
+        _real("icon", "Icon of Ancestry", zone="hand"),
+        _real("knight", "Diamond Knight", zone="hand"),
+        _real("shock", "Shock", zone="hand"),
+        _synthetic("elf", "Elf Scout", "Creature — Elf Scout", "1", "1"),
+    ], mana={"0": {"U": 6}})
+    r.run_step({"op": "enter", "key": "icon", "decisions": ["Elf"]})
+    r.run_step({"op": "enter", "key": "knight", "decisions": ["R"]})
+    r.run_step({"op": "cast", "key": "mr", "real": "Masterful Replication", "targets": ["icon"],
+                "decisions": ["1"]})
+    assert r.world.cards[r.handles["knight"]].identity.name == "Icon of Ancestry"
+    assert _pt(r, "elf") == (2, 2)
+    r.run_step({"op": "advance_turn"})
+    r.run_step({"op": "advance_turn"})
+    assert r.world.cards[r.handles["knight"]].identity.name == "Diamond Knight"
+    r.run_step({"op": "mana", "seat": 0, "add": {"R": 1}})
+    r.run_step({"op": "cast", "key": "shock", "real": "Shock", "targets": ["p1"]})
+    assert r.world.cards[r.handles["knight"]].counters.get("PLUS_1_PLUS_1", 0) == 1
+
+
+def test_a_token_copy_of_diamond_mare_chooses_its_own_colour() -> None:
+    """215's F40, the token half: a token copy enters, so its "as this enters" choice is made anew
+    (CR 707.5): Self-Reflection's copy of a Diamond Mare that chose blue chooses red, and only the
+    token gains life from a red spell."""
+    r = _runner("FDN", [
+        _real("sr", "Self-Reflection", zone="hand"),
+        _real("mare", "Diamond Mare", zone="hand"),
+        _real("bolt", "Burst Lightning", zone="hand"),
+    ], mana={"0": {"U": 2, "C": 4, "R": 1}})
+    r.run_step({"op": "enter", "key": "mare", "decisions": ["U"]})
+    r.run_step({"op": "cast", "key": "sr", "real": "Self-Reflection", "targets": ["mare"],
+                "decisions": ["R"]})
+    life = r.world.players[r.p0].life
+    r.run_step({"op": "cast", "key": "bolt", "real": "Burst Lightning", "targets": ["p1"]})
+    assert r.world.players[r.p0].life == life + 1
+
+
+def test_a_copy_may_trade_its_two_targets() -> None:
+    """m1: Double Vision copies Rookie Mistake (+0/+2 to A, -2/-0 to another target B). Only the
+    final set of targets is judged (CR 707.10c, 115.7d-e), so the copy may give B the +0/+2 and
+    A the -2/-0; asked slot by slot against the unchanged second slot, B was never offered."""
+    r = _runner("M21", [
+        _real("dv", "Double Vision"),
+        _real("rm", "Rookie Mistake", zone="hand"),
+        _synthetic("a", "Alpha Bear", "Creature — Bear", "2", "2"),
+        _synthetic("b", "Beta Bear", "Creature — Bear", "3", "3"),
+    ], mana={"0": {"U": 1}})
+    r.run_step({"op": "cast", "key": "rm", "real": "Rookie Mistake", "targets": ["a", "b"],
+                "decisions": ["b"]})
+    assert _pt(r, "a") == (0, 4) and _pt(r, "b") == (1, 5)
+
+
+def test_a_changed_target_moves_the_copys_clock_and_drops_a_kept_one_that_moved() -> None:
+    """m2: Rookie Mistake at A (+0/+2) and B (-2/-0); with Double Vision's trigger waiting, A is
+    bounced and put back (a new object, CR 400.7) and C enters. The copy keeps A and changes B to
+    C: A is no target of the copy (dropped: not pumped), and C, which entered after the original
+    chose its targets, is a legal new target judged from now (it gets -2/-0)."""
+    r = _runner("M21", [
+        _real("dv", "Double Vision"),
+        _real("rm", "Rookie Mistake", zone="hand"),
+        _synthetic("a", "Alpha Bear", "Creature — Bear", "2", "2"),
+        _synthetic("b", "Beta Bear", "Creature — Bear", "3", "3"),
+        _synthetic("c", "Gamma Bear", "Creature — Bear", "4", "4", zone="hand"),
+    ], mana={"0": {"U": 1}})
+    r.run_step({"op": "cast", "key": "rm", "real": "Rookie Mistake", "targets": ["a", "b"],
+                "hold": True})
+    r.run_step({"op": "move", "key": "a", "to": "hand", "hold": True})
+    r.run_step({"op": "enter", "key": "a", "hold": True})
+    r.run_step({"op": "enter", "key": "c", "hold": True})
+    r.run_step({"op": "pass", "decisions": ["first-legal", "c"]})
+    assert _pt(r, "a") == (2, 2) and _pt(r, "b") == (1, 3) and _pt(r, "c") == (2, 4)
+
+
+def test_double_vision_copies_the_first_cast_not_a_later_cast_of_the_same_card() -> None:
+    """m2 (review fix 9a): Shock at the opponent triggers Double Vision; before the trigger
+    resolves Shock is returned to hand (Unsubstantiate) and cast again at a Bear. "Copy that
+    spell" is the first Shock as it last existed (CR 608.2h), so the copy hits the opponent."""
+    r = _runner("M21", [
+        _real("dv", "Double Vision"),
+        _real("shock", "Shock", zone="hand"),
+        _real("un", "Unsubstantiate", zone="hand"),
+        _synthetic("bear", "Bear", "Creature — Bear", "2", "2", seat=1),
+    ], mana={"0": {"R": 2, "U": 1, "C": 1}})
+    r.run_step({"op": "cast", "key": "shock", "real": "Shock", "targets": ["p1"], "hold": True})
+    r.run_step({"op": "cast", "key": "un", "real": "Unsubstantiate", "targets": ["shock"],
+                "hold": True})
+    r.run_step({"op": "resolve", "hold": True})
+    r.run_step({"op": "cast", "key": "shock", "real": "Shock", "targets": ["bear"], "hold": True})
+    r.run_step({"op": "pass", "decisions": ["first-legal"]})
+    assert r.world.zone_of(r.handles["bear"]).kind == "graveyard"
+    assert r.world.players[r.p1].life == 18
+
+
+def test_homunculus_horde_that_left_still_makes_its_copy() -> None:
+    """m2: if Homunculus Horde leaves before its trigger resolves, the token is a copy of it as it
+    last existed (CR 608.2h; the card's ruling)."""
+    r = _runner("FDN", [
+        _real("horde", "Homunculus Horde"),
+        _real("tt1", "Think Twice", zone="hand"),
+        _real("tt2", "Think Twice", zone="hand"),
+    ], mana={"0": {"U": 2, "C": 2}})
+    r.run_step({"op": "cast", "key": "tt1", "real": "Think Twice"})
+    r.run_step({"op": "cast", "key": "tt2", "real": "Think Twice", "hold": True})
+    r.run_step({"op": "resolve", "hold": True})  # the second card drawn: the trigger waits
+    r.run_step({"op": "move", "key": "horde", "to": "graveyard", "hold": True})
+    r.run_step({"op": "pass"})
+    assert len(_tokens(r, "Homunculus Horde")) == 1
+
+
+def test_a_permanent_that_becomes_a_copy_of_a_token_is_no_token() -> None:
+    """m2: Prismite becomes a copy of a Thopter token: being a token is no copiable value (CR
+    707.2; Masterful Replication's ruling), so Prismite stays a card."""
+    r = _runner("M20", [
+        _real("mr", "Masterful Replication", zone="hand"),
+        _synthetic("thopter", "Thopter", "Artifact Creature — Thopter", "1", "1", token=True),
+        _real("prismite", "Prismite"),
+    ], mana={"0": {"U": 6}})
+    r.run_step({"op": "cast", "key": "mr", "real": "Masterful Replication", "targets": ["thopter"],
+                "decisions": ["1"]})
+    state = r.world.cards[r.handles["prismite"]]
+    assert state.identity.name == "Thopter" and not state.identity.is_token
+
+
+@pytest.mark.parametrize("excepted_first", [True, False])
+def test_each_token_copy_keeps_its_own_exceptions(excepted_first) -> None:
+    """m4 (215's F29): Electroduplicate's copy of a Hawk has haste and the end-step sacrifice,
+    Self-Reflection's copy of the same Hawk neither, whichever comes first: a copy's record is its
+    handle's (CR 707.9a: the exceptions are one copy effect's)."""
+    r = _runner("FDN", [
+        _real("ed", "Electroduplicate", zone="hand"),
+        _real("sr", "Self-Reflection", zone="hand"),
+        _real("hawk", "Healer's Hawk"),
+    ], mana={"0": {"R": 1, "U": 2, "C": 6}})
+    order = [("ed", "Electroduplicate"), ("sr", "Self-Reflection")]
+    for key, name in order if excepted_first else order[::-1]:
+        r.run_step({"op": "cast", "key": key, "real": name, "targets": ["hawk"]})
+    hasty = [h for h in _tokens(r, "Healer's Hawk") if r.ex.layers.keyword_of(h, "HASTE")]
+    [plain] = [h for h in _tokens(r, "Healer's Hawk") if h not in hasty]
+    assert len(hasty) == 1
+    assert len(spell_record(r.ex, plain).abilities) == len(spell_record(r.ex, r.handles["hawk"]).abilities)
+    r.run_step({"op": "combat", "seat": 0, "attack": {}})
+    r.run_step({"op": "to_step", "step": "END_TURN", "decisions": ["first-legal"]})
+    r.run_step({"op": "pass"})
+    assert _tokens(r, "Healer's Hawk") == [plain]
+
+
+def test_a_copy_of_a_creature_spell_resolves_into_a_token_never_created() -> None:
+    """m5: a copy of a permanent spell becomes a token as it resolves and is not "created" (CR
+    608.3f): Unsubstantiate's tree swapped for "Copy target creature spell." copies Pridemalkin;
+    the copy enters as a token Pridemalkin, and no CREATE_TOKEN row is written."""
+    from MTG_bot.core.ability_tree import (
+        Atom,
+        AtomArgs,
+        ControllerRef,
+        FAtom,
+        FAtomPred,
+        QConst,
+        Selector,
+        SelectorMode,
+        SpellAbility,
+        SpellKind,
+        Verb,
+        Zone,
+        ZoneKind,
+    )
+    from MTG_bot.core.ability_tree import CopyOf as Copy
+    from tools.cards.gates import swapped
+
+    supply = _supply("M21")
+    oid = next(o for o, res in supply.pool.results.items()
+               if res.card is not None and res.card.name == "Unsubstantiate")
+    creature_spell = Selector(QConst(1), SelectorMode.TARGET, FAtom(FAtomPred.TYPE_EQ, string_value="Creature"),
+                              zones=(Zone(ZoneKind.STACK, ControllerRef.ANY),))
+    effect = Atom(Verb.COPY, AtomArgs(pairs=(("source", Copy(creature_spell)),)))
+    card = dataclasses.replace(supply.pool.results[oid].card,
+                               abilities=(SpellAbility(kind=SpellKind.INSTANT, effect=effect),))
+    with swapped(supply, oid, card):
+        r = _runner("M21", [
+            _real("un", "Unsubstantiate", zone="hand"),
+            _real("cat", "Pridemalkin", zone="hand"),
+        ], mana={"0": {"U": 3, "G": 3, "C": 3}})
+        r.run_step({"op": "cast", "key": "cat", "real": "Pridemalkin", "hold": True})
+        r.run_step({"op": "cast", "key": "un", "real": "Unsubstantiate", "targets": ["cat"],
+                    "hold": True})
+        r.run_step({"op": "pass", "decisions": ["first-legal"] * 4})
+        assert len(_tokens(r, "Pridemalkin")) == 1
+        assert r.world.zone_of(r.handles["cat"]).kind == ZONE_BATTLEFIELD
+        assert not any(len(e) > 1 and e[1] == "CREATE_TOKEN" for e in r.ex.events)
 
 
 # ---------------------------------------------------------------- what the network reads

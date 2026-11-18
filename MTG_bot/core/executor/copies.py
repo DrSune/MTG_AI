@@ -181,7 +181,7 @@ def stack_object(
     if not of_event:
         return next((f for f in stack.frames if f.handle == handle), None)
     event = ctx.event
-    frames = [*stack.frames, *stack.left.values()]
+    frames = [*stack.frames, *stack.left]
     if event.kind == KIND_ABILITY_ACTIVATED:
         idx = event.activation[0]
         made = [
@@ -264,11 +264,13 @@ def _put_copy(executor: Executor, ctx: ExecCtx, frame: StackObject, new_targets:
 
 def _choose_new_targets(executor: Executor, ctx: ExecCtx, copy: StackObject) -> None:
     """CR 707.10c: the copy's controller may leave any number of its targets unchanged, even an
-    illegal one, and change the others to legal ones; their number does not change. Asked one
-    target at a time, slot by slot (``target:<seat>:<copy>:<digest>``, the target ask's shape),
-    the target it has first among the options: what the slot may take now, never the copy
-    itself (CR 115.5), an object this slot already holds (CR 115.3) or one an "another target"
-    slot shares (stack's rule).
+    illegal one, and change the others to legal ones; their number does not change, and only the
+    final set of targets is judged (CR 115.7d-e), so two targets may trade places (Rookie
+    Mistake's +0/+2 and -2/-0: the gate's m1). Asked one target at a time, slot by slot
+    (``target:<seat>:<copy>:<digest>``, the target ask's shape), the target it has first: every
+    object that some final set holding the choices made so far allows there. A final set has
+    no object twice in a slot (CR 115.3), no "another target" clash (stack's rule) and never the
+    copy itself (CR 115.5).
 
     A changed target is chosen now, so the copy's targets are judged from now on (its
     ``declared_clock``); a kept one that changed zones since the original chose it is a new
@@ -290,41 +292,47 @@ def _choose_new_targets(executor: Executor, ctx: ExecCtx, copy: StackObject) -> 
     if not slots:
         return
     if len(slots) == 1:
-        groups = [tuple(copy.declared_targets)]
+        olds = [tuple(copy.declared_targets)]
     else:
-        groups = [tuple(copy.slot_designations.get(repr(slot.selector), ())) for slot in slots]
-    kept: set[Handle] = set()
-    changed = False
-    for i, slot in enumerate(slots):
-        group = list(groups[i])
-        for j, old in enumerate(group):
-            options = [old]
-            for handle in slot.candidates:
-                trial = [*groups[:i], (*group[:j], handle, *group[j + 1:]), *groups[i + 1:]]
-                if (
-                    handle != copy.handle
-                    and handle not in group
-                    and another_target_reason(slots, trial) is None
-                ):
-                    options.append(handle)
-            if len(options) > 1:
-                vocab = tuple(str(h) for h in options)
-                answer = ctx.take_decision_of(
-                    copier, vocab, f"target:{copier}:{about}:{site_digest(vocab)}"
-                )
-                group[j] = next(h for h in options if str(h) == answer)
-            if group[j] == old:
-                kept.add(old)
-            else:
-                changed = True
-        groups[i] = tuple(sorted(group))
-    if changed:
+        olds = [tuple(copy.slot_designations.get(repr(slot.selector), ())) for slot in slots]
+    places = [(i, j) for i, group in enumerate(olds) for j in range(len(group))]
+    menus = {
+        (i, j): [olds[i][j], *(h for h in slots[i].candidates if h not in (copy.handle, olds[i][j]))]
+        for i, j in places
+    }
+
+    def legal(chosen: dict) -> bool:
+        groups = [tuple(chosen[(i, j)] for j in range(len(olds[i]))) for i in range(len(olds))]
+        return all(len(set(g)) == len(g) for g in groups) and another_target_reason(slots, groups) is None
+
+    def completes(chosen: dict, rest: list) -> bool:  # some final set holds ``chosen``
+        if not rest:
+            return legal(chosen)
+        place, *more = rest
+        return any(completes({**chosen, place: h}, more) for h in menus[place])
+
+    chosen: dict = {}
+    for k, place in enumerate(places):
+        options = [h for h in menus[place] if completes({**chosen, place: h}, places[k + 1:])]
+        answer = options[0]
+        if len(options) > 1:
+            vocab = tuple(str(h) for h in options)
+            word = ctx.take_decision_of(copier, vocab, f"target:{copier}:{about}:{site_digest(vocab)}")
+            answer = next(h for h in options if str(h) == word)
+        chosen[place] = answer
+    kept = [p for p in places if chosen[p] == olds[p[0]][p[1]]]
+    gone: set = set()
+    if len(kept) < len(places):  # a target changed: the copy's targets are judged from now on
         gone = {
-            h for h in kept
-            if h.namespace == "card" and moved_since(executor.journal, h, copy.declared_clock)
+            p for p in kept
+            if chosen[p].namespace == "card"
+            and moved_since(executor.journal, chosen[p], copy.declared_clock)
         }
-        groups = [tuple(h for h in group if h not in gone) for group in groups]
         copy.declared_clock = executor.journal.clock
+    groups = [
+        tuple(sorted(chosen[(i, j)] for j in range(len(olds[i])) if (i, j) not in gone))
+        for i in range(len(olds))
+    ]
     copy.declared_targets = tuple(sorted({h for group in groups for h in group}))
     if len(slots) > 1:
         copy.slot_designations = {

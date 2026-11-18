@@ -5,6 +5,8 @@ the round (70e63ee7): ``CopyOf`` does not exist there."""
 
 from __future__ import annotations
 
+import dataclasses
+
 import pytest
 
 from MTG_bot.core.ability_tree import (
@@ -122,6 +124,13 @@ def test_a_copys_exceptions_are_canonical() -> None:
         (lambda: CopyOf(_TARGET, keywords=(Keyword.ENCHANT,)), "parameter"),
         (lambda: CopyOf(_TARGET, keywords=(Keyword.EQUIP,)), "parameter"),
         (lambda: CopyOf(_TARGET, keywords=(Keyword.FIGHT,)), "parameter"),
+        # flash only lets a card be cast; a copy that is a permanent never is (CR 702.8a; M3e)
+        (lambda: CopyOf(_TARGET, keywords=(Keyword.FLASH,)), "parameter"),
+        # a hand or a library is hidden (CR 400.2; M3d)
+        (lambda: CopyOf(Selector(QConst(1), SelectorMode.TARGET, _CREATURE,
+                                 zones=(Zone(ZoneKind.HAND, ControllerRef.YOU),))), "zones"),
+        (lambda: CopyOf(Selector(QConst(1), SelectorMode.TARGET, _CREATURE,
+                                 zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU),))), "zones"),
         # the referents that name an object to copy are `event` and `result`: "this creature"
         # is the CHOOSE of IS_SOURCE (a second encoding), a player no object
         (lambda: CopyOf(_ref("source")), "referent"),
@@ -175,11 +184,66 @@ def test_a_copyof_that_names_no_one_object_or_no_exception_is_refused(build, why
             "duration": DurationEot()}, "over the battlefield"),
         (Verb.COPY, {"source": CopyOf(_SELF), "cards": _SELF, "duration": DurationEot()},
          "itself"),
+        # "copy this spell" is its cast trigger's `event`: a CHOOSE of the stack says it twice
+        (Verb.COPY, {"source": CopyOf(Selector(QConst(1), SelectorMode.CHOOSE,
+                                               FAtom(pred=FAtomPred.IS_SOURCE), zones=_STACK))},
+         "TARGET on the stack"),
     ],
 )
 def test_the_copy_forms_that_must_not_validate(verb, roles, match) -> None:
     with pytest.raises(ValueError, match=match):
         Atom(verb=verb, args=AtomArgs(pairs=tuple(roles.items())))
+
+
+def _spell(effect, kind=SpellKind.SORCERY) -> CardRecord:
+    return dataclasses.replace(_card(SpellAbility(kind=kind, effect=effect)), type_line="Sorcery",
+                               types=("Sorcery",))
+
+
+def test_a_copy_of_it_needs_an_instruction_before_it_that_moved_or_made_the_object() -> None:
+    """M3a: "a token that's a copy of it" (CopyOf `result`) reads the register of an earlier
+    step that moved or made objects; as a first step, or after DESTROY (which writes none), the
+    engine made no token. Abyssal Harvester's form (after the exile) stands."""
+    copy_it = _atom(Verb.CREATE_TOKEN, tokens=CopyOf(_ref("result")), count=QConst(1))
+    exile = _atom(Verb.MOVE_ZONE, cards=_TARGET, destination=Zone(ZoneKind.EXILE, ControllerRef.OWNER))
+    destroy = _atom(Verb.DESTROY, target=_TARGET)
+    _spell(Seq(steps=(exile, copy_it)))
+    for effect in (copy_it, Seq(steps=(destroy, copy_it))):
+        with pytest.raises(ValueError, match="copy of `result`"):
+            _spell(effect)
+
+
+def test_all_others_needs_a_maker_before_it_and_no_target() -> None:
+    """M3b: FNot(IS_RESULT) ("all other") complements an earlier step's register: after a step
+    that writes none it reads nothing, and in a TARGET selector it would be chosen as the spell
+    is cast (CR 601.2c), before any register exists."""
+    not_result = FNot(inner=FAtom(pred=FAtomPred.IS_RESULT))
+    golem = _atom(Verb.CREATE_TOKEN, tokens=CopyOf(_TARGET), count=QConst(1))
+    draw = _atom(Verb.DRAW, amount=QConst(1), controller=ControllerRef.YOU)
+    others = Selector(QUnbounded(), SelectorMode.ALL, FAnd(children=(_CREATURE, not_result)), zones=_BF)
+    one_other = Selector(QConst(1), SelectorMode.TARGET, FAnd(children=(_CREATURE, not_result)),
+                         zones=_BF)
+    _spell(Seq(steps=(golem, _atom(Verb.DESTROY, target=others))))
+    for effect in (Seq(steps=(draw, _atom(Verb.DESTROY, target=others))),
+                   Seq(steps=(golem, _atom(Verb.DESTROY, target=one_other)))):
+        with pytest.raises(ValueError, match="IS_RESULT"):
+            _spell(effect)
+
+
+def test_a_copy_of_this_stands_only_in_a_permanents_ability() -> None:
+    """M3c: in a spell's effect, or any ability of an instant or sorcery card, "this" is the spell
+    or the card: a token copy of it put a token sorcery onto the battlefield (CR 307.4). A
+    permanent's triggered ability, or an ability a spell grants a creature, names a permanent."""
+    copy_this = _atom(Verb.CREATE_TOKEN, tokens=CopyOf(_SELF), count=QConst(1))
+    draw = _atom(Verb.DRAW, amount=QConst(1), controller=ControllerRef.YOU)
+    with pytest.raises(ValueError, match="permanent's ability"):
+        _spell(copy_this)
+    with pytest.raises(ValueError, match="permanent's ability"):  # a sorcery card's own trigger
+        dataclasses.replace(_spell(draw), abilities=(
+            SpellAbility(kind=SpellKind.SORCERY, effect=draw), _trigger(_ETB, copy_this)))
+    _card(_trigger(_ETB, copy_this))  # a permanent's: Homunculus Horde's form
+    granted = _atom(Verb.GRANT_ABILITY, target=_TARGET, ability=_trigger(_ETB, copy_this))
+    _spell(granted)
 
 
 def test_the_same_copy_twice_in_a_row_is_one_copy_with_a_count() -> None:

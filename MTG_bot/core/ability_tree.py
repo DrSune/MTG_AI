@@ -2644,14 +2644,20 @@ TYPE_LINE_KINDS = frozenset({
 
 
 #: The keywords a copy effect's exception adds bare ("except it has haste", CR 707.9a): keyword
-#: abilities (CR 702) whole without a parameter. Not Protection (its quality), Enchant or Equip
-#: (an Aura's or Equipment's structure), Fight (a keyword action, CR 701.14) or Treasure (a
-#: token's type marker).
+#: abilities (CR 702) whole without a parameter that a token or a permanent can use. Not
+#: Protection (its quality), Enchant or Equip (an Aura's or Equipment's structure), Fight (a
+#: keyword action, CR 701.14), Treasure (a token's type marker), nor Flash: it only lets a card
+#: be cast (CR 702.8a), and a copy that is a permanent is never cast (gate round B3, M3e).
 COPY_EXCEPTION_KEYWORDS = frozenset({
     Keyword.DEATHTOUCH, Keyword.DEFENDER, Keyword.DOUBLE_STRIKE, Keyword.FIRST_STRIKE,
-    Keyword.FLASH, Keyword.FLYING, Keyword.HASTE, Keyword.HEXPROOF, Keyword.INDESTRUCTIBLE,
-    Keyword.LIFELINK, Keyword.MENACE, Keyword.PROWESS, Keyword.REACH, Keyword.TRAMPLE,
-    Keyword.VIGILANCE,
+    Keyword.FLYING, Keyword.HASTE, Keyword.HEXPROOF, Keyword.INDESTRUCTIBLE, Keyword.LIFELINK,
+    Keyword.MENACE, Keyword.PROWESS, Keyword.REACH, Keyword.TRAMPLE, Keyword.VIGILANCE,
+})
+
+#: The zones a copied object is read in (CR 707.2 needs it seen): the battlefield, a graveyard,
+#: exile and the stack. A hand or a library is hidden (CR 400.2), as round 13 refused for CAST.
+COPY_SOURCE_ZONES = frozenset({
+    ZoneKind.BATTLEFIELD, ZoneKind.GRAVEYARD, ZoneKind.EXILE, ZoneKind.STACK,
 })
 
 
@@ -2696,6 +2702,11 @@ class CopyOf:
             raise ValueError(
                 "CopyOf: a referent source is `event` (the trigger's object) or `result` (the "
                 f"object an instruction acted on), got {sel.referent!r}"
+            )
+        if sel.referent is None and any(z.kind not in COPY_SOURCE_ZONES for z in sel.zones):
+            raise ValueError(
+                "CopyOf: the copied object is on the battlefield, in a graveyard, in exile or on "
+                f"the stack (a hand or a library is hidden, CR 400.2), got {sel.zones!r}"
             )
         for word in self.subtypes:
             if not isinstance(word, str) or not word.strip() or word in TYPE_LINE_KINDS:
@@ -3422,12 +3433,17 @@ class Seq:
                     f"Seq: step must be an Effect, got {type(step).__name__}"
                 )
         for one, two in zip(self.steps, self.steps[1:]):
-            # "Copy it twice" is one COPY with `count` 2, two token copies one CREATE_TOKEN of 2
-            # (DESIGN_ATOM_ONTOLOGY §18): the same copy step twice would be a second encoding.
+            # Printed twice, a copy instruction is two designations (CR 601.2c) and two events
+            # (round R10); two equal steps cannot say that, as equal target slots share one
+            # designation (215's F16). "Copy it twice" is one COPY with `count` 2, two token
+            # copies one CREATE_TOKEN of 2 (DESIGN_ATOM_ONTOLOGY §18).
             if one == two and isinstance(one, Atom) and isinstance(
                 one.args.get("source" if one.verb is Verb.COPY else "tokens"), CopyOf
             ) and one.args.get("cards") is None:
-                raise ValueError("Seq: the same copy twice in a row is one copy with a `count`")
+                raise ValueError(
+                    "Seq: two equal copy steps would share one designation; \"twice\" is one "
+                    "copy with a `count`, two printed copies are two different steps"
+                )
 
 
 @dataclass(frozen=True)
@@ -3817,6 +3833,10 @@ def _copy_roles_fault(verb: Verb, roles: dict[str, object]) -> str | None:
                 "707.10): its source is a stack object, or the trigger's spell or ability "
                 "(`event`); a token that's a copy is CREATE_TOKEN's"
             )
+        if sel.referent is None and sel.mode is not SelectorMode.TARGET:
+            # "Copy this spell" under its own cast trigger is that trigger's `event` (Banish into
+            # Fable): a CHOOSE of the stack would say it a second way.
+            return "a copy put onto the stack copies a TARGET on the stack or the trigger's `event`"
         if copy.has_exceptions:
             return "a copy of a spell or an ability takes no exception (none printed)"
         if "duration" in roles:
@@ -4524,47 +4544,72 @@ def _is_result_role(role: str) -> bool:
     return Selector not in allowed and all(t in (*_F_CLASSES, *_EV_CLASSES) for t in allowed)
 
 
+#: The instructions whose `result` register a later "it" ("a token that's a copy of it") or "all
+#: other" reads: the objects they moved or made (`verbs._v_move_zone`, `_v_create_token`). Other
+#: writers of the register (a SEARCH's found cards, a damage's dealt) come with their cards.
+_RESULT_OBJECT_VERBS = frozenset({Verb.MOVE_ZONE, Verb.CREATE_TOKEN})
+
+
+def _moves_or_makes(step: Any) -> bool:
+    """Does ``step`` run an instruction that moves or makes objects (writing `result`)? Another
+    ability's parts are not run by it."""
+    return any(
+        isinstance(n, Atom) and n.verb in _RESULT_OBJECT_VERBS
+        for n in walk(step, skip=(*_A_CLASSES, DelayedTrigger))
+    )
+
+
 def _is_result_misplaced(
-    node: Any, allowed: bool, in_atom: bool = False, after: bool = False
+    node: Any, allowed: bool, in_atom: bool = False, written: bool = False
 ) -> bool:
     """Is an IS_RESULT atom reachable from ``node`` outside the Atom roles
     :func:`_is_result_role` admits? ``allowed`` is whether ``node`` sits in one.
     Everywhere else (a selector, an ability's or a Conditional's condition, a
     trigger's event, a duration) no resolution has a ``result`` register to read.
-    One exception, ``in_atom`` (a role of a resolving instruction, not its duration) with
-    ``after`` (a step stands before it in its Seq): "all other <objects>" after an instruction
-    that made or moved one ("Then exile all other Nightmare tokens you control", Abyssal
-    Harvester) is FNot(IS_RESULT) in a selector's filter, the complement of the register, which
-    has no referent form. A first step has no register to complement."""
+    Two forms read the register of an earlier step: ``in_atom`` (a role of a resolving
+    instruction, not its duration) with ``written`` (a step before it in its Seq moved or made
+    objects, :func:`_moves_or_makes`).
+    - "All other <objects>" ("Then exile all other Nightmare tokens you control", Abyssal
+      Harvester) is FNot(IS_RESULT) in a selector's filter, the complement of the register,
+      which has no referent form; never in a TARGET selector, chosen as the spell is cast or the
+      ability put on the stack (CR 601.2c), before the register exists.
+    - "A token that's a copy of it" is CopyOf(referent `result`).
+    With nothing written before, the read finds no register (gate round B3, M3a-b: a first step,
+    or after a DESTROY, which writes none, made no token)."""
     if isinstance(node, tuple):
-        return any(_is_result_misplaced(item, allowed, in_atom, after) for item in node)
+        return any(_is_result_misplaced(item, allowed, in_atom, written) for item in node)
     if not dataclasses.is_dataclass(node) or isinstance(node, type):
         return False
     if isinstance(node, Atom):
         return any(
-            _is_result_misplaced(value, _is_result_role(role), role != "duration", after)
+            _is_result_misplaced(value, _is_result_role(role), role != "duration", written)
             for role, value in node.args.pairs
         )
     if isinstance(node, Seq):
-        return any(
-            _is_result_misplaced(step, allowed, in_atom, after or k > 0)
-            for k, step in enumerate(node.steps)
-        )
+        misplaced = False
+        for step in node.steps:
+            misplaced = misplaced or _is_result_misplaced(step, allowed, in_atom, written)
+            written = written or _moves_or_makes(step)
+        return misplaced
     if isinstance(node, (*_A_CLASSES, DelayedTrigger)):
-        in_atom = after = False  # another ability's parts: read when it triggers or resolves
+        in_atom = written = False  # another ability's parts: read when it triggers or resolves
     if isinstance(node, FAtom) and node.pred is FAtomPred.IS_RESULT and not allowed:
+        return True
+    if isinstance(node, CopyOf) and node.source.referent == "result" and not (in_atom and written):
         return True
     if (
         in_atom
-        and after
+        and written
         and isinstance(node, FNot)
         and node.inner == FAtom(pred=FAtomPred.IS_RESULT)
     ):
         return False
     if isinstance(node, Selector):
         allowed = False
+        if node.mode is SelectorMode.TARGET:
+            in_atom = False  # designated before the resolution writes any register
     return any(
-        _is_result_misplaced(getattr(node, f.name), allowed, in_atom, after)
+        _is_result_misplaced(getattr(node, f.name), allowed, in_atom, written)
         for f in dataclasses.fields(node)
     )
 
@@ -4690,6 +4735,28 @@ def permission_fault(*nodes: Any) -> str | None:
 
     visit(nodes, None, False, False)
     return faults[0] if faults else None
+
+
+def self_copy_fault(abilities: tuple, spell_card: bool) -> str | None:
+    """Why a copy of "this <object>" (a CopyOf whose source pins IS_SOURCE) stands where "this" is
+    no permanent, else None (gate round B3, M3c): in a spell's own effect, or in any ability of an
+    instant or sorcery card (``spell_card``), "this" is the spell or the card, and a token copy of
+    it would put an instant or a sorcery onto the battlefield (CR 304.4, 307.4). An ability
+    nested in another (granted, or a token's own) names its own object and is not searched."""
+    nested = (TriggeredAbility, ActivatedAbility, StaticAbility)
+    for ability in abilities:
+        if not (spell_card or isinstance(ability, SpellAbility)):
+            continue
+        for fld in dataclasses.fields(ability):
+            for node in _walk_value(getattr(ability, fld.name), skip=nested):
+                copy = node.args.get("tokens" if node.verb is Verb.CREATE_TOKEN else "source") if (
+                    isinstance(node, Atom)
+                ) else None
+                if isinstance(copy, CopyOf) and copy.source.referent is None and (
+                    _filter_names_the_source(copy.source.filter)
+                ):
+                    return "a copy of \"this <object>\" stands only in a permanent's ability"
+    return None
 
 
 def event_object_fault(*nodes: Any) -> str | None:
@@ -5031,7 +5098,8 @@ class CardRecord:
             raise ValueError(
                 "CardRecord: IS_RESULT outside an Atom role that takes a Filter and cannot "
                 "take a referent Selector (elsewhere it is Selector(referent='result'), or "
-                "there is no result register to read)"
+                "there is no result register to read); or \"all other\" (FNot(IS_RESULT)) or a "
+                "copy of `result` with no instruction before it that moved or made objects"
             )
         if _reflexive_misplaced(self.abilities, barred="Emblem" in self.types):
             raise ValueError(
@@ -5044,6 +5112,7 @@ class CardRecord:
             chosen_quality_fault(self.keywords, self.abilities)
             or permission_fault(self.keywords, self.abilities)
             or event_object_fault(self.keywords, self.abilities)
+            or self_copy_fault(self.abilities, bool({"Instant", "Sorcery"} & set(self.types)))
         )
         if fault is not None:
             raise ValueError(f"CardRecord: {fault}")
@@ -5506,9 +5575,11 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     # COPY (CR 707): `source` is the CopyOf. With no `cards`, copies of the spell or ability it
     # names are put onto the stack (707.10): `count` of them ("copy it twice"; absent, one), each
     # with new targets if `new_targets` (707.10c). With `cards` (the permanents, ATTACK_POLICY's
-    # subject role), those become copies of it (layer 1, CR 613.2a) for `duration`: no
-    # designation reads `cards`, so "target artifact" in the CopyOf stays its own (Masterful
-    # Replication). _copy_roles_fault.
+    # subject role), those become copies of it (layer 1, CR 613.2a) for `duration`. `cards` is
+    # not the `target` role, which the binder reads as the ability's designation, so Masterful
+    # Replication's "each other artifact" stays a population beside its "target artifact" in the
+    # CopyOf; a TARGET-mode `cards` is designated as any TARGET selector is (Saheeli's "target
+    # artifact ... becomes a copy of another target"). _copy_roles_fault.
     Verb.COPY: {
         "source": True,
         "cards": False,

@@ -61,6 +61,7 @@ from MTG_bot.core.ability_tree import (
     DurationUntilNextStep,
     DurationUntilNextTurn,
     DurationWhileCondition,
+    EtBState,
     EventSpec,
     FAnd,
     FAtom,
@@ -81,9 +82,10 @@ from MTG_bot.core.ability_tree import (
     at_least,
     fingerprint,
     number_you_control,
+    walk,
 )
 from MTG_bot.core.executor.durations import duration_tag
-from MTG_bot.core.executor.quantity import ExecCtx, eval_filter
+from MTG_bot.core.executor.quantity import NOTHING_CHOSEN, ExecCtx, eval_filter
 from MTG_bot.core.identity import CardIdentity, Handle
 
 if TYPE_CHECKING:  # pragma: no cover - typing-only, dodges the import cycle
@@ -91,17 +93,35 @@ if TYPE_CHECKING:  # pragma: no cover - typing-only, dodges the import cycle
     from MTG_bot.core.executor import Executor
 
 
+def _chosen_qualities(record: CardRecord | None) -> tuple[str | None, ...]:
+    """The qualities ``record``'s "as this enters, choose" abilities choose (an EtBState's
+    CHOOSE_NAME, keyed as ``verbs._v_choose_name`` keys ``Executor.name_choices``: None for a
+    card name)."""
+    if record is None:
+        return ()
+    return tuple(
+        None if (quality := node.args.get("quality")) is None else str(quality)
+        for ability in record.abilities if isinstance(ability, EtBState) and ability.effect is not None
+        for node in walk(ability.effect)
+        if isinstance(node, Atom) and node.verb is Verb.CHOOSE_NAME
+    )
+
+
 @dataclass(frozen=True)
 class CopiedValues:
     """An object's copiable values (CR 707.2): its identity and its compiled record (None: no
-    ability). A "copy" record's payload, and a permanent's own while a copy effect applies."""
+    ability). A "copy" record's payload, and a permanent's own while a copy effect applies, then
+    with ``choices``: what it chose as it entered (``Executor.name_choices``, quality and value),
+    given back as the copy effect ends (CR 707.6: the copy's choices are not its own)."""
 
     identity: CardIdentity
     record: CardRecord | None
+    choices: tuple[tuple[str | None, str], ...] = ()
 
     def __repr__(self) -> str:  # the dump's row: the card copied, its abilities by fingerprint
         record = fingerprint(self.record) if self.record is not None else None
-        return f"CopiedValues({self.identity.oracle_id}, {self.identity.type_line!r}, {record})"
+        own = f", {self.choices!r}" if self.choices else ""
+        return f"CopiedValues({self.identity.oracle_id}, {self.identity.type_line!r}, {record}{own})"
 
 
 class GrantedAbility(NamedTuple):
@@ -534,15 +554,19 @@ class LayerRegistry:
             if layer.kind == "copy" and layer.status != "expired":
                 for target in layer.targets:
                     wanted[target] = layer.payload
+        choices = self.executor.name_choices
         for handle in sorted(set(wanted) | set(self._copy_base)):
             card = self.world.cards.get(handle)
             if card is None:  # a token that ceased to exist
                 self._copy_base.pop(handle, None)
                 continue
             binder = self.executor.binder
-            base = self._copy_base.setdefault(
-                handle, CopiedValues(card.identity, binder.handle_record.get(handle))
-            )
+            base = self._copy_base.get(handle)
+            if base is None:
+                own = tuple((q, v) for (h, q), v in sorted(choices.items(), key=str) if h == handle)
+                base = self._copy_base[handle] = CopiedValues(
+                    card.identity, binder.handle_record.get(handle), own
+                )
             values = wanted.get(handle, base)
             identity = replace(values.identity, is_token=base.identity.is_token)
             if handle not in wanted:
@@ -550,6 +574,16 @@ class LayerRegistry:
             if card.identity != identity or binder.handle_record.get(handle) is not values.record:
                 card.identity = identity
                 binder.rebind(handle, values.record)
+                # Its "as it enters" choices: becoming a copy is no entering (CR 707.4) and the
+                # original's choices are not copied (707.6), so each choice the copied record's
+                # EtBState makes reads as nothing chosen (quantity.NOTHING_CHOSEN; Diamond
+                # Knight's ruling: it never triggers). Its own come back as the effect ends.
+                for key in [key for key in choices if key[0] == handle]:
+                    del choices[key]
+                if handle in wanted:
+                    choices.update({(handle, q): NOTHING_CHOSEN for q in _chosen_qualities(values.record)})
+                else:
+                    choices.update({(handle, q): v for q, v in base.choices})
 
     def register_permit(
         self,

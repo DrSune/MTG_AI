@@ -19,7 +19,6 @@ from MTG_bot.core.ability_tree import (
     Atom,
     CardDrawnEvent,
     CopyOf,
-    FAnd,
     FAtom,
     FAtomPred,
     FNot,
@@ -33,6 +32,7 @@ from MTG_bot.core.ability_tree import (
     TurnPhaseEvent,
     Verb,
     ZoneKind,
+    canonical_json,
     walk,
 )
 from MTG_bot.core.compiler.compiler import compile_card
@@ -87,9 +87,15 @@ def test_a_token_copy_of_an_object(registry, words, mode, filter_has) -> None:
 
 
 def test_the_exceptions_a_token_copy_carries(registry) -> None:
-    nightmare = _effect(registry, "Create a token that's a copy of it, except it's a Nightmare in "
-                                  "addition to its other types.").args.get("tokens")
-    assert nightmare.subtypes == ("Nightmare",) and nightmare.source.referent == "result"
+    nightmare = _effect(registry, "Create a token that's a copy of target creature you control, "
+                                  "except it's a Nightmare in addition to its other types."
+                        ).args.get("tokens")
+    assert nightmare.subtypes == ("Nightmare",) and nightmare.source.mode is SelectorMode.TARGET
+    # "it" is a record's: a sentence alone cannot tell that the instruction before it moved or
+    # made the object (gate round B3, M3a)
+    assert registry.match("Create a token that's a copy of it, except it's a Nightmare in "
+                          "addition to its other types.") == ()
+    assert registry.match("Create a token that's a copy of it.") == ()
     hasty = _effect(registry, "Create a token that's a copy of target creature you control, except "
                               "it has haste and \"At the beginning of the end step, sacrifice this "
                               "token.\"").args.get("tokens")
@@ -117,7 +123,18 @@ def test_a_copy_of_target_spell(registry) -> None:
         source = atom.args.get("source").source
         assert source.mode is SelectorMode.TARGET
         assert all(z.kind is ZoneKind.STACK for z in source.zones)
-        assert (isinstance(source.filter, FAnd)) is yours
+        assert any(isinstance(n, FAtom) and n.pred is FAtomPred.CONTROLLER_IS
+                   for n in walk(source.filter)) is yours
+
+
+def test_target_instant_or_sorcery_spell_is_the_counterspells_selector(registry) -> None:
+    """"Copy target instant or sorcery spell." targets with M21 Miscast's bytes (a verified
+    counterspell, the same noun phrase): one encoding of "target instant or sorcery spell" (the
+    gate's M2: the copy built a bare FOr of the types, without STACK_KIND_EQ SPELL)."""
+    miscast = _card("M21", "Miscast", registry).card
+    [counter] = [n for n in walk(miscast) if isinstance(n, Atom) and n.verb is Verb.COUNTER_SPELL]
+    copy = _effect(registry, "Copy target instant or sorcery spell.")
+    assert canonical_json(copy.args.get("source").source) == canonical_json(counter.args.get("target"))
 
 
 def test_new_targets_fold_into_the_copy_before_them(registry) -> None:
