@@ -3421,6 +3421,13 @@ class Seq:
                 raise ValueError(
                     f"Seq: step must be an Effect, got {type(step).__name__}"
                 )
+        for one, two in zip(self.steps, self.steps[1:]):
+            # "Copy it twice" is one COPY with `count` 2, two token copies one CREATE_TOKEN of 2
+            # (DESIGN_ATOM_ONTOLOGY §18): the same copy step twice would be a second encoding.
+            if one == two and isinstance(one, Atom) and isinstance(
+                one.args.get("source" if one.verb is Verb.COPY else "tokens"), CopyOf
+            ) and one.args.get("cards") is None:
+                raise ValueError("Seq: the same copy twice in a row is one copy with a `count`")
 
 
 @dataclass(frozen=True)

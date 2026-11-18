@@ -182,6 +182,17 @@ def test_the_copy_forms_that_must_not_validate(verb, roles, match) -> None:
         Atom(verb=verb, args=AtomArgs(pairs=tuple(roles.items())))
 
 
+def test_the_same_copy_twice_in_a_row_is_one_copy_with_a_count() -> None:
+    """"Copy it twice" is one COPY with `count` 2, and two token copies one CREATE_TOKEN of 2: two
+    equal copy steps in a row would be a second encoding of either."""
+    stack_copy = _atom(Verb.COPY, source=CopyOf(_SPELL))
+    token_copy = _atom(Verb.CREATE_TOKEN, tokens=CopyOf(_TARGET), count=QConst(1))
+    for step in (stack_copy, token_copy):
+        with pytest.raises(ValueError, match="count"):
+            Seq(steps=(step, step))
+    Seq(steps=(token_copy, _atom(Verb.CREATE_TOKEN, tokens=CopyOf(_SELF), count=QConst(1))))
+
+
 @pytest.mark.parametrize("role", ["cards", "target", "ability", "tokens_"])
 def test_a_copyof_stands_only_in_tokens_and_copys_source(role) -> None:
     value = CopyOf(_TARGET)
