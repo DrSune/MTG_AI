@@ -13,6 +13,34 @@ today's evidence:
 
 Nothing here is built until it has been sparred, planned and red-teamed.
 
+## The owner's decisions (2026-11-18, second round)
+
+- **A league with exploiters:** agreed.
+- **The value function:** "try it and see what it yields". A registered A/B.
+- **The deals:** agreed, and more. "I would even prefer we implement the drafter and the trainer or
+  critic ... that can both draft intelligent decks, as well as make good matchups, utilize
+  synergies, utilize exploiting experts etc." It must be "coherent with the rest".
+- **The engine:** "Fix all the engine faults as well."
+- **Tier 2:** meaningless decisions and observation gaps count "for stability and such". The tier 1
+  items get "sufficient time and energy".
+- **Every item:** field experts' methods, a logic check before the plan, then a red team, whose
+  solid findings are implemented if they do not go against the project's goals.
+- **The rails, done 984aa3c4:**
+  - TURN_CAP 125, from the decking horizon plus one turn (the owner);
+  - MAX_ACTS_PER_STEP 30;
+  - every binding counted per update.
+- **Who does what:**
+  - Opus agents draft the plans, each in a fresh context:
+    - the league, Teacher, critic and drafter as one system;
+    - the engine-fault triage and waves;
+    - the network's readiness: value, meaningless decisions, observation gaps, memory, optimizer
+      state.
+
+    Briefs are `brief_draft_*.txt` in the coordinator's scratchpad.
+  - A Fable reviewer at max effort red-teams the whole package once it is drafted. A stronger,
+    independent reviewer catches what a drafter cannot see in its own work.
+  - Opus agents implement, with gate reviews.
+
 ## The order the owner set
 
 1. Spar on the candidates.
