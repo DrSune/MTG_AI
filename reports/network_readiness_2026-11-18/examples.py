@@ -6,13 +6,15 @@ redundant-option decisions, grouped by kind and source card, with their options 
 
 from __future__ import annotations
 
+import gzip
 import json
 import sys
 from collections import Counter
 
 
 def main() -> int:
-    rows = [json.loads(line) for p in sys.argv[1:] for line in open(p)]
+    rows = [json.loads(line) for p in sys.argv[1:]
+            for line in (gzip.open(p, "rt") if p.endswith(".gz") else open(p))]
     nothing, redundant = Counter(), Counter()
     shown = Counter()
     for r in rows:

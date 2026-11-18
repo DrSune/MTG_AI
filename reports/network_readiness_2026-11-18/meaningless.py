@@ -437,7 +437,14 @@ def enc_classes(feats: dict) -> list[tuple]:
     def entity(e: int) -> Any:
         return (ci[e - 3].tobytes(), cf[e - 3].tobytes()) if e >= 3 else e
 
-    return [(oi[k].tobytes(), of[k].tobytes(), entity(int(oi[k, 1])), entity(int(oi[k, 2])))
+    def own(k: int) -> bytes:
+        # the option's row without its entity references (columns 1 and 2), which are positions
+        # in the entity list: two copies are two positions, the same token to the network
+        row = oi[k].copy()
+        row[1:3] = 0
+        return row.tobytes()
+
+    return [(own(k), of[k].tobytes(), entity(int(oi[k, 1])), entity(int(oi[k, 2])))
             for k in range(len(oi))]
 
 

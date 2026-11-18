@@ -47,6 +47,16 @@ class Driver:
                      for f in reversed(ex.stack.frames) if (f.source if f.spell_kind in ("ACTIVATED", "TRIGGERED") else f.handle) in w.cards]
             print(f"turn {w.turn} {ex.phase} seat {ask.seat} {ask.site} library {len(lib)} top {top} "
                   f"stack {stack} options {[o.token for o in ask.options]} pick {pick}", flush=True)
+            for o in ask.options:  # each option's object, as the rules hold it
+                h = FT._handle(o.token)
+                if h is None or h not in w.cards:
+                    continue
+                c = w.cards[h]
+                held = [w.cards[a].identity.name for a, host in ex.attachments.items() if host == h]
+                print(f"    {o.token} {c.identity.name} counters {dict(c.counters)} damage "
+                      f"{ex.damage.get(h, 0)} tapped {c.tapped} keywords {ex.layers.keywords(h)} "
+                      f"attached {held} attacks {ex.attacked.get(h)} granted "
+                      f"{len(ex.layers.granted_abilities(h))}", flush=True)
         return pick
 
 

@@ -11,6 +11,7 @@ explained variance by turn; then the observation-gap and knowledge indicators.
 
 from __future__ import annotations
 
+import gzip
 import json
 import sys
 from collections import Counter, defaultdict
@@ -18,14 +19,19 @@ from collections import Counter, defaultdict
 import numpy as np
 
 
+def _open(path: str):
+    """A detector output, raw or gzipped (the committed copies are gzipped)."""
+    return gzip.open(path, "rt") if path.endswith(".gz") else open(path)
+
+
 def load(paths: list[str]) -> tuple[list[dict], list[dict]]:
     rows, games = [], []
     for k, p in enumerate(paths):
-        for line in open(p):
+        for line in _open(p):
             r = json.loads(line)
             r["gid"] = (k, r["gid"])
             rows.append(r)
-        for line in open(p.replace(".jsonl", "_games.jsonl")):
+        for line in _open(p.replace(".jsonl", "_games.jsonl")):
             g = json.loads(line)
             g["gid"] = (k, g["gid"])
             games.append(g)
@@ -99,6 +105,7 @@ def main() -> int:
     # the value head's explained variance by turn bucket (seat's own result)
     buckets = [(1, 2), (3, 4), (5, 6), (7, 9), (10, 14), (15, 999)]
     vs = defaultdict(list)
+    by_game = defaultdict(lambda: defaultdict(list))  # bucket -> game -> [(v, z)]
     for g in ok:
         if g["outcome"] != "win":
             continue
@@ -107,6 +114,20 @@ def main() -> int:
             for lo, hi in buckets:
                 if lo <= turn <= hi:
                     vs[(lo, hi)].append((v, z))
+                    by_game[(lo, hi)][g["gid"]].append((v, z))
+    # a game's decisions share its result, so the standard errors resample whole games
+    rng = np.random.default_rng(0)
+    se: dict = {}
+    for b, games_b in by_game.items():
+        keys = list(games_b)
+        evs, cs = [], []
+        for _ in range(300):
+            pick = [games_b[keys[i]] for i in rng.integers(0, len(keys), len(keys))]
+            a = np.array([x for gl in pick for x in gl])
+            v, z = a[:, 0], a[:, 1]
+            evs.append(1 - np.var(z - v) / max(np.var(z), 1e-9))
+            cs.append(np.cov(z, v)[0, 1] / max(np.var(v), 1e-9))
+        se[b] = (np.std(evs), np.std(cs))
     print("\nvalue EV by turn (decisions, EV, mean |z - v|, Brier on (v+1)/2, mean |v|, "
           "c = Cov(z,v)/Var(v), EV of the baseline c*v):")
     allv = []
@@ -119,8 +140,9 @@ def main() -> int:
             brier = np.mean(((v + 1) / 2 - (z + 1) / 2) ** 2)
             c = np.cov(z, v)[0, 1] / max(np.var(v), 1e-9)
             ev_c = 1 - np.var(z - c * v) / max(np.var(z), 1e-9)
-            print(f"  turns {b}: {len(a)} | {ev:.3f} | {np.mean(np.abs(z - v)):.3f} | {brier:.3f} | "
-                  f"{np.mean(np.abs(v)):.3f} | {c:.3f} | {ev_c:.3f}")
+            s_ev, s_c = se.get(b, (float("nan"), float("nan")))
+            print(f"  turns {b}: {len(a)} | {ev:.3f} (se {s_ev:.3f}) | {np.mean(np.abs(z - v)):.3f} | "
+                  f"{brier:.3f} | {np.mean(np.abs(v)):.3f} | {c:.3f} (se {s_c:.3f}) | {ev_c:.3f}")
     a = np.array(allv)
     if len(a):
         print(f"  all: {len(a)} | {1 - np.var(a[:, 1] - a[:, 0]) / np.var(a[:, 1]):.3f}")

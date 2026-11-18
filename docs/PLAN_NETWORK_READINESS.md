@@ -18,7 +18,7 @@ order the owner set").
 
 **Evidence produced for this plan** (`reports/network_readiness_2026-11-18/`, CPU only):
 - `meaningless.py` + `summarise.py` + `examples.py`: a detector of decisions of nothing, run on 150
-  self-play games of r29's b100 (`runs/r29_ab/b100.pt`, sha256 29311738…; outputs `out_{a,b,c}*.jsonl`,
+  self-play games of r29's b100 (`runs/r29_ab/b100.pt`, sha256 29311738…; outputs `out_{a,b,c}*.jsonl.gz`,
   tables `tables.txt`). The same games give the value's explained variance and calibration by
   turn, and how often each observation gap and each kind of knowledge occurs.
 - `inspect_game.py` replays one detector game exactly, to read a decision by hand.
@@ -42,11 +42,11 @@ interfaces shared with the planner v1 build.
      - less variance;
      - a trunk not pulled by the value's noisy targets;
      - better leaves for the search and the planner's style critic later.
-   - **New measurement.** In turns 1-6 the value is worse than a constant: EV ⟨early EV⟩.
-     - Its readings hardly correlate with the result (calibration slope ⟨early c⟩), yet it reads
-       |v| ≈ 0.25.
-     - Its baseline adds variance to about 14% of decisions' advantages instead of removing it.
-     - From turn 10 it is close to calibrated (slope ⟨late c⟩).
+   - **New measurement.** In turns 1-6 (12% of decisions) the value explains almost none of the
+     result: EV 0.00-0.03, standard error 0.05-0.07.
+     - It is overconfident. Its calibration slope is 0.52-0.65 (standard error about 0.2), so a
+       calibrated value would read about half as far from 0. |v| averages 0.25-0.34.
+     - From turn 10 it is close to calibrated: slope 0.86-0.93.
    - **The candidate.** One package:
      - a value branch with its own two layers, which sends no gradient into the policy's trunk;
      - a cross-entropy loss on the win probability instead of mean squared error through tanh.
@@ -55,15 +55,17 @@ interfaces shared with the planner v1 build.
    - **Kept out of the A/B: a baseline scaled per turn by the previous batch's calibration slope.**
      It is exactly unbiased. It is logged in both arms, and adopted on its logged variance gain.
    - **The test.**
-     - **First, a 30-minute GPU probe at B8's pause, which needs no new code.** It re-measures on
+     - **First, a 40-minute GPU probe at B8's pause, which needs no new code.** It re-measures on
        today's network whether the value's share of an update dilutes the policy's learning.
        If it does not, the branch is not built.
      - **Then one registered A/B,** 11 machine-hours per arm, at the start of the FDN segment.
        If the build misses that slot, it becomes an arm of the planning A/B, sharing its control.
 2. **Decisions of nothing (§2).**
    - **Measured** (150 games, a fork per option):
-     - ⟨N⟩ decisions of nothing per game, an upper bound;
-     - ⟨M⟩ decisions with redundant options per game.
+     - 0.69 decisions of nothing a game (0.36% of decisions). 58 of the 61 trigger-order asks are
+       among them, 27 exactly so (copies of one ability of one source);
+     - 12.7 single-pick decisions a game with redundant options, mostly copies of a card (6.6% of
+       decisions, 20.9 redundant options a game).
    - **Four exact fixes:**
      - interchangeable triggers share one option, and need no ask when all are alike;
      - Duress's ask shows each card once, and the engine's replay contract stays;
@@ -71,6 +73,9 @@ interfaces shared with the planner v1 build.
      - a may whose action can do nothing is not offered.
    - Three need no strength A/B: they lose nothing by construction, which tests prove. The copies
      fix shifts an old network's prior, and that shift is measured before it ships.
+   - **Honest size.** At 0.36% of decisions, removing decisions of nothing buys little stability
+     today. The fixes earn their place by being exact and cheap. In Commander, where order asks
+     grow with the board, they buy more. The copies fix touches more: 6.6% of decisions.
 3. **Observation gaps (§3).**
    - **Triaged by reach** in the verified pools and by measured frequency.
    - **One schema for the long run:**
@@ -140,19 +145,35 @@ Every assumption-transfer check below compares a method's setting with this one:
   result, decisive games only. c is `Cov(z, v) / Var(v)`, the slope a calibrated value would show
   as 1. The last column is the EV of the baseline `c · v` (§1.3 g).
 
-  ⟨value table⟩
+  150 games, 28,837 decisions. The standard errors resample whole games, since a game's decisions
+  share its result.
 
-  - **Early, the value carries almost no information but reads as if it did.** In turns 1-6, c is
-    0.04-0.33 and the best scaled baseline explains at most 1.4%, yet |v| averages 0.24-0.30.
-  - **Its EV there is negative.** A calibrated predictor cannot have negative EV in expectation
-    (`Var(z − v) = E[Var(z | s)] ≤ Var(z)` when `E[z | v] = v`), so the early value is
-    miscalibrated, not merely uninformed. The baseline adds 5-12% to the variance of those
-    decisions' advantages, about 14% of all decisions.
-  - **Late it is close to calibrated:** c is 0.86-0.97 from turn 10.
-  - **Not tanh saturation.** At |v| ≈ 0.25, tanh's gradient factor `1 − v²` is 0.94. Both losses
-    share the optimum `E[z | s]`, so the early error is noise the value chases from batch to batch,
-    not the loss's shape. Cross-entropy (§1.3 e) answers the late, confident errors, as in C2. The
-    early cost is answered by the baseline's coefficient (§1.3 g).
+  | Turns | Decisions | EV (se) | mean \|v\| | Brier, (v+1)/2 | c (se) | EV of c · v |
+  |---|---|---|---|---|---|---|
+  | 1-2 | 1,019 | 0.031 (0.046) | 0.253 | 0.241 | 0.65 (0.22) | 0.044 |
+  | 3-4 | 905 | 0.004 (0.069) | 0.313 | 0.250 | 0.52 (0.25) | 0.037 |
+  | 5-6 | 1,577 | 0.008 (0.062) | 0.335 | 0.250 | 0.53 (0.19) | 0.045 |
+  | 7-9 | 3,340 | 0.127 (0.065) | 0.444 | 0.223 | 0.75 (0.12) | 0.143 |
+  | 10-14 | 7,332 | 0.313 (0.062) | 0.597 | 0.174 | 0.86 (0.06) | 0.321 |
+  | 15+ | 14,664 | 0.539 (0.067) | 0.742 | 0.115 | 0.93 (0.05) | 0.542 |
+  | all | 28,837 | 0.369 | | | | |
+
+  - **Early, the value carries almost no information and reads as if it did.**
+    - In turns 1-6 its EV is 0.00-0.03, within noise of a constant. A constant 0.5 gives a Brier
+      score of 0.25, and these read 0.24-0.25.
+    - Its readings are about twice as far from 0 as a calibrated value's would be: c 0.52-0.65,
+      about two standard errors below 1.
+  - **The cost is small, and it falls on the earliest decisions.** The best scaled baseline would
+    explain 0.04 instead of 0.00-0.03, on 12% of decisions. This is in-sample, so an upper bound.
+  - **Late it is close to calibrated:** c is 0.86-0.93 from turn 10.
+  - **A correction to a first reading.** A first look at 67 games read the early EV as negative
+    (−0.05 to −0.12). The full 150 games put it at 0.00-0.03, so the claim "worse than a constant"
+    is withdrawn.
+  - **Not tanh saturation.** At |v| ≈ 0.3, tanh's gradient factor `1 − v²` is 0.91. Both losses
+    share the optimum `E[z | s]`, so the early overconfidence is noise the value fits from batch to
+    batch, not the loss's shape.
+    - Cross-entropy (§1.3 e) answers the late, confident errors, as in C2.
+    - The early cost is answered by the baseline's coefficient (§1.3 g).
 - **M4. The value in the combat puzzles** (KNOWLEDGE/2026-11-18/214 §4.2).
   - It orders C1's twins by 0.06-0.14 and C2's by 0.01-0.03.
   - It reads 0.88-0.98 in C2's twin where its own move, not blocking, loses on the spot.
@@ -183,7 +204,8 @@ Every assumption-transfer check below compares a method's setting with this one:
   1. **Variance.**
      - `Var(A) = (1 − EV) · Var(z)` over the batch. At EV 0.33, a gain of 0.10 cuts the variance
        by 15%, worth at most about 15% fewer games for the same signal.
-     - Where EV < 0 (M3), the baseline costs variance.
+     - Where EV ≈ 0 (turns 1-6, M3), the baseline buys nothing, and its overconfidence leaves a
+       little on the table.
      - PPO's per-batch normalisation and the clip's sign also read V. Both effects are second
        order.
   2. **The trunk.**
@@ -305,8 +327,9 @@ Every assumption-transfer check below compares a method's setting with this one:
   - Batch-fitted coefficients add a bias of order 1/n. With about 139k decisions in about 1,480
     seats that is negligible, and it is the same assumption PPO's per-batch normalisation makes.
     Holds.
-- **M3 says this is where the early cost lies.** c is 0.04-0.33 in turns 1-6, and the scaled
-  baseline's EV there is 0.000-0.014 against the raw value's −0.05 to −0.12.
+- **M3 says this is where the early cost lies, and that it is small.** c is 0.52-0.65 in turns
+  1-6, and the scaled baseline's EV there is 0.037-0.045 against the raw value's 0.004-0.031, on 12%
+  of decisions (in-sample).
 - **The design.** `c_b` is fitted on the previous update's batch and applied to the current one, so
   the baseline does not depend on the outcomes it is subtracted from: exactly unbiased, at no
   compute cost.
@@ -409,12 +432,15 @@ of the state is a valid baseline.
 
 ### 1.6 The registered experiment
 
-**Stage 0: the mechanism probe** (GPU, about 30 minutes, in B8's pause; no new code).
+**Stage 0: the mechanism probe** (GPU, about 40 minutes with two collected batches, in B8's pause; no new code).
 - **The setup.**
   - One batch from the main line's checkpoint at B8 (`learner --collect`, about 139k rows), and a
     held-out set of games the update never sees.
   - The probe is 189 §8's script (`reports/v0_probes_2026-11-10/ent_ablation.py`), brought to
     today's `ppo.steps` and network.
+  - Each variant's AdamW is first warmed on an earlier batch of the same network. A fresh Adam's
+    first steps are sign-like (§5.1). 189 §8's W controls found fresh and warm alike, but the probe
+    should not depend on that.
 - **One update per variant:**
   - A, today's loss; A2, the same in another minibatch order (the noise gauge);
   - G, the policy term alone (value coefficient 0): what a detached branch's trunk receives in one
@@ -462,6 +488,9 @@ of the state is a valid baseline.
 - **The decision, made mechanically:**
   - **Adopt V for the long run** if R1 and R2 are not falsified, R3 is not falsified, and R3 or R4
     favours V.
+  - **"Favours" means beyond twice the read's own standard error.** For R3 that is the spread of
+    the per-update `ev_turn` over the 50 updates. For R4 it is a bootstrap over the probe set's
+    decisions.
   - **If R1 or R2 is falsified with R3 intact:** the value's shaping was useful. PPG-lite is
     registered next.
   - **If R3 is falsified:** K = 3, or the auxiliary targets on the branch, through stage 0 again.
@@ -511,8 +540,8 @@ The owner: important "for stability and such".
     permanent's live state, the stack, combat, the turn's counts, and the live layer, replacement
     and return rows. A library shuffled after the decision compares as a multiset, since a shuffle
     makes every order of the same cards equally likely.
-- **Options with equal signatures form one state class.** The determinism check (one option re-run
-  at every tenth tested decision) never differed: ⟨det⟩.
+- **Options with equal signatures form one state class.** The determinism check re-ran one option
+  at every tenth tested decision: 2,789 re-runs, none differed.
 - **A decision of nothing needs every option tested.** A big menu is sampled: 16 options, keeping
   every pair with equal tokens. A sample that lands in one class says nothing about the rest. One
   of Necromentia's 280 card names named nothing in the opponent's zones 16 times.
@@ -523,7 +552,19 @@ The owner: important "for stability and such".
   - a shuffle between the pause point and the decision made the library a multiset. That made
     seven scry decisions look like decisions of nothing. Shuffles now count only after the tested
     answer.
-- **The counted run.** 150 games, three CPU processes at nice 19, about 50 minutes.
+  - found after the counted run: the encoding key kept the options' entity positions, so two
+    copies never shared a key. The "blind" count below comes from a separate 40-game run with the
+    fixed key (`blind_d*`, `blind_tables.txt`). No other number used the key.
+- **The counted run.** 150 games, three CPU processes at nice 19 beside r29, about 25 minutes.
+- **A limit found by reading cases: declarations made of several asks.** The null continuation
+  completes a declaration canonically, and breaks a tie between equal objects by their position.
+  - Blocks are declared blocker by blocker. Two identical Goblin Wizards attacking: a first block
+    on one or the other, then the second blocker's canonical pick (the first Wizard by position),
+    ends in different block maps. The detector calls these different (`inspect_game.py`).
+  - For picks that build a set (the "1 of 2" picks of a search, cleanup discards, divisions), the
+    continuation completing the set can make different first picks equal.
+  - So the counts for those asks are approximate in both directions. They are reported apart below
+    as "set-building". The single-pick counts carry no such effect.
 
 **The method's assumption-transfer check.** It is symmetry reduction: states equal up to a
 permutation of identical objects, as in model checking (Ip and Dill 1996) and lossless abstraction
@@ -534,46 +575,64 @@ in imperfect-information games (Gilpin and Sandholm 2007).
 | A canonical form invariant to relabelling identical objects | Handles never enter the signature; objects are oracle ids plus live state | Holds |
 | Equal canonical states have equal futures | The signature leaves out the journal beyond the turn's counts, and timestamps | Equal signatures are an upper bound on decisions of nothing. Different signatures are always different states. Each kind is read by hand (below) |
 | Exhaustive successors | One successor per option, under the null continuation | Options equal under "nobody acts" may differ when a player acts between, e.g. two prowess triggers of two sources (below). The exact fixes use rules arguments, never the detector's word. The detector finds the candidates and validates the fixes |
-| Determinism | The engine's randomness is keyed by (seed, operation count, tag) | Checked: ⟨det⟩ |
+| Determinism | The engine's randomness is keyed by (seed, operation count, tag) | Checked: 2,789 re-runs, none differed |
 
-**The numbers.** 150 games, ⟨decisions⟩ decisions, ⟨per game⟩ a game (§2.6 has the per-kind table).
-- **Decisions of nothing (one state class): ⟨N⟩ a game, ⟨share⟩ of decisions.** By kind and cause:
-  - **the trigger order, ⟨n_trig⟩ a game.**
-    - ⟨same-source⟩ of them are copies of one ability of one source, from different events
-      (Watcher of the Spheres' case: `card:114`, `card:114:2`). Exactly a decision of nothing (F1).
-    - ⟨diff-source⟩ order triggers of different sources (two prowess triggers, Jeskai Elder and
-      Shipwreck Dowser). They are equal only under the null continuation: which creature is pumped
-      first is visible to a player who responds between the two. They are kept.
-  - **a choice among copies only, ⟨n_copies_only⟩ a game.** Exact: F3 makes them one option, and
-    no ask:
+**The numbers.** 150 games, 28,837 decisions, 192 a game, both seats (§2.6 has the per-kind table).
+- **Decisions of nothing (one state class, every option tested): 103, 0.69 a game, 0.36% of
+  decisions.** By kind and cause, each read from its cards (`examples.txt`):
+  - **the trigger order: 58, 0.39 a game.** That is 58 of the 61 trigger-order asks.
+    - 27 of them are copies of one ability of one source, from different events (Watcher of the
+      Spheres' case: `card:114`, `card:114:2`). Exactly a decision of nothing (F1).
+    - 31 order triggers of different sources (two prowess triggers, Jeskai Elder and Shipwreck
+      Dowser). They are equal only under the null continuation: which creature is pumped first is
+      visible to a player who responds between the two. They are kept.
+  - **a choice among copies only: 13, 0.09 a game.** Exact: F3 makes them one option, and no ask:
     - Cultivate's, Fierce Empath's or Cavalier of Thorns' pick between two Forests or two Chandra's
       Incinerators, followed by a shuffle;
     - Legion's Judgment between two Wardens of the Woods;
     - the legend rule between two equal copies.
-  - **a may whose action can do nothing now, ⟨n_may⟩ a game.**
-    - Liliana's Scrounger with no Liliana; Experimental Overload's return with no instant or sorcery
-      in the graveyard.
+  - **a may whose action can do nothing now: 15, 0.10 a game.**
+    - Liliana's Scrounger with no Liliana, 12; Icon of Ancestry's reveal with no creature of the
+      chosen type among the three, 2; Experimental Overload's return with no instant or sorcery in
+      the graveyard, 1.
     - `query.optional_offer` narrows only exact-count selectors with no candidate
       (`query.py:591-623`).
     - Exact when the action's every object selection is empty (F4).
-  - **equal outcomes in this state only, ⟨n_ctx⟩ a game.** Real decisions that happen not to
-    matter:
+  - **equal outcomes in this state only: 17, 0.11 a game.** Real decisions that happen not to
+    matter. They include five mays, of Tolarian Kraken and Goblin Arsonist, not traced one by one,
+    and one scry:
     - Rabid Bite's or Garruk, Savage Herald's source among creatures of equal power whose target
       dies either way;
     - Manifold Key untapping an untapped artifact;
     - a division of damage whose amounts all kill the same blockers.
 
     Not fixed: no exact rule exists, and learning them is the network's work.
-- **Redundant options (fewer state classes than options): ⟨R⟩ decisions a game,** ⟨R_opts⟩ options
-  a game. ⟨by kind⟩.
-  - Act menus with copies of a land or a spell.
-  - Duress's ask, each card twice.
-  - The bottom choice of a mulligan, targets, discards, blocks and sacrifices among copies.
-  - Divisions whose excess past lethal changes nothing.
-- **Options the network cannot tell apart that lead to different states: ⟨blind⟩ a game.**
-  - These options' own encoded tokens are equal. Attention to their context may still separate
-    them, so this is an upper bound.
-  - It is an observation-gap signal, read in §3.
+- **Redundant options (fewer state classes than options).**
+  - **Single-pick asks: 1,902 decisions, 12.7 a game (6.6% of decisions); 3,142 options, 20.9 a
+    game.** By kind:
+    - act 1,159: copies of a land or a spell in hand;
+    - priority 218;
+    - target 166;
+    - mulligan bottom 122;
+    - one_of 71;
+    - the trigger order 58;
+    - choose 40: Duress's each card twice, and modal picks;
+    - block 25;
+    - may 20;
+    - discard 17;
+    - sacrifice 4.
+
+    The decisions of nothing above are counted here too.
+  - **Set-building asks: 183 decisions; 680 options.** These are the approximate ones above:
+    division amounts past lethal, the picks of a search, cleanup discards.
+- **Options the network cannot tell apart that lead to different states ("blind"): 23 decisions in
+  the 40-game run with the corrected key, 0.58 a game.**
+  - **The cases:** 16 cleanup discards, 2 in a "1 of 2" pick, 2 blocks, 2 legend-rule asks and 1
+    act menu. 18 of the 23 are set-building asks.
+  - **The traced block case is the continuation's tie-break, not the encoding** (above).
+  - The two legend-rule asks and the act menu were not traced. Their options' own tokens are equal,
+    and attention to context (an aura's pointer to its host, for one) may still separate them. They
+    are upper bounds, and none points at a gap that §3's triage lacks.
 
 ### 2.2 The fixes, each exact
 
@@ -678,7 +737,7 @@ in imperfect-information games (Gilpin and Sandholm 2007).
 - **No strength A/B for F1, F2 and F4.** They are lossless by construction, and their tests prove
   it.
 - **The read after the build:** the detector rerun on 100 games finds no decision of nothing in
-  F1's, F2's and F4's classes, and the per-kind "trigger" count falls by ⟨same-source share⟩.
+  F1's, F2's and F4's classes, and the trigger-order asks fall by about 27 in 61, F1's share.
 - **F3 ships with the long run's schema change** (§3), with its measured prior shift. The pilot's
   harm screen covers it.
 
@@ -689,7 +748,30 @@ planner build's files. F3 touches `actor.py`: §6.
 
 ### 2.6 The per-kind table (150 games of b100)
 
-⟨table⟩
+From `tables.txt`.
+- "Nothing": one state class, every option tested.
+- "Redundant": fewer state classes than tested options; it includes the decisions of nothing.
+- Mulligans are not tested: no pause point comes before the first turn. The bottom choice is
+  compared by name, which is exact for copies in a hand.
+
+| Kind | Decisions | A game | Nothing | Redundant | Redundant options |
+|---|---|---|---|---|---|
+| priority | 12,703 | 84.7 | 0 | 218 | 218 |
+| act | 7,260 | 48.4 | 0 | 1,159 | 1,707 |
+| attack | 4,597 | 30.6 | 0 | 0 | 0 |
+| block | 1,286 | 8.6 | 0 | 25 | 37 |
+| target | 976 | 6.5 | 9 | 166 | 321 |
+| mulligan | 427 | 2.8 | — | — | — |
+| divide | 403 | 2.7 | 3 | 114 | 324 |
+| may | 266 | 1.8 | 20 | 20 | 20 |
+| choose | 202 | 1.3 | 0 | 93 | 367 |
+| one_of | 187 | 1.2 | 11 | 82 | 501 |
+| mulligan_bottom | 170 | 1.1 | 0 | 122 | 205 |
+| scry | 112 | 0.7 | 1 | 1 | 1 |
+| discard | 67 | 0.4 | 0 | 21 | 24 |
+| trigger | 61 | 0.4 | 58 | 58 | 76 |
+| mana, arrange, sacrifice, quality, name, pay, legend, x | 120 | 0.8 | 1 | 6 | 21 |
+| **all** | **28,837** | **192.2** | **103** | **2,085** | **3,822** |
 
 ## 3. Observation gaps: one schema for the long run
 
@@ -701,31 +783,29 @@ planner build's files. F3 touches `actor.py`: §6.
 
 | Gap (BACKLOG "What the network sees" and around it) | Verified cards that reach it | Decisions with it on | Verdict |
 |---|---|---|---|
-| A player's keywords | M21 Runed Halo (protection from a name); M20 Veil of Summer (hexproof from blue and black) | ⟨player_kw⟩, Runed Halo staying on the battlefield | **In.** Three player columns |
-| A card playable through a standing permission, outside the act ask | M21 Chandra, Heart of Fire; Idol of Endurance; Radha, Heart of Keld; Demonic Embrace. M20 Golos; Mystic Forge | ⟨permit⟩ | **In.** One card column, the count of permissions covering it |
+| A player's keywords | M21 Runed Halo (protection from a name); M20 Veil of Summer (hexproof from blue and black) | 3.2% (Runed Halo stays on the battlefield) | **In.** Three player columns |
+| A card playable through a standing permission, outside the act ask | M21 Chandra, Heart of Fire; Idol of Endurance; Radha, Heart of Keld; Demonic Embrace. M20 Golos; Mystic Forge | 1.4% | **In.** One card column, the count of permissions covering it |
 | Thresholds above 5 bucketed as `num:6+` | M21 Speaker of the Heavens (7 more life). M20 Twinblade Paladin, Angel of Vitality (25 life), Ajani, Strength of the Pride (15). FDN Twinblade Paladin, Angel of Vitality. Every card of mana value 6 or more | static | **In.** Log buckets at the table refresh, initialised as copies of `num:6+`, so the function is unchanged |
-| The X a target ask's spell announced | M21 Primal Might, Volcanic Geyser. M20 Voracious Hydra. FDN Primal Might | ⟨x_target⟩ | **In.** One global column. Also the X of a spell on the stack (one card column): the stack shows no X today |
-| A delayed or reflexive trigger's ability index (−1) | M21 Tolarian Kraken, Basri Ket, Basri, Devoted Paladin, Subira. M20 Sorin, Imperious Bloodlord. FDN Faebloom Trick | ⟨delayed⟩ | **In.** A value fix in `F_ABILITY_IDX`, the printed ability holding the node. Not function-preserving for those frames |
-| An ability whose token source ceased | M21 Infernal Scarring's granted dies trigger on a token. M20 Mask of Immolation on a token | ⟨token_gone⟩ | **In, small.** The source's last-known identity as an entity in a new zone `gone` |
-| Emblems | M21 Basri Ket, Garruk, Unleashed, Liliana, Waker of the Dead. M20 Mu Yanling, Sky Dancer. FDN Vivien Reid | ⟨emblem⟩ | **In.** An entity per emblem in the command zone, its row the emblem's own record (`PoolCompile.emblems`) |
-| Phasing | M21 Teferi, Master of Time; Teferi, Timeless Voyager | ⟨phased⟩ | **In.** One card column |
-| A return row (killing Banishing Light returns its card) | M21 Kitesail Freebooter, Idol of Endurance. FDN Banishing Light, Stasis Snare | ⟨returns⟩ | **In.** A pointer column from the held card to its anchor |
+| The X a target ask's spell announced | M21 Primal Might, Volcanic Geyser. M20 Voracious Hydra. FDN Primal Might | 0 in 150 games | **In,** though rare here: two zero-start columns cost nothing, and X spells are common in Commander. One global column, and the X of a spell on the stack (one card column): the stack shows no X today |
+| A delayed or reflexive trigger's ability index (−1) | M21 Tolarian Kraken, Basri Ket, Basri, Devoted Paladin, Subira. M20 Sorin, Imperious Bloodlord. FDN Faebloom Trick | 0.16% | **In.** A value fix in `F_ABILITY_IDX`, the printed ability holding the node. Not function-preserving for those frames |
+| An ability whose token source ceased | M21 Infernal Scarring's granted dies trigger on a token. M20 Mask of Immolation on a token | 0.02% | **Out for now.** It would be a new kind of entity, in a new zone, for 6 decisions in 150 games, and every new entity costs a measured disruption. Entities are data, not columns, so adding it later does not change the schema. Reopen when a dealt pool makes it common (token sacrifice outlets, Commander) |
+| Emblems | M21 Basri Ket, Garruk, Unleashed, Liliana, Waker of the Dead. M20 Mu Yanling, Sky Dancer. FDN Vivien Reid | 0.74% | **In.** An entity per emblem in the command zone, its row the emblem's own record (`PoolCompile.emblems`) |
+| Phasing | M21 Teferi, Master of Time; Teferi, Timeless Voyager | 0.01% | **In.** One card column |
+| A return row (killing Banishing Light returns its card) | M21 Kitesail Freebooter, Idol of Endurance. FDN Banishing Light, Stasis Snare | 2.6% | **In.** A pointer column from the held card to its anchor |
 | A trigger's event-derived number (that many, that much) | 16 in M21, 9 in M20, 10 in FDN, among them Woodland Champion, Basri Ket, Brash Taunter, Vito, and the lifegain payoffs | not instrumented | **In.** One stack-entity column, the firing's count or amount |
 | Live types (an animated permanent) | M21 Riddleform (a 3/3 Sphinx), Dub, Demonic Embrace. M20 Wakeroot Elemental (a land becomes a 0/0 creature) | not instrumented | **In.** Live-type columns from `layers.type_overlay`, and P/T for every permanent that is a creature now. Today an animated Riddleform has no P/T row, since `features.py:724` reads printed P/T only. Colour changes: no verified card. Out |
-| Which planeswalker an attacker attacks | 11 planeswalkers in M21, 9 in M20, 1 in FDN | ⟨pw_attacked⟩ | **In.** A pointer column from attacker to what it attacks |
-| Block pairings after blocks are declared | every game with two or more blocks | ⟨pairs⟩ | **In.** A pointer column from blocker to the attacker it blocks |
-| A stack object's targets beyond the first | 7 in M21, 6 in M20, 3 in FDN | ⟨multi⟩ | **Out.** `F_STACK_TARGETED` already marks every targeted object, and pairing is ambiguous only with two targeting objects at once. Reopen if E or C puzzles need it |
+| Which planeswalker an attacker attacks | 11 planeswalkers in M21, 9 in M20, 1 in FDN | 1.2% | **In.** A pointer column from attacker to what it attacks |
+| Block pairings after blocks are declared | every game with two or more blocks | 0.52% | **In.** A pointer column from blocker to the attacker it blocks |
+| A stack object's targets beyond the first | 7 in M21, 6 in M20, 3 in FDN | 0.16% | **Out.** `F_STACK_TARGETED` already marks every targeted object, and pairing is ambiguous only with two targeting objects at once. Reopen if E or C puzzles need it |
 | One chosen value per quality | none in the 19 sets (BACKLOG) | 0 | **Out** |
 
-- **What the detector says about the options themselves.** Over ⟨games⟩ games, no two options
-  whose own encoded tokens are equal led to different states (§2.1, "blind": 0).
-  - The first run's 23 such cases were the detector's own artefacts. `search.option_classes`
-    leaves out the named card of a name option (`O_NAMED`). A tutor's picks between equal lands
-    were compared before the shuffle's multiset rule existed. Both were fixed before the counted
-    run.
-  - So, at the level of options, the encoding tells apart every pair whose outcomes differ in
-    these games. The gaps above are about the state around the options, not the options' own
-    tokens.
+- **What the detector says about the options themselves** (§2.1, "blind").
+  - Options with equal own tokens that lead to different states were 0.58 decisions a game in the
+    40-game run with the corrected key. 18 of the 23 were set-building asks, where the continuation
+    decides the outcome.
+  - The one block case traced came from the continuation's tie-break, not the encoding.
+  - So the detector shows no option-level gap beyond those triaged above. The gaps are about the
+    state around the options: who attacks what, who blocks whom, what a player has or knows.
 
 ### 3.2 The schema change (one, at the long run's boundary)
 
@@ -735,11 +815,12 @@ planner build's `C_PLAN_WHEN`..`C_PLAN_TARGET` (§6) and the built `P_GAINED`..`
 **Card float columns** (`cards_f`; `model.upgraded` pads `card_f.weight` with zero columns,
 `model.py:447-453`):
 - `F_PHASED`;
-- `F_PERMITS`, the permissions covering the card for its controller now, ÷ 2 (`permits._found`);
+- `F_PERMITS`, the permissions covering the card for its controller now, ÷ 2 (the permits
+  module's own accessor, as `permits.playable` reads it: `permits.py:248-260`);
 - `F_LIVE_TYPE0..7`, the type line with `type_overlay` (`layers.py:1237`);
 - `F_STACK_X`, a stack spell's announced X ÷ 5 (`StackObject.x_value`);
-- `F_EVENT_N`, a stack trigger's firing count or amount ÷ 5 (`_Firing.gathered`, the event's
-  amount);
+- `F_EVENT_N`, a stack trigger's firing count or amount ÷ 5. It is read from the stack object's own
+  bindings: the event's objects (`binding.py:1675-1681`) or the event's amount;
 - memory's `F_KNOWN`, `F_LIB_POS` and `F_OPP_KNOWS` (§4).
 
 **Card pointer columns** (`cards_i`, entity + 1, 0 = none). Each has its own linear map, which
@@ -762,9 +843,7 @@ chosen. It is the row's `:x<N>`, carried in a new `AskContext.x` by the rig (`ri
 
 **New entities** (not function-preserving where they appear; measured):
 - emblems;
-- the last-known source of a ceased token's ability;
 - memory's known cards (§4).
-- `ZONES` gains `gone`. `model.upgraded` learns to pad `zone_emb` the way it pads `ask_emb`.
 
 **The card table** (at the long run's refresh):
 - `_bucket` (`features.py:209-214`) gives `num:6`, `num:7`, `num:8-9`, `num:10-14`, `num:15-19`,
@@ -839,7 +918,9 @@ The network sees hidden cards only while an ask offers them (`features.py:652-65
 The bench's seat view says the same: "cards a player has legitimately seen in a hidden zone ...
 are not tracked" (`MTG_bot/bench/view.py:21-22`).
 
-**Reach (the census, verified cards; M21 / M20 / FDN):**
+**Reach (the census, verified cards; M21 / M20 / FDN).** These are text-pattern counts, so they
+are upper bounds: Grim Tutor's "put it into your hand" is a hidden move, not a public one. The
+cards named were read.
 - hand reveals 2 / 2 / 2: Duress, Kitesail Freebooter, Thought Distortion, Pilfer;
 - cards returned to a hand from a public zone 21 / 27 / 14: Unsummon, Into the Roil, Gravedigger,
   Soul Salvage, ...;
@@ -850,9 +931,12 @@ are not tracked" (`MTG_bot/bench/view.py:21-22`).
 - shuffles 16 / 10 / 5.
 
 **Frequency (the detector games):**
-- the opponent's hand holds a card known from a public zone at ⟨known_opp⟩ of decisions;
-- the decider's own hand holds one the opponent knows at ⟨opp_knows⟩;
-- per game: ⟨knowledge events⟩.
+- the opponent's hand holds a card known from a public zone at 2.1% of decisions (4.0 a game);
+- the decider's own hand holds one the opponent knows at 2.5% (4.7 a game);
+- per game:
+  - REVEAL rows 0.89, LOOK_AT 0.18, SCRY 0.53, SEARCH 0.45, SHUFFLE 3.5;
+  - moves into a hand from the graveyard 0.33, the battlefield 0.31 and exile 0.13;
+  - moves into a library from the graveyard 0.19, the battlefield 0.04 and the hand 0.05.
 
 These count only the public-to-hand rule, which the journal can already tell. They are a lower
 bound on memory's reach.
@@ -906,7 +990,7 @@ players know"):
 | E7. p's library is shuffled | For every v: L[v][p] is emptied |
 | E8. A card leaves p's library to a public zone (mill, onto the battlefield) | It leaves every L[v][p]: it is public now |
 | E9. p rearranges library cards v did not see (a look and reorder) | For v ≠ p: those cards leave L[v][p]. For p: positions known |
-| E10. A mulligan, and the game's start | Everything is emptied |
+| E10. The game's start, and a mulligan's shuffle | Everything about that player's hand and library is emptied. The London mulligan's bottom cards then follow E3b: their owner knows them at the bottom; the opponent knows nothing |
 
 **Every rule keeps knowledge a lower bound:** where a viewer cannot tell which known card left, it
 forgets one of each. Two forgettings are deliberate:
@@ -1092,7 +1176,7 @@ pauses for measurement windows pays it at every pause. The fix is small, and mak
 | 7 | The schema change, memory's view, F3 | `features.py`, `model.py`, `actor.py`, `rig.py` | 6 for memory's entities. After 5 only in merge order, since both edit `model.py`; neither waits on the other's A/B. The disruption measurement and F3's prior shift before it ships |
 
 **The GPU schedule** (one job at a time):
-- **Tonight, at B8's pause:** stage 0 (about 30 minutes).
+- **Tonight, at B8's pause:** stage 0 (about 40 minutes).
 - **The FDN segment's first 22 machine-hours:** the value A/B, if steps 1 and 5 are done and
   smoked by its launch. Otherwise the FDN segment runs as registered, and the value arm joins the
   planning A/B.
@@ -1110,7 +1194,7 @@ pauses for measurement windows pays it at every pause. The fix is small, and mak
 |---|---|---|---|
 | O1 | γ = λ = 1 stays | §1.2: the value cannot bias the gradient | With λ < 1 the value's targets bootstrap, its errors bias the advantages, and its calibration (cross-entropy) and isolation matter more. §1's conclusions strengthen |
 | O2 | The combat failures are value errors (PLAN_LONG_RUN, from 214) | §1.2 reads them as a missing trunk feature that both heads show | If only the value were wrong, the searcher would fix them and the raw policy would not. The puzzles' searched C read (planned in 214 §5) decides. §1's package targets the value's part either way |
-| O3 | Decisions of nothing matter for stability | §2 | If they are rare (⟨share⟩ of decisions), the stability gain is small. The fixes stay exact and cheap, and the Commander argument stands |
+| O3 | Decisions of nothing matter for stability | §2 | They are rare: 0.36% of decisions, and redundant options in 6.6%. So the stability gain from F1, F2 and F4 is small. The fixes stay exact and cheap, and the Commander argument stands |
 | O4 | Memory counts hands by name | §4.3 | If draw order is fair to show (some clients do: OWNER_VISION §4), identity could be kept. The by-name design is the paper-fair lower bound and stays a subset |
 | O5 | The long run starts on one schema | §3.2 | If mid-run changes were acceptable, the bundle could ship in parts. One schema avoids repeated boundaries and their shifts |
 | O6 | No hidden information in play | §3.4, §4.6 | Not negotiable. I1 and I2 enforce it |
@@ -1121,7 +1205,7 @@ pauses for measurement windows pays it at every pause. The fix is small, and mak
 |---|---|---|---|
 | A1 | One update's alignment, per unit of movement, predicts a run's drift | Stage 0's rule | The rule could skip the branch wrongly. The A/B still runs the loss alone, and the branch can be tested later. Its cost is bounded by stage 0's size |
 | A2 | 11 hours per arm can show harm and mechanism, but not a strength gain | §1.6's decision rule | If harm shows only over days, the pilot and the long run's guards (L every gate) catch it. The adoption rule is the red team's to test |
-| A3 | b100's games represent the main line's value now | M3, the early negative EV | `ev_turn` re-measures it on every update once built. Until then it is one network's reading |
+| A3 | b100's games represent the main line's value now | M3: the early value uninformative and overconfident | `ev_turn` and `c_turn` re-measure it on every update once built. Until then it is one network's reading over 150 games |
 | A4 | The detector's signature captures the state | §2's counts | Different signatures stay right; some "nothing" may be real. Only rules-exact fixes ship |
 | A5 | The long run deals the verified pools of M21, M20 and FDN | §3.1's reach | A new set reruns `census.py` (seconds) |
 | A6 | Zero columns preserve the function; new entities do not, by a measurable amount | §3.3 | Above the bound, the entity type waits behind its flag |
@@ -1129,6 +1213,9 @@ pauses for measurement windows pays it at every pause. The fix is small, and mak
 | A8 | Restarted moments cost something over a multi-day run | §5 | Measured small (198 §2). The fix's cost is small too, and it makes a resume exact |
 | A9 | Two branch layers suffice for the value | §1.4 | M5 says capacity is not the limit. EV by turn shows it, and K = 3 is the response |
 | A10 | A stop-gradient is the right granularity, against PPG's constrained sharing | §1.3 b, c | If the value's shaping helped, R1 or R2 shows harm, and PPG-lite is next |
+| A11 | Every way a trigger's resolution reads its event goes through the `event` referent, the gathered objects or the reflexive carry | F1's exactness | If a read escapes the scan, F1 merges two firings that differ. F1's property test (a sentinel event) catches it on every verified trigger before it ships |
+| A12 | After J1-J4, every library mutation is journaled | §4's tracker | An unjournaled move leaves stale knowledge. I3 (the tracker's library sizes against the true ones after every event) catches it in random games |
+| A13 | The trainer is idle whenever the learner commits | §5's synchronous "opt" request | Read in the code: `update()` returns only after the trainer's "done" (`learner.py:453-469`), and every commit comes after it. A future asynchronous commit would need the state sent with "done" instead |
 
 ## 8. Hand-set choices said aloud (for docs/BACKLOG.md "Scaffolds to remove")
 

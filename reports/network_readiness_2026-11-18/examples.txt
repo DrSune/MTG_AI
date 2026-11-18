@@ -1,0 +1,66 @@
+NOTHING trigger |  | trigger:player:0:a490eaa62653 | ['Jeskai Elder', 'Shipwreck Dowser'] | {'ok': 2}
+NOTHING trigger |  | trigger:player:0:a490eaa62653 | ['Jeskai Elder', 'Shipwreck Dowser'] | {'ok': 2}
+NOTHING may | Liliana's Scrounger | may:card:78:2bf8479f59e1 | ['fire', 'skip'] | {'ok': 2}
+NOTHING one_of | Fierce Empath | one_of:card:80:1ce09d3083a5 | ["Chandra's Incinerator", "Chandra's Incinerator"] | {'ok': 2}
+NOTHING one_of | Cultivate | one_of:card:10:2d77d041af63 | ['Forest', 'Forest'] | {'ok': 2}
+NOTHING one_of | Cultivate | one_of:card:98:0245bce80030 | ['Forest', 'Forest'] | {'ok': 2}
+NOTHING target | Rabid Bite | pick:card:62:0:0 | ['Woodland Champion', 'Fearless Halberdier', 'Goblin Bird-Grabber'] | {'ok': 3}
+NOTHING may | Goblin Arsonist | may:card:107:cf68ddc10419 | ['fire', 'skip'] | {'ok': 2}
+NOTHING may | Liliana's Scrounger | may:card:27:2bf8479f59e1 | ['fire', 'skip'] | {'ok': 2}
+NOTHING legend |  | legend:player:1:06b0417072cd | ['Vito, Thorn of the Dusk Rose', 'Vito, Thorn of the Dusk Rose'] | {'ok': 2}
+NOTHING divide | Frost Lynx | divide:card:74:card:41:23 | ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'] | {'ok': 13}
+NOTHING divide | Moat Piranhas | divide:card:73:card:47:23 | ['3', '4'] | {'ok': 2}
+NOTHING scry |  | scry:player:1:1 | ['top', 'bottom'] | {'ok': 2}
+NOTHING may | Experimental Overload | may:card:32:9971b8d4b94f | ['fire', 'skip'] | {'ok': 2}
+NOTHING target | Manifold Key | pick:card:77:0:0 | ['Manifold Key', 'Colossus Hammer', 'Icon of Ancestry'] | {'ok': 3}
+NOTHING target | Manifold Key | pick:card:28:0:0 | ['Colossus Hammer', 'Manifold Key', 'Icon of Ancestry', 'Retributive Wand'] | {'ok': 4}
+NOTHING one_of | Fierce Empath | one_of:card:45:57c8c5692e32 | ['Warden of the Woods', 'Warden of the Woods', 'Warden of the Woods'] | {'ok': 3}
+NOTHING target | Legion's Judgment | pick:card:77:0:0 | ['Warden of the Woods', 'Warden of the Woods'] | {'ok': 2}
+NOTHING one_of | Cavalier of Thorns | one_of:card:30:824e7909dfb3 | ['Forest', 'Forest'] | {'ok': 2}
+NOTHING target | Garruk, Savage Herald | pick:card:8:0:0 | ['Leafkin Avenger', 'Havoc Jester', 'Palladium Myr', 'Radha, Heart of Keld', 'Goblin Wizard', 'Goblin Wizard'] | {'ok': 6}
+NOTHING divide | Weird | divide:card:120:card:97:18 | ['1', '2', '3', '4', '5', '6'] | {'ok': 6}
+NOTHING may | Icon of Ancestry | may:card:49:cc504b60f15d | ['fire', 'skip'] | {'ok': 2}
+NOTHING may | Icon of Ancestry | may:card:49:cc504b60f15d | ['fire', 'skip'] | {'ok': 2}
+NOTHING target | Tempered Veteran | pick:card:45:0:0 | ['Sabertooth Mauler', 'Sabertooth Mauler'] | {'ok': 2}
+NOTHING may | Tolarian Kraken | may:card:33:88b213b6fd4b | ['fire', 'skip'] | {'ok': 2}
+NOTHING may | Tolarian Kraken | may:card:33:88b213b6fd4b | ['fire', 'skip'] | {'ok': 2}
+NOTHING target | Garruk, Savage Herald | pick:card:53:0:0 | ['Warden of the Woods', 'Beast'] | {'ok': 2}
+NOTHING one_of | Ethereal Elk | one_of:card:55:b351777a19a5 | ["Vivien, Nature's Avenger", "Vivien, Nature's Avenger"] | {'ok': 2}
+NOTHING target | Rabid Bite | pick:card:53:0:0 | ['Nimble Birdsticker', 'Greenwood Sentinel', 'Ethereal Elk'] | {'ok': 3}
+
+trigger-order decisions of nothing: one source 27, several sources 31
+
+decisions of nothing by (kind, source):
+  58 ('trigger', '')
+  12 ('may', "Liliana's Scrounger")
+  6 ('one_of', 'Cultivate')
+  4 ('may', 'Tolarian Kraken')
+  3 ('one_of', 'Fierce Empath')
+  3 ('target', 'Manifold Key')
+  2 ('target', 'Rabid Bite')
+  2 ('target', 'Garruk, Savage Herald')
+  2 ('may', 'Icon of Ancestry')
+  1 ('may', 'Goblin Arsonist')
+  1 ('legend', '')
+  1 ('divide', 'Frost Lynx')
+  1 ('divide', 'Moat Piranhas')
+  1 ('scry', '')
+  1 ('may', 'Experimental Overload')
+  1 ('target', "Legion's Judgment")
+  1 ('one_of', 'Cavalier of Thorns')
+  1 ('divide', 'Weird')
+  1 ('target', 'Tempered Veteran')
+  1 ('one_of', 'Ethereal Elk')
+
+redundant-option decisions by kind:
+  1159 act
+  218 priority
+  157 target
+  122 mulligan_bottom
+  111 divide
+  93 choose
+  71 one_of
+  25 block
+  21 discard
+  4 sacrifice
+  1 name
