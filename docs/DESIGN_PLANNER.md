@@ -183,3 +183,49 @@ A and B.
 - **The style statistics** (3.2). Removable: a learned clustering of rounds.
 - **The side losses' weights** (hindsight, plan-following). Read on an A/B; a weight that is too
   high pulls the trunk from winning.
+
+## 8. Do the borrowed methods transfer? Assumptions, and what they change (the owner, 2026-11-18)
+
+The owner asked whether the literature's assumptions hold here, and that every assumption, theirs
+or the coordinator's, be named with its effect on the conclusions. Each borrowed method:
+- its own assumptions;
+- which fail here;
+- what the design does about it.
+
+| Method | Its assumptions | Here | What it changes |
+|---|---|---|---|
+| Hindsight relabelling (HER, Andrychowicz et al. 2017; the "upside-down" goal-conditioned family) | Goals are states the agent can reach, and the reward is defined by the goal, so a relabelled transition is a valid sample for its new goal and can train the policy with its reward | Our goal is winning against an opponent who adapts. A plan is not a reward-defining goal, so relabelling cannot create valid PPO samples (the behaviour log-probabilities were for the plan as played). | Plan-following is a **supervised side loss** only (self-imitation given the realized plan). It makes plan inputs causal; it claims none of HER's sample-efficiency gains. The train/test gap (realized plans in the side loss, forecasts at play) is a known risk, read in the A/B |
+| Options and intra-option learning (Sutton, Precup & Singh 1999; option-critic) for the round style | Options are temporally extended behaviours with their own termination. Their values can be learned from any experience under the option. Option discovery tends to collapse without an incentive | The style is a label, not a sub-policy. Its "termination" is the round's end. Collapse is real (§3.2) | Styles are hindsight labels of observable round statistics, so they carry meaning by construction. The style critic V(state, style) is learned on-policy from rounds played in that style. Choosing by it is an approximate improvement step, only as good as each style's coverage (ε) |
+| Gumbel AlphaZero / MuZero policy improvement (Danihelka et al. 2022) and expert iteration (Anthony et al. 2017), for search over plans | A perfect-information model or a learned one, and a value accurate enough at the leaves. The improvement guarantee is relative to the value used | The game has hidden cards. Worlds are sampled from the opponent simulator (PIMC with per-seat views in the playouts, no fusion inside a playout). The value is weak where the puzzles fail (C) | The search's targets inherit the simulator's and the value's errors, so its pull on the planner anneals (PLAN_CEILING's own caveat). Information-set MCTS comes in if the puzzles show strategy fusion. The guarantee does not carry over; only measured improvement on the puzzles and on L counts |
+| Reverse curriculum (Florensa et al. 2017; Salimans & Chen 2018), for puzzle starts (PLAN_PLANNING P2) | The environment resets to chosen states near the goal; the task is goal-reaching with a sparse reward; a demonstration to roll back along | Resets: yes (the pack world arranges any position). The opponent is a learner or the league, not a fixed environment. The positions are arranged, not natural (a shift of the state distribution). The demonstrations are the solver's proven lines | Starts are generated variants, not the evaluation puzzles. Their share anneals, and a skill that fades when they are removed is read as a habit (PLAN_PLANNING P2). That no goal is fixed under an adapting opponent is accepted: the reward stays the game's result |
+| Prioritized Level Replay (Jiang et al. 2021), for replaying deals | A level is a seed that replays exactly. A scoring proxy (value error) tracks learning potential. Its theory (minimax regret) is for single-agent environment design | Deals are seed-replayable. The learning potential also depends on the opponent (two-player zero-sum), so the score is noisier and moves with the league | Used as a heuristic prioritizer, not for its guarantees. Its score is the value error in the learner's own games, decayed so a deal's score does not outlive the opponent it was earned against |
+
+**The coordinator's assumptions behind the planner, and what follows if each is wrong:**
+- **"Forecasting one's own uses helps play."** A hypothesis.
+  - If wrong: v1's A/B shows no gain on the puzzles or on L, and the side losses are dropped.
+  - The stake is small, because the planner is off by default.
+- **"The flat r29 means the learning signal is the limit, not capacity or the deals."** Supported:
+  - the capacity probe (194) found no gain from size;
+  - the puzzles show habits;
+  - deals were not tested.
+
+  If wrong (the deals are the limit), the Teacher and drafter matter more than the planner. Both
+  are being planned.
+- **"Proven puzzles measure planning in real games."** The puzzles are small, two-turn positions.
+  A network can pass them and still plan badly over a whole game.
+  - The puzzles are a necessary signal, not a sufficient one; L and the long run's play decide.
+  - The suite grows with harder and larger positions as the solver allows.
+- **"A sequence is the seat's run in one step with no opponent action between."** If this splits
+  real sequences wrongly (an opponent's mana ability, a trigger), the A-order labels get noisy. The
+  build's tests pin the boundary on real games.
+- **"The when buckets and window kinds are fine enough."** If too coarse, the forecasts carry less;
+  if too fine, they are noisy. Hand-set and said aloud in §6, and read through the forecasts'
+  accuracy per head.
+
+**The owner's assumptions, as the coordinator understands them, and their effect:**
+- **"A plan for every card is more useful than a few slots."** Adopted; tested by v1's A/B.
+- **"Multi-turn search with the planner makes both better."** Plausible by the mechanism in §4,
+  but not yet measured. It is v3's question, and it gets its own registration.
+- **"TURN_CAP 125 almost always gives the full signal."** True for any game without an effect that
+  returns cards to a library (the decking rule). The `turn_caps` count per update says whether
+  that assumption holds in play.
