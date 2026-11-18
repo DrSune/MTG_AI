@@ -310,20 +310,22 @@ nothing of it runs (checked below).
   given; the A/B reads that.
 
 **Checked:**
-- *Without `--planner`, bitwise what 1daae58e computes*: one seeded learner path run on both codes
-  (a fresh build, six training games through the learner's sampled inference, their rows, one PPO
-  update): the same weights at the start, games, 541 rows' encodings (the new columns 0), actions,
-  log-probs, values, advantages, every PPO statistic, and weights after the update. Single-threaded
-  CPU: with two threads main differs from itself after an update.
-- *The CPU smoke* (2 workers, d 32, 1 layer, 512 steps; 2 updates, then a resume to 3), the iter
-  rows' `plan` (at the start the heads forecast uniformly; the hindsight loss starts near
-  ln 10 + 2 ln 7 + ln(3 + E)):
+- *Without `--planner`, bitwise what 1daae58e computes* (at the final commit): one seeded learner
+  path run on both codes (a fresh build, six training games through the learner's sampled
+  inference, their rows, one PPO update): the same weights at the start, games, 541 rows'
+  encodings (the new columns 0), actions, log-probs, values, advantages, every PPO statistic, and
+  the weights after the update. Single-threaded CPU: with two threads main differs from itself
+  after an update.
+- *The CPU smoke* at the final commit (2 workers, d 32, 1 layer, 512 steps; 2 updates, then a
+  resume to 3; no void game, no misaligned row), the iter rows' `plan`. The heads start uniform,
+  so the hindsight loss starts near ln 10 + 2 ln 7 + ln(3 + E); three updates of fresh games show
+  the plumbing works, not a learning curve:
 
-| update | hindsight loss | when | verb | window | target | plan-following NLL | objects | rows |
-|---|---|---|---|---|---|---|---|---|
-| 1 | 9.47 | 0.47 | 0.61 | 0.60 | 0.89 | 0.91 | 6,565 | 155 |
-| 2 | 9.26 | 0.56 | 0.60 | 0.61 | 0.87 | 1.00 | 5,945 | 144 |
-| 3 (resumed) | 8.97 | 0.59 | 0.62 | 0.56 | 0.92 | 1.06 | 5,415 | 140 |
+| update | decisions | hindsight loss | when | verb | window | target | plan-following NLL | objects | rows |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | 552 | 9.39 | 0.40 | 0.56 | 0.56 | 0.91 | 0.99 | 6,128 | 145 |
+| 2 | 597 | 9.49 | 0.62 | 0.66 | 0.66 | 0.88 | 0.94 | 6,437 | 158 |
+| 3 (resumed) | 554 | 9.07 | 0.64 | 0.64 | 0.63 | 0.92 | 1.04 | 5,863 | 147 |
 
 **The fresh-eyes review** (one reviewer, from the diff; it changed nothing). It checked the
 hindsight labels against a brute-force reference on 2,000 random records (all equal), the index
