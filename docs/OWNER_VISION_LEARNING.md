@@ -353,3 +353,19 @@ meaningful work."
 - **Component understanding at the plan level.** "It is component understanding/encoding, just at
   the planning level instead of the playing level, meaning components are different/more ones."
 - **Recorded in** PLAN_PLANNING §5 as the proposed replacement of the plan slots.
+
+**The owner, fifth round (2026-11-18).**
+- **Search.** "We should consider improving search to work multi-turn along with the planner
+  (similar to what you suggested). This will make both better I think."
+- **The first and third answers.** "Probably your recommendation, but check that the logic is
+  sound and in line with our project goals before moving forward." And: "We can do your
+  recommendation, again check the logic."
+- **Which objects.** "Everything that can be made a choice with, that is also visible, should be
+  planned with. Cards to be drawn can thus not be planned with, unless we know what card we are
+  going to draw (complex mechanics to code together). Token creatures spawned can attack, so they
+  can technically be planned with."
+- **The sets, then the components.** "Continue finishing the sets yes, when all cards in both sets
+  are finished, you should look at the new additions and whether we have any redundant components
+  we could break down into our existing ones to optimize that from the start."
+- **The logic check** is DESIGN_PLANNER §3. Three problems in the first proposal are fixed:
+  plan-following by hindsight relabelling, round styles as hindsight labels, labels as forecasts.
