@@ -3,6 +3,17 @@
 **Status.** Plan, 2026-11-12, revised the same night after its red team (§10). Nothing is built
 yet except the data it needs: every training game's deal and result are logged from r27 on (§3).
 
+> **Status, 2026-11-18.** v0 is built (`tools/selfplay/decks.py`) and passed G1-G3. G4's
+> condition was met, but drafted decks gave fewer pilot-decided deals, not more
+> (KNOWLEDGE/2026-11-12/193 §3). So the drafter is a tool for realism and for deck strength as a
+> variable, not a learning-signal knob.
+> - Its "later pieces" (§8) are now ordered in [`DESIGN_LEAGUE.md`](DESIGN_LEAGUE.md) §3.6-§3.8
+>   and §6, as part of one system with the league and the Teacher.
+> - The long run deals `drafted:8` decks at a 0.2 share per seat from a refitted critic.
+>
+> **Why.** The owner asked for the drafter, the critic and the Teacher as one coherent system
+> (2026-11-18). G4 and the ceiling read (205 S2, S4) changed what the drafter is for.
+
 **Why now.** The owner, 2026-11-12: "Also consider getting started on the drafter based on value
 function and opponent simulator, getting that working and up to speed would be a nice tool to have
 or knob to turn on when things get hard or we get stuck." `docs/PLAN_CEILING.md` had the drafter

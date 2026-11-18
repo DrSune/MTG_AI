@@ -6,6 +6,19 @@
 > describe the pre-rebuild code, deleted on 2026-11-05 (`git show dbd6e9d:<path>`); the live
 > stack is `MTG_bot/core/` and `tools/selfplay/`.
 
+> **Status, 2026-11-18: the live design of the Teacher is [`DESIGN_LEAGUE.md`](DESIGN_LEAGUE.md).**
+> - **What stays from this document:**
+>   - the Teacher as a curator plus a critic, not an RL agent (§3.1, D15);
+>   - the crux arithmetic: a per-block win-rate signal cannot steer (§1.1-§1.2);
+>   - the uncomfortable finding: the first gains are a filter, not a learned agent (§2.6);
+>   - legality as a mask, never a penalty (§4.4).
+> - **What is superseded:** the probe-delta reward, N-game blocks, and the staging (§6-§7).
+> - **Why.** They assume decks held fixed for 30 games, probe gradients per block, and a
+>   γ experiment that was never run on the live stack. Today every deal is fresh by the owner's
+>   rule (OWNER_VISION_LEARNING §2), the critic v0 is built and gated (KNOWLEDGE/2026-11-12/193),
+>   and opponent choice by PFSP already has a strong signal. DESIGN_LEAGUE §2.3-§2.4 check each
+>   method's assumptions against these facts.
+
 **Scope:** what the teacher is trained on, what stops it gaming that signal, what it is
 architecturally, how it drafts one card at a time, how a deck's outcome reaches an individual pick,
 what it costs in games, and the order the pieces get built in.

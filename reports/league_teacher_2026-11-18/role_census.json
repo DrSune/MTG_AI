@@ -1,0 +1,602 @@
+[
+ {
+  "set": "M21",
+  "spells": 257,
+  "pool": {
+   "counter": {
+    "cards": 4,
+    "names": [
+     "Cancel",
+     "Lofty Denial",
+     "Miscast",
+     "Rewind"
+    ]
+   },
+   "sweeper": {
+    "cards": 2,
+    "names": [
+     "Massacre Wurm",
+     "Pestilent Haze"
+    ]
+   },
+   "removal": {
+    "cards": 40,
+    "names": [
+     "Angelic Ascension",
+     "Chandra's Incinerator",
+     "Chandra's Magmutt",
+     "Chandra, Heart of Fire",
+     "Crypt Lurker",
+     "Dire Fleet Warmonger",
+     "Eliminate",
+     "Finishing Blow",
+     "Garruk, Savage Herald",
+     "Goblin Arsonist",
+     "Goremand",
+     "Grasp of Darkness",
+     "Havoc Jester",
+     "Heartfire Immolator",
+     "Hunter's Edge",
+     "Leafkin Avenger",
+     "Legion's Judgment",
+     "Liliana's Scorn",
+     "Liliana, Death Mage",
+     "Liliana, Waker of the Dead",
+     "Meteorite",
+     "Pitchburn Devils",
+     "Rin and Seri, Inseparable",
+     "Rookie Mistake",
+     "Run Afoul",
+     "Sanctum of Shattered Heights",
+     "Scorching Dragonfire",
+     "Secure the Scene",
+     "Shock",
+     "Silent Dart",
+     "Skeleton Archer",
+     "Skyway Sniper",
+     "Soul Sear",
+     "Swift Response",
+     "Terror of the Peaks",
+     "Transmogrify",
+     "Turn to Slag",
+     "Ugin, the Spirit Dragon",
+     "Volcanic Geyser",
+     "Volcanic Salvo"
+    ]
+   },
+   "instant_speed": {
+    "cards": 45,
+    "names": [
+     "Alchemist's Gift",
+     "Angelic Ascension",
+     "Burn Bright",
+     "Cancel",
+     "Capture Sphere",
+     "Containment Priest",
+     "Defiant Strike",
+     "Discontinuity",
+     "Eliminate",
+     "Feat of Resistance",
+     "Finishing Blow",
+     "Frantic Inventory",
+     "Frost Breath",
+     "Fungal Rebirth",
+     "Goblin Wizardry",
+     "Grasp of Darkness",
+     "Heroic Intervention",
+     "Invigorating Surge",
+     "Life Goes On",
+     "Liliana's Standard Bearer",
+     "Lofty Denial",
+     "Masked Blackguard",
+     "Miscast",
+     "Niambi, Esteemed Speaker",
+     "Opt",
+     "Rain of Revelation",
+     "Ranger's Guile",
+     "Return to Nature",
+     "Revitalize",
+     "Rewind",
+     "Rookie Mistake",
+     "Run Afoul",
+     "Scorching Dragonfire",
+     "Shock",
+     "Soul Sear",
+     "Sure Strike",
+     "Swift Response",
+     "Teferi's Wavecaster",
+     "Thieves' Guild Enforcer",
+     "Thrill of Possibility",
+     "Titanic Growth",
+     "Unleash Fury",
+     "Unsubstantiate",
+     "Village Rites",
+     "Volcanic Geyser"
+    ]
+   }
+  },
+  "packages": {
+   "kept": 22,
+   "dropped": 2,
+   "labels": [
+    "burn",
+    "counter",
+    "dies",
+    "draw",
+    "life",
+    "mill",
+    "permanent[!IS_TOKEN&!Land]",
+    "permanent[Cat&Creature]",
+    "permanent[Creature&DEATHTOUCH]",
+    "permanent[Creature&FLYING]",
+    "permanent[Creature&QTY_GE4]",
+    "permanent[Creature]",
+    "permanent[Dog&Creature]+spell[Dog&Creature]",
+    "permanent[Land]",
+    "permanent[Rogue&Creature|IS_SOURCE]",
+    "permanent[Shrine]",
+    "permanent[Zombie&Creature]",
+    "sacrifice",
+    "spell[!Creature]",
+    "spell[B|R|U|W]",
+    "spell[Instant|Sorcery]",
+    "spell[]"
+   ]
+  },
+  "coherent": {
+   "counter": {
+    "deck_share": 0.29,
+    "copies": 0.52,
+    "drawn_by_t6": 0.0924,
+    "drawn_by_t8": 0.1056
+   },
+   "sweeper": {
+    "deck_share": 0.194,
+    "copies": 0.266,
+    "drawn_by_t6": 0.05,
+    "drawn_by_t8": 0.0577
+   },
+   "removal": {
+    "deck_share": 0.983,
+    "copies": 5.684,
+    "drawn_by_t6": 0.6646,
+    "drawn_by_t8": 0.7148
+   },
+   "instant_speed": {
+    "deck_share": 0.9978,
+    "copies": 5.91,
+    "drawn_by_t6": 0.7074,
+    "drawn_by_t8": 0.7608
+   },
+   "deals_with_a_counter_or_sweeper": 0.696,
+   "decks": 4000
+  },
+  "package": {
+   "counter": {
+    "deck_share": 0.2255,
+    "copies": 0.441,
+    "drawn_by_t6": 0.0762,
+    "drawn_by_t8": 0.0866
+   },
+   "sweeper": {
+    "deck_share": 0.1663,
+    "copies": 0.21,
+    "drawn_by_t6": 0.0401,
+    "drawn_by_t8": 0.0464
+   },
+   "removal": {
+    "deck_share": 0.9673,
+    "copies": 5.426,
+    "drawn_by_t6": 0.6133,
+    "drawn_by_t8": 0.6605
+   },
+   "instant_speed": {
+    "deck_share": 0.9875,
+    "copies": 5.171,
+    "drawn_by_t6": 0.6339,
+    "drawn_by_t8": 0.6864
+   },
+   "deals_with_a_counter_or_sweeper": 0.5965,
+   "decks": 4000
+  }
+ },
+ {
+  "set": "M20",
+  "spells": 262,
+  "pool": {
+   "counter": {
+    "cards": 4,
+    "names": [
+     "Bone to Ash",
+     "Convolute",
+     "Negate",
+     "Tale's End"
+    ]
+   },
+   "sweeper": {
+    "cards": 5,
+    "names": [
+     "Ajani, Strength of the Pride",
+     "Chandra's Flame Wave",
+     "Chandra, Flame's Fury",
+     "Flame Sweep",
+     "Planar Cleansing"
+    ]
+   },
+   "removal": {
+    "cards": 43,
+    "names": [
+     "Aerial Assault",
+     "Agonizing Syphon",
+     "Ajani, Inspiring Leader",
+     "Befuddle",
+     "Bone Splinters",
+     "Cavalier of Dawn",
+     "Cavalier of Night",
+     "Chandra's Outrage",
+     "Chandra, Flame's Fury",
+     "Chandra, Novice Pyromancer",
+     "Devout Decree",
+     "Disfigure",
+     "Drakuseth, Maw of Flames",
+     "Dread Presence",
+     "Ember Hauler",
+     "Engulfing Eruption",
+     "Fathom Fleet Cutthroat",
+     "Fry",
+     "Gruesome Scourger",
+     "Hanged Executioner",
+     "Heart-Piercer Bow",
+     "Mask of Immolation",
+     "Meteor Golem",
+     "Mu Yanling, Celestial Wind",
+     "Mu Yanling, Sky Dancer",
+     "Murder",
+     "Noxious Grasp",
+     "Ogre Siegebreaker",
+     "Omnath, Locus of the Roil",
+     "Plummet",
+     "Rabid Bite",
+     "Reckless Air Strike",
+     "Reduce to Ashes",
+     "Retributive Wand",
+     "Shock",
+     "Skeleton Archer",
+     "Sorcerer of the Fang",
+     "Sorin's Thirst",
+     "Sorin, Imperious Bloodlord",
+     "Sorin, Vampire Lord",
+     "Take Vengeance",
+     "Vial of Dragonfire",
+     "Vilis, Broker of Blood"
+    ]
+   },
+   "instant_speed": {
+    "cards": 38,
+    "names": [
+     "Anticipate",
+     "Befuddle",
+     "Bladebrand",
+     "Bone to Ash",
+     "Brineborn Cutthroat",
+     "Brought Back",
+     "Celestial Messenger",
+     "Chandra's Outrage",
+     "Convolute",
+     "Dark Remedy",
+     "Disenchant",
+     "Disfigure",
+     "Feral Invocation",
+     "Flame Sweep",
+     "Fry",
+     "Gods Willing",
+     "Growth Cycle",
+     "Infuriate",
+     "Inspired Charge",
+     "Might of the Masses",
+     "Moment of Heroism",
+     "Murder",
+     "Natural End",
+     "Negate",
+     "Nightpack Ambusher",
+     "Noxious Grasp",
+     "Plummet",
+     "Pulse of Murasa",
+     "Raise the Alarm",
+     "Shock",
+     "Show of Valor",
+     "Sorin's Thirst",
+     "Spectral Sailor",
+     "Tale's End",
+     "Titanic Growth",
+     "Uncaged Fury",
+     "Unsummon",
+     "Veil of Summer"
+    ]
+   }
+  },
+  "packages": {
+   "kept": 15,
+   "dropped": 3,
+   "labels": [
+    "burn",
+    "dies",
+    "life",
+    "permanent[Angel&Creature]",
+    "permanent[Creature&FLYING]",
+    "permanent[Creature]",
+    "permanent[Elemental&Creature]+permanent[Elemental&Creature|IS_SOURCE]",
+    "permanent[Golem&Creature]",
+    "permanent[IS_TOKEN]",
+    "permanent[Island&Land]",
+    "permanent[Planeswalker]",
+    "permanent[Swamp&Land]",
+    "permanent[U&Creature]",
+    "permanent[Vampire&Creature]",
+    "permanent[Werewolf|Wolf&Creature]"
+   ]
+  },
+  "coherent": {
+   "counter": {
+    "deck_share": 0.2965,
+    "copies": 0.55,
+    "drawn_by_t6": 0.0971,
+    "drawn_by_t8": 0.1108
+   },
+   "sweeper": {
+    "deck_share": 0.4145,
+    "copies": 0.631,
+    "drawn_by_t6": 0.1159,
+    "drawn_by_t8": 0.1331
+   },
+   "removal": {
+    "deck_share": 0.9935,
+    "copies": 6.113,
+    "drawn_by_t6": 0.7054,
+    "drawn_by_t8": 0.7563
+   },
+   "instant_speed": {
+    "deck_share": 0.994,
+    "copies": 4.99,
+    "drawn_by_t6": 0.6445,
+    "drawn_by_t8": 0.7003
+   },
+   "deals_with_a_counter_or_sweeper": 0.8615,
+   "decks": 4000
+  },
+  "package": {
+   "counter": {
+    "deck_share": 0.1895,
+    "copies": 0.289,
+    "drawn_by_t6": 0.0533,
+    "drawn_by_t8": 0.0613
+   },
+   "sweeper": {
+    "deck_share": 0.4475,
+    "copies": 0.987,
+    "drawn_by_t6": 0.1595,
+    "drawn_by_t8": 0.1798
+   },
+   "removal": {
+    "deck_share": 0.9825,
+    "copies": 6.354,
+    "drawn_by_t6": 0.6869,
+    "drawn_by_t8": 0.7336
+   },
+   "instant_speed": {
+    "deck_share": 0.9705,
+    "copies": 3.777,
+    "drawn_by_t6": 0.5328,
+    "drawn_by_t8": 0.5868
+   },
+   "deals_with_a_counter_or_sweeper": 0.832,
+   "decks": 4000
+  }
+ },
+ {
+  "set": "FDN",
+  "spells": 225,
+  "pool": {
+   "counter": {
+    "cards": 6,
+    "names": [
+     "An Offer You Can't Refuse",
+     "Cancel",
+     "Essence Scatter",
+     "Flashfreeze",
+     "Negate",
+     "Refute"
+    ]
+   },
+   "sweeper": {
+    "cards": 5,
+    "names": [
+     "Day of Judgment",
+     "Massacre Wurm",
+     "Seeker's Folly",
+     "Seismic Rupture",
+     "Slagstorm"
+    ]
+   },
+   "removal": {
+    "cards": 35,
+    "names": [
+     "Abrade",
+     "Angelic Edict",
+     "Banishing Light",
+     "Bite Down",
+     "Boros Charm",
+     "Broken Wings",
+     "Burrog Befuddler",
+     "Burst Lightning",
+     "Deadly Plot",
+     "Deadly Riposte",
+     "Deathmark",
+     "Devout Decree",
+     "Drakuseth, Maw of Flames",
+     "Elspeth's Smite",
+     "Feed the Swarm",
+     "Felling Blow",
+     "Fleeting Distraction",
+     "Goblin Firebomb",
+     "Gorehorn Raider",
+     "Heartfire Immolator",
+     "Hero's Downfall",
+     "High-Society Hunter",
+     "Incinerating Blast",
+     "Joust Through",
+     "Meteor Golem",
+     "Moment of Craving",
+     "Mortify",
+     "Obliterating Bolt",
+     "Scorching Dragonfire",
+     "Skeleton Archer",
+     "Stab",
+     "Stasis Snare",
+     "Stroke of Midnight",
+     "Vivien Reid",
+     "Volley Veteran"
+    ]
+   },
+   "instant_speed": {
+    "cards": 54,
+    "names": [
+     "Abrade",
+     "Adamant Will",
+     "Aetherize",
+     "Ambush Wolf",
+     "An Offer You Can't Refuse",
+     "Bite Down",
+     "Boros Charm",
+     "Brineborn Cutthroat",
+     "Broken Wings",
+     "Burrog Befuddler",
+     "Burst Lightning",
+     "Cancel",
+     "Cathar Commando",
+     "Claws Out",
+     "Deadly Plot",
+     "Deadly Riposte",
+     "Disenchant",
+     "Dive Down",
+     "Elementalist Adept",
+     "Elspeth's Smite",
+     "Essence Scatter",
+     "Faebloom Trick",
+     "Fake Your Own Death",
+     "Flashfreeze",
+     "Fleeting Distraction",
+     "Fleeting Flight",
+     "Giant Growth",
+     "Goblin Firebomb",
+     "Goblin Surprise",
+     "Hero's Downfall",
+     "Inspiring Call",
+     "Into the Roil",
+     "Joust Through",
+     "Kindled Fury",
+     "Make a Stand",
+     "Moment of Craving",
+     "Moment of Triumph",
+     "Mortify",
+     "Negate",
+     "Offer Immortality",
+     "Opt",
+     "Quick Study",
+     "Refute",
+     "Resolute Reinforcements",
+     "Scorching Dragonfire",
+     "Snakeskin Veil",
+     "Spectral Sailor",
+     "Stab",
+     "Stasis Snare",
+     "Stroke of Midnight",
+     "Sure Strike",
+     "Thrill of Possibility",
+     "Time Stop",
+     "Unsummon"
+    ]
+   }
+  },
+  "packages": {
+   "kept": 18,
+   "dropped": 1,
+   "labels": [
+    "counter",
+    "dies",
+    "draw",
+    "life",
+    "permanent[Cat&Creature]",
+    "permanent[Creature&FLYING]",
+    "permanent[Creature&QTY_GE4]",
+    "permanent[Creature]",
+    "permanent[Elf&Creature]",
+    "permanent[Forest&Land]",
+    "permanent[Goblin&Creature]",
+    "permanent[Land]",
+    "permanent[Pirate&Creature]",
+    "permanent[W&Creature]",
+    "permanent[Zombie|Skeleton&Creature]",
+    "spell[!Creature]",
+    "spell[Dragon|!Creature]",
+    "spell[Instant|Sorcery]"
+   ]
+  },
+  "coherent": {
+   "counter": {
+    "deck_share": 0.367,
+    "copies": 0.977,
+    "drawn_by_t6": 0.1573,
+    "drawn_by_t8": 0.1767
+   },
+   "sweeper": {
+    "deck_share": 0.5052,
+    "copies": 0.781,
+    "drawn_by_t6": 0.143,
+    "drawn_by_t8": 0.1642
+   },
+   "removal": {
+    "deck_share": 0.9948,
+    "copies": 5.73,
+    "drawn_by_t6": 0.6928,
+    "drawn_by_t8": 0.7464
+   },
+   "instant_speed": {
+    "deck_share": 0.999,
+    "copies": 8.436,
+    "drawn_by_t6": 0.8148,
+    "drawn_by_t8": 0.8565
+   },
+   "deals_with_a_counter_or_sweeper": 0.93,
+   "decks": 4000
+  },
+  "package": {
+   "counter": {
+    "deck_share": 0.3448,
+    "copies": 0.785,
+    "drawn_by_t6": 0.1311,
+    "drawn_by_t8": 0.1483
+   },
+   "sweeper": {
+    "deck_share": 0.4193,
+    "copies": 0.571,
+    "drawn_by_t6": 0.1074,
+    "drawn_by_t8": 0.1239
+   },
+   "removal": {
+    "deck_share": 0.9882,
+    "copies": 4.748,
+    "drawn_by_t6": 0.6176,
+    "drawn_by_t8": 0.6724
+   },
+   "instant_speed": {
+    "deck_share": 0.9952,
+    "copies": 7.235,
+    "drawn_by_t6": 0.752,
+    "drawn_by_t8": 0.7973
+   },
+   "deals_with_a_counter_or_sweeper": 0.861,
+   "decks": 4000
+  }
+ }
+]
