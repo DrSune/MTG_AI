@@ -10,7 +10,8 @@ a replacement — read the real thing.
 `KNOWLEDGE/2026-11-06/187-handoff.md`); the owner chose outcome PPO as the learner and search at
 play time, with the distillation parked (DECISIONS D21).
 
-**Current plan (2026-11-11):** `docs/PLAN_CEILING.md`, approved by the owner (DECISIONS D22). **Planning (2026-11-18):** `docs/PLAN_PLANNING.md` (how options reach the network, the planning
+**Current plan (2026-11-11):** `docs/PLAN_CEILING.md`, approved by the owner (DECISIONS D22). **Cleanup (2026-11-18):**
+`docs/PLAN_CLEANUP.md`, the quality lift the owner asked for. It is written and begins on the owner's prompt. **Planning (2026-11-18):** `docs/PLAN_PLANNING.md` (how options reach the network, the planning
 puzzle suite, the ladder from measurement to the no-ceiling run, and the order beside the card work).
 
 **Running since 2026-11-18 11:27: r29's main run, arm B** (training both seats, `--p-self 0.55`),
@@ -223,4 +224,7 @@ Two rules that catch most of the damage:
     `test_decks.py`; every test seeded by `tools/conftest.py`, as the engine's are), 37-40 s
     beside a training run (the ontology baselines were re-recorded after the reviewed M21
     campaign; NUMBERS.md). `tools/run_scenarios.py` = 764/764.
-  - `tools/check.sh` (or `--quick`) runs all of it and is the pre-push gate. There is no CI.
+  - `tools/check.sh` runs all of it and is the pre-push gate for code. There is no CI.
+    - `--quick` skips `pytest tools`, so it is for docs-only commits.
+    - On 2026-11-18 a merge checked with `--quick` left main red for an hour, in the latent-fault
+      guard (PLAN_CLEANUP §2).
