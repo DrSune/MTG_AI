@@ -1,0 +1,75 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mr",
+   "real": "Masterful Replication",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "alpha",
+   "name": "Alpha Golem",
+   "type": "Artifact Creature — Golem",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "beta",
+   "name": "Beta Construct",
+   "type": "Artifact Creature — Construct",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "token": true
+  },
+  {
+   "key": "gamma",
+   "name": "Gamma Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:mr",
+    "1",
+    "alpha"
+   ]
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Alpha Golem": 1,
+   "Beta Construct": 0
+  },
+  "power": {
+   "beta": 5
+  },
+  "toughness": {
+   "beta": 5
+  }
+ },
+ "notes": "Printed: 'becomes a copy of that artifact'. Beta Construct is a TOKEN: after the copy effect it is named Alpha Golem (a copy has the copied name, type and P/T) and is still a token (a token is not a copiable value); its +1/+1 counter stays (5/5). The token count by name moves from Beta Construct to Alpha Golem."
+}

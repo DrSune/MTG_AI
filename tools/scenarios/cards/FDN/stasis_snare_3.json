@@ -9,7 +9,7 @@
  ],
  "mana": {"0": {"W": 2, "C": 1}},
  "steps": [
-  {"op": "cast", "key": "snare", "decisions": ["wolf"]},
+  {"op": "cast", "key": "snare"},
   {"op": "move", "key": "snare", "to": "graveyard"}
  ],
  "expect": {

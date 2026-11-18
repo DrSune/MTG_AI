@@ -61,6 +61,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
     ZonePosition,
+    _filter_names_the_source,
     canonical_json,
 )
 from MTG_bot.core.executor.copies import become_copies, copiable_values, put_copies
@@ -176,17 +177,32 @@ def _spells_leave_the_stack(
     return [card for card, _player, kind in moves if kind == dest_kind]
 
 
+def _left_token(ctx: ExecCtx, card: Handle) -> bool:
+    """CR 111.8: a token that has left the battlefield can't move to another zone or come back
+    onto the battlefield; it stays where it is and ceases to exist at the next state-based check
+    (704.5d). Between two instructions of one resolution it is still there: "exile it, then
+    return it to the battlefield" leaves a token in exile. A copy of a spell (marked a token,
+    copies.py) lives on the stack and moves off it as any spell does."""
+    state = ctx.world.cards.get(card)
+    return (
+        state is not None
+        and state.identity.is_token
+        and ctx.world.zone_of(card).kind not in (ZONE_BATTLEFIELD, ZONE_STACK)
+    )
+
+
 def _move_all(
     ctx: ExecCtx,
     moves: Sequence[tuple[Handle, Handle, str]],
     journal_kind: str = "MOVE",
 ) -> list[Handle]:
     """Move each ``(card, player, kind)`` of one event, in order, but the moves a replacement
-    replaced (:func:`_replaced_moves`); returns the cards that moved. A spell among them leaves
-    the stack first (:func:`_off_the_stack`)."""
+    replaced (:func:`_replaced_moves`) and a token's that left the battlefield
+    (:func:`_left_token`); returns the cards that moved. A spell among them leaves the stack
+    first (:func:`_off_the_stack`)."""
     # journal_kind is the event-kind column of the raw journalled row: a SLOT
     # of the MOVE_ZONE atom, never derived from the verb, so a mill writes "MILL".
-    moves = _off_the_stack(ctx, moves)
+    moves = _off_the_stack(ctx, [move for move in moves if not _left_token(ctx, move[0])])
     replaced = _replaced_moves(ctx, moves)
     moved: list[Handle] = []
     for card, player, kind in moves:
@@ -429,11 +445,14 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
         placing = _library_order(ctx, atom, cards, "BOTTOM" if bottom_dest else "TOP")
     else:
         placing = sorted(cards) if bottom_dest else list(cards)
-    stayed: set[Handle] = set()
     order = list(reversed(placing) if bottom_dest else placing)
+    # A token that has left the battlefield stays where it is (CR 111.8).
+    stuck = {card for card in order if _left_token(ctx, card)}
     # A spell among them leaves the stack first (Unsubstantiate's "target spell"): its frame ends
     # and its rider may send it elsewhere.
-    order = _spells_leave_the_stack(ctx, order, dest_kind, journal_kind)
+    order = _spells_leave_the_stack(
+        ctx, [card for card in order if card not in stuck], dest_kind, journal_kind
+    )
     # The owner's zone always (CR 400.3); a battlefield controller other than
     # the owner becomes a control entry below, never a zone (CR 108.3).
     dests = {card: move_destination(ctx, dest_ir, dest_kind, card) for card in order}
@@ -444,19 +463,13 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
     replaced = _replaced_moves(
         ctx, [(card, dests[card][1] or dests[card][0], dest_kind) for card in order]
     )
+    hosts, stayed = _entering_hosts(ctx, order, dests, replaced, dest_kind)
     for card in order:
-        if card in replaced:
+        if card in replaced or card in stayed:
             continue
         target_player, new_controller = dests[card]
         src = ctx.world.zone_of(card)
-        host: Handle | None = None
-        if dest_kind == ZONE_BATTLEFIELD:
-            # CR 303.4f: the player the Aura enters under chooses its host, which
-            # is the controller when that is not the owner (whose zone it joins).
-            enters, host = _aura_entry_host(ctx, card, new_controller or target_player)
-            if not enters:
-                stayed.add(card)  # CR 303.4g: nothing to enchant, it stays
-                continue
+        host = hosts.get(card)
         zone = ctx.world.players[target_player].zone(dest_kind)
         ctx.world.move_card(card, zone)
         if new_controller is not None:
@@ -479,7 +492,36 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
     # inside a firing the ACTION's object, not the event subject, is the
     # antecedent). The top-n draw idiom above writes nothing: no object was
     # chosen, and reading an unset register raises.
-    ctx.bindings["result"] = [c for c in cards if c not in stayed]
+    ctx.bindings["result"] = [c for c in cards if c not in stayed and c not in stuck]
+
+
+def _entering_hosts(
+    ctx: ExecCtx,
+    cards: Sequence[Handle],
+    dests: dict[Handle, tuple[Handle, Handle | None]],
+    replaced: set[Handle],
+    dest_kind: str,
+) -> tuple[dict[Handle, Handle | None], set[Handle]]:
+    """CR 303.4f-g for one move of several cards onto the battlefield: each Aura among them
+    (:func:`_aura_entry_host`) chooses what it will enchant just before it enters, among the
+    objects already there, so never a card entering at the same time (Brought Back's ruling: an
+    Aura returned with its creature stays in the graveyard). Every host is chosen before anything
+    moves. Returns each card's host and the Auras with nothing legal to enchant, which stay where
+    they are; nothing for a move to any other zone."""
+    hosts: dict[Handle, Handle | None] = {}
+    stayed: set[Handle] = set()
+    if dest_kind != ZONE_BATTLEFIELD:
+        return hosts, stayed
+    for card in cards:
+        if card in replaced:
+            continue
+        target_player, new_controller = dests[card]
+        # The player the Aura enters under chooses its host, which is the controller when that
+        # is not the owner (whose zone it joins).
+        enters, hosts[card] = _aura_entry_host(ctx, card, new_controller or target_player)
+        if not enters:
+            stayed.add(card)
+    return hosts, stayed
 
 
 def _aura_entry_host(ctx: ExecCtx, card: Handle, player: Handle) -> tuple[bool, Handle | None]:
@@ -854,11 +896,18 @@ def _deal_damage_to_card(ctx: ExecCtx, target: Handle, n: int) -> int | None:
             "executor: card damage needs an executor-backed ExecCtx "
             "(bare ExecCtx has no damage ledger)"
         )
-    if not eval_filter(_DAMAGEABLE, target, ctx):
+    if (
+        target not in ctx.world.cards
+        or ctx.world.zone_of(target).kind != ZONE_BATTLEFIELD
+        or not eval_filter(_DAMAGEABLE, target, ctx)
+    ):
         # CR 120.1a: damage can't be dealt to an object that's not a battle,
         # a creature or a planeswalker (a land, a noncreature artifact): no
         # mark, no DAMAGE row, no lifelink. Selectors never offer one; a
-        # forced binding (a harness stimulus) can.
+        # forced binding (a harness stimulus) can. A creature card off the
+        # battlefield is no creature (CR 109.2): an object an earlier
+        # instruction of the resolution moved ("sacrifice a creature, then it
+        # deals damage to that creature") is dealt none (CR 400.7, 608.2b).
         return None
     if _protection_prevents(ctx, target, n):
         return None  # CR 702.16e: a permanent with protection from the source
@@ -954,18 +1003,23 @@ def _fight_attacker(ctx: ExecCtx) -> Handle | None:
     whose source left the battlefield (its last known information is kept,
     ``departed_lki``) while it waited on the stack: "this creature fights",
     and CR 701.12b: a creature no longer on the battlefield deals and is dealt
-    no damage. Otherwise no register at all raises (no antecedent was
+    no damage; nor does one back there as a new object (the ``gone`` register,
+    CR 400.7). Otherwise no register at all raises (no antecedent was
     compiled)."""
+    gone = ctx.gone(ctx.source)
     if (
         ctx.source.namespace == "card"
         and ctx.source in ctx.world.cards
         and ctx.world.zone_of(ctx.source).kind == ZONE_BATTLEFIELD
+        and not gone
     ):
         return ctx.source
     result = ctx.binding_handles("result")
     if result:
         return result[0]
-    if result is not None or (ctx.executor is not None and ctx.source in ctx.executor.departed_lki):
+    if result is not None or gone or (
+        ctx.executor is not None and ctx.source in ctx.executor.departed_lki
+    ):
         return None
     raise NotImplementedError(
         f"executor: FIGHT has no attacker — {ctx.source} is not a battlefield "
@@ -1054,11 +1108,10 @@ def _v_put_counter(ctx: ExecCtx, atom: Atom) -> None:
     assert isinstance(kind, CounterKind)
     n = amount(ctx, atom, "count")
     # CR 400.7: an object the ability named that has become a new object since gets nothing
-    # (TriggerBinder._gone, legality.resolve_activated): Scavenging Ooze that left the
-    # battlefield while its ability waited. An effect that names a card in a graveyard or in
-    # exile does put counters on it there.
-    gone = ctx.binding_handles("gone") or ()
-    cards = [card for card in role_handles(ctx, atom, "target") if card not in gone]
+    # (Scavenging Ooze that left the battlefield while its ability waited): the selectors no
+    # longer find it (the ``gone`` register: IS_SOURCE, the event referent). An effect that names
+    # a card in a graveyard or in exile does put counters on it there.
+    cards = role_handles(ctx, atom, "target")
     for card in cards:
         # Blightbeetle: a card that can't have these counters put on it gets none (and no
         # replacement modifies a placement that does not happen).
@@ -1318,6 +1371,12 @@ def _v_prevent(ctx: ExecCtx, atom: Atom) -> None:
         raise NotImplementedError("executor: PREVENT_EFFECT controller scoping is 12e")
     if ctx.replacements is None:
         raise ValueError("executor: PREVENT_EFFECT needs an executor-backed ExecCtx")
+    if ctx.gone(ctx.source) and _filter_names_the_source(condition):
+        # CR 400.7: "this creature can't be blocked this turn" of a source that has become a new
+        # object since names no object. The record is judged later, outside this resolution,
+        # where the new object would pass IS_SOURCE (Frilled Sea Serpent destroyed and Brought
+        # Back while its ability waited), so none is made.
+        return
     # CR 608.2b: the targeting restrictions written beside IS_ANY_TARGET in
     # a combat slot ("another target creature with power 2 or less") are checked
     # as the ability resolves; the creatures that pass are locked in, and the
@@ -1916,23 +1975,16 @@ def _v_search(ctx: ExecCtx, atom: Atom) -> None:
         for card in cards:
             ctx.events.append((len(ctx.events), "SEARCH", str(card), "designated"))
         return
-    stayed: set[Handle] = set()
     # The owner's zone, a non-owner controller as a control entry.
     dests = {card: move_destination(ctx, dest_ir, dest_kind, card) for card in cards}
     replaced = _replaced_moves(ctx, [(card, dests[card][0], dest_kind) for card in cards])
+    hosts, stayed = _entering_hosts(ctx, cards, dests, replaced, dest_kind)
     for card in cards:
-        if card in replaced:
+        if card in replaced or card in stayed:
             continue
         target_player, new_controller = dests[card]
         src = ctx.world.zone_of(card)
-        host: Handle | None = None
-        if dest_kind == ZONE_BATTLEFIELD:
-            # CR 303.4f: the player an Aura enters under (the controller if not the owner)
-            # chooses its host.
-            enters, host = _aura_entry_host(ctx, card, new_controller or target_player)
-            if not enters:
-                stayed.add(card)  # CR 303.4g: nothing to enchant, it stays
-                continue
+        host = hosts.get(card)
         zone = ctx.world.players[target_player].zone(dest_kind)
         ctx.world.move_card(card, zone)
         if new_controller is not None:
@@ -2295,8 +2347,7 @@ def _v_choose_name(ctx: ExecCtx, atom: Atom) -> None:
         if not menu:
             raise ValueError("executor: CHOOSE_NAME has no creature type to offer (empty world)")
         pick = ctx.take_decision(menu, f"quality:{ctx.source}:{quality}")
-        executor.name_choices[(ctx.source, str(quality))] = pick
-        ctx.events.append((len(ctx.events), "CHOOSE_NAME", str(ctx.source), pick))
+        _record_choice(ctx, str(quality), pick)
         return
     name_filter = atom.args.get("name_filter")
     if name_filter is not None:
@@ -2320,7 +2371,18 @@ def _v_choose_name(ctx: ExecCtx, atom: Atom) -> None:
         )
     ordered = sorted(candidates)
     pick = ctx.take_decision(tuple(ordered), f"name:{ctx.source}")
-    executor.name_choices[(ctx.source, None)] = pick
+    _record_choice(ctx, None, pick)
+
+
+def _record_choice(ctx: ExecCtx, quality: str | None, pick: str) -> None:
+    """Record the source's choice of a name or ``quality``: on the object (Executor.name_choices,
+    until it leaves the battlefield), or, while the resolving ability's source is gone, on the
+    resolution (ExecCtx.chosen): the choice is the ability's, and the new object its card became
+    chose nothing (CR 400.7)."""
+    if ctx.gone(ctx.source):
+        ctx.chosen[quality] = pick
+    else:
+        _executor_or_raise(ctx, "CHOOSE_NAME").name_choices[(ctx.source, quality)] = pick
     ctx.events.append((len(ctx.events), "CHOOSE_NAME", str(ctx.source), pick))
 
 

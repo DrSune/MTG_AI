@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "name": "diviners_lockbox_disenchanted_in_response_still_draws",
+ "notes": "Engine wave W1's fresh-eyes review (a regression the first W1 commit had, KNOWLEDGE/2026-11-18/215 F14b). Printed: Diviner's Lockbox, '{1}, {T}: Choose a card name, then reveal the top card of your library. If that card has the chosen name, sacrifice Diviner's Lockbox and draw three cards. Activate only as a sorcery.' The opponent Disenchants the Lockbox while its ability waits; the ability still resolves (CR 113.7a): it chooses a name, reveals, and on a match draws three cards, while the sacrifice finds nothing (the Lockbox is a new object in the graveyard, CR 400.7). The name the ability chose is the resolution's (ExecCtx.chosen), not the departed object's last known choice: the first W1 commit raised here ('NAME_CHOSEN needs a CHOOSE_NAME record'), which voids a training game.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "box", "real": "Diviner's Lockbox", "zone": "battlefield", "controller": 0},
+  {"key": "disenchant", "real": "Disenchant", "zone": "hand", "controller": 1},
+  {"key": "c3", "name": "Third Card", "type": "Creature — Bear", "zone": "library", "controller": 0, "power": "2", "toughness": "2"},
+  {"key": "c2", "name": "Second Card", "type": "Creature — Bear", "zone": "library", "controller": 0, "power": "2", "toughness": "2"},
+  {"key": "c1", "name": "First Card", "type": "Creature — Bear", "zone": "library", "controller": 0, "power": "2", "toughness": "2"},
+  {"key": "top", "name": "Hidden Prize", "type": "Creature — Bear", "zone": "library", "controller": 0, "power": "2", "toughness": "2"}
+ ],
+ "mana": {"0": {"C": 1}, "1": {"W": 2}},
+ "steps": [
+  {"op": "activate", "key": "box", "idx": 0, "seat": 0, "hold": true},
+  {"op": "cast", "key": "disenchant", "real": "Disenchant", "controller": 1, "targets": ["box"], "hold": true},
+  {"op": "resolve"},
+  {"op": "resolve", "decisions": ["Hidden Prize"]}
+ ],
+ "expect": {
+  "zone": {"box": "graveyard", "disenchant": "graveyard", "top": "hand", "c1": "hand", "c2": "hand", "c3": "library"}
+ }
+}

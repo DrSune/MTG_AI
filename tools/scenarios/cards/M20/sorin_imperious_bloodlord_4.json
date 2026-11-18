@@ -37,8 +37,7 @@
    "idx": 1,
    "seat": 0,
    "decisions": [
-    "fire",
-    "player:1"
+    "fire"
    ]
   }
  ],

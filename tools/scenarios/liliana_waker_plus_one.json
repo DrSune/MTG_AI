@@ -26,10 +26,7 @@
    "op": "activate",
    "key": "wk",
    "idx": 0,
-   "seat": 0,
-   "decisions": [
-    "mine"
-   ]
+   "seat": 0
   }
  ],
  "expect": {

@@ -42,10 +42,7 @@
    "targets": [
     "ct"
    ],
-   "tap": true,
-   "decisions": [
-    "PAY"
-   ]
+   "tap": true
   }
  ],
  "expect": {
@@ -60,6 +57,7 @@
   "mana_pool": {
    "0": {},
    "1": {}
-  }
+  },
+  "kickback_asks": {"0": []}
  }
 }

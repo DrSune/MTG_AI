@@ -542,6 +542,20 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
       - New: `"controlled_by": N` on a battlefield card (seat N controls what another seat owns),
         the `revealed` lane (whose cards a REVEAL showed), the `tap` op (a tap by another effect;
         its key may be an effect-made object's handle, `"card:14"`).
+    - Since 2026-11-18 (engine wave W0, KNOWLEDGE/2026-11-18/215 G2, G3):
+      - A decision word no ask takes fails the pack, as an unoffered one does. A target with one
+        legal candidate is designated without an ask (CR 601.2c), as is a forced pick, so write
+        no word for it: it would answer the next ask instead. A word kept only for an ask that
+        must not come (a decoy) goes too; where an unanswered ask passes silently, pin its
+        absence: `"kickback_asks": {"0": []}` (a pay ask takes PASS) or `"not_asked_to_block"`
+        (a token by its handle, `"card:16"`).
+      - A two-player game that ends before the pack's last step fails the pack; the step that
+        ends it is the last.
+      - A card key may not be a word the runner reads (`p1`, `first-legal`). A cast step's
+        `player:N` word is no longer also put into its targets: name a spell's player target
+        in `targets` (`"p1"`).
+      - A `"tap": true` cast refused for anything but mana (its window) raises the engine's own
+        reason, as an untapped cast does; `cannot pay it` names the mana shortfall.
     - `end_turn` does not begin the next turn; `advance_turn` does.
     - Leaving `damage` out of `expect` asserts that no damage is marked anywhere.
     - To expect a refusal, put `"expect_raise": "<substring of the error>"` on the step.

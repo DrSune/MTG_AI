@@ -7,7 +7,7 @@
   {"key": "bear", "name": "Your Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0}
  ],
  "steps": [
-  {"op": "combat", "seat": 0, "attack": {"peg": true, "bear": true}, "decisions": ["bear"]},
+  {"op": "combat", "seat": 0, "attack": {"peg": true, "bear": true}},
   {"op": "end_turn"}
  ],
  "expect": {

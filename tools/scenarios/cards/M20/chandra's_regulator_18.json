@@ -1,0 +1,70 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "reg",
+   "real": "Chandra's Regulator",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mtn",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "shock2",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:reg:1",
+    "shock"
+   ]
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "reg": true,
+   "mtn": true
+  },
+  "graveyard": {
+   "0": [
+    "Shock"
+   ]
+  },
+  "hand": {
+   "0": 2
+  },
+  "library": {
+   "0": [
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0"
+   ]
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "Printed: '{1}, {T}, Discard a Mountain card or a red card: Draw a card.' Paid as a game pays: the Mountain on the battlefield is tapped for the {1}, the Regulator taps itself ({T}), Shock (a red card) is discarded and one card is drawn. A second red card in hand makes the discard a real choice (a single candidate is never asked)."
+}

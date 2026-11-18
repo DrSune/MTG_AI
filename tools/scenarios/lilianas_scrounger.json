@@ -71,8 +71,7 @@
   {
    "op": "end_turn",
    "decisions": [
-    "fire",
-    "lili"
+    "fire"
    ]
   }
  ],

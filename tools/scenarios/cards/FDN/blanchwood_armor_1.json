@@ -9,7 +9,7 @@
   {"key": "f1", "real": "Forest", "zone": "battlefield", "controller": 0},
   {"key": "f2", "real": "Forest", "zone": "battlefield", "controller": 0},
   {"key": "f3", "real": "Forest", "zone": "battlefield", "controller": 0},
-  {"key": "p1", "real": "Plains", "zone": "battlefield", "controller": 0},
+  {"key": "plains1", "real": "Plains", "zone": "battlefield", "controller": 0},
   {"key": "f4", "real": "Forest", "zone": "hand", "controller": 0},
   {"key": "of1", "real": "Forest", "zone": "battlefield", "controller": 1},
   {"key": "of2", "real": "Forest", "zone": "battlefield", "controller": 1}

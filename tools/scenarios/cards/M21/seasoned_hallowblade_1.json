@@ -6,7 +6,7 @@
   {"key": "pinger", "name": "Pinger", "power": 1, "toughness": 1, "type": "Creature", "zone": "battlefield", "controller": 1}
  ],
  "steps": [
-  {"op": "activate", "key": "hb", "idx": 0, "seat": 0, "decisions": ["junk"]},
+  {"op": "activate", "key": "hb", "idx": 0, "seat": 0},
   {"op": "deal_damage", "source": "pinger", "target": "hb", "amount": 5, "controller": 1}
  ],
  "expect": {

@@ -1,0 +1,92 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mr",
+   "real": "Masterful Replication",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "dk",
+   "real": "Diamond Knight",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "beta",
+   "name": "Beta Construct",
+   "type": "Artifact Creature — Construct",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 6,
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "enter",
+   "key": "dk",
+   "decisions": [
+    "R"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:mr",
+    "1",
+    "dk"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:shock",
+    "p1"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "counters": {
+   "dk": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "beta": {}
+  },
+  "power": {
+   "dk": 2,
+   "beta": 1
+  },
+  "toughness": {
+   "dk": 2,
+   "beta": 1
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "Printed: 'becomes a copy of that artifact'. A permanent that becomes a copy does not enter, and the original's 'as it enters' choice is not copied (CR 707.4, 707.6). Diamond Knight enters choosing red; Beta Construct becomes a copy of it and has the chosen-colour ability with NO colour chosen. I then cast Shock (red): Diamond Knight's 'Whenever you cast a spell of the chosen color' puts a +1/+1 counter on it (2/2); the copy sees no chosen colour and gets none (1/1)."
+}

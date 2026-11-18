@@ -6,6 +6,6 @@
   {"key": "theirs", "zone": "hand", "controller": 1, "name": "Opp Silk", "type": "Instant"}
  ],
  "steps": [
-  {"op": "activate", "key": "lil", "idx": 0, "seat": 0, "decisions": ["mine", "theirs"]}
+  {"op": "activate", "key": "lil", "idx": 0, "seat": 0}
  ],
  "expect": {"zone": {"mine": "graveyard", "theirs": "graveyard"}, "hand": {"0": 0, "1": 0}, "life": {"0": 20, "1": 20}, "counters": {"lil": {"LOYALTY": 5}}}}

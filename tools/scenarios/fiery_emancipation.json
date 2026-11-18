@@ -54,8 +54,8 @@
   {
    "op": "cast",
    "key": "shock",
-   "decisions": [
-    "player:1"
+   "targets": [
+    "p1"
    ]
   },
   {

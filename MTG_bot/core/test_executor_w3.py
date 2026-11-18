@@ -175,9 +175,9 @@ class TestStateTriggers(NineLivesCase):
     def test_a_new_object_triggers_on_its_own(self) -> None:
         """CR 603.8 with 400.7: an instance blocks the object it triggered for; Nine Lives that
         left and came back is a new object, which triggers for itself while the old instance
-        waits. Once engine wave W1 fixes F14 the old instance finds no "it" to exile (the new
-        object is not it); until then it exiles the new object (gate round W3's review, MINOR-1),
-        which this test does not pin."""
+        waits. Since engine wave W1's F14 the old instance finds no "it" to exile (the new
+        object is not it); before, it exiled the new object (gate round W3's review, MINOR-1).
+        TestMazemindTome's bounce test pins that half."""
         self.counters(9)
         with self.ex.holding_priority():
             (old,) = self.waiting()
@@ -216,6 +216,25 @@ class TestMazemindTome(unittest.TestCase):
         r.run_step({"op": "activate", "key": "tome", "ability": 0, "decisions": ["top"]})
         self.assertEqual(r.world.zone_of(r.handles["tome"]).kind, ZONE_EXILE)
         self.assertEqual(r.world.players[r.p0].life, 24)
+
+    def test_a_tome_bounced_and_replayed_while_its_exile_waits_is_left_alone(self) -> None:
+        """CR 603.8 with 400.7 (gate round W3's review, MINOR-1; engine wave W1's F14): the Tome
+        reaches four page counters and its exile trigger waits; the Tome is bounced and played
+        again, a new object with no counters. The old instance's "exile it" names nothing (its
+        source is gone), so "if you do, you gain 4 life" gains nothing, and the new Tome holds no
+        state. Before W1 the old instance exiled the new Tome and gained the life (STRONGER)."""
+        r = _runner([_card("tome", 0, real="Mazemind Tome", counters={"PAGE": 3})])
+        tome = r.handles["tome"]
+        with r.ex.holding_priority():
+            r.world.cards[tome].counters["PAGE"] = 4
+            r.ex._priority_check()
+            self.assertEqual(len([o for o in r.ex.stack.frames if o.source == tome]), 1)
+            r.run_step({"op": "move", "key": "tome", "to": "hand"})
+            r.run_step({"op": "enter", "key": "tome"})
+        r.ex._settle()
+        self.assertEqual(r.world.zone_of(tome).kind, ZONE_BATTLEFIELD)
+        self.assertEqual(r.world.cards[tome].counters.get("PAGE", 0), 0)
+        self.assertEqual(r.world.players[r.p0].life, 20)
 
 
 # ---------------------------------------------------------------------------- extra triggers

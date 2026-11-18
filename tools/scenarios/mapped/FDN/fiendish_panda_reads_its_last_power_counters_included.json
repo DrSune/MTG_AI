@@ -9,7 +9,7 @@
   {"key": "six", "name": "Grave Six", "type": "Creature — Giant", "power": "5", "toughness": "5", "cmc": 6, "zone": "graveyard", "controller": 0}
  ],
  "steps": [
-  {"op": "move", "key": "panda", "to": "graveyard", "decisions": ["five"]}
+  {"op": "move", "key": "panda", "to": "graveyard"}
  ],
  "expect": {
   "zone": {"panda": "graveyard", "five": "battlefield", "six": "graveyard"},

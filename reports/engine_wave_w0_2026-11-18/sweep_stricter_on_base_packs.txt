@@ -1,0 +1,520 @@
+FAIL brash_taunter_damaged_by_own_spell.json
+     cast: decision words no ask took: ['p1']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL brash_taunter_fight_redirects_to_opponent.json
+     activate: decision words no ask took: ['p1']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cp_weird_growth.json
+     combat: decision words no ask took: ['ATTACK']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL crypt_lurker_discard_draw.json
+     cast: decision words no ask took: ['crit']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL duress_choice_is_mandatory.json
+     cast: decision words no ask took: ['1']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL fabled_passage.json
+     activate: decision words no ask took: ['s1']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL faiths_fetters.json
+     enter: decision words no ask took: ['skip']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL fiery_emancipation.json
+     step {'op': 'cast', 'key': 'shock', 'decisions': ['player:1']}: ValueError: executor: cast: illegal target selection: selection:count_below_min:0<1
+     expect lanes this runner never checks: ['damage', 'life']
+FAIL ghostly_pilferer_unblockable.json
+     activate: decision words no ask took: ['silk']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL goremand.json
+     setup: card key 'p2' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['battlefield_keywords', 'life', 'zone']
+FAIL goremand_sacrifice_cast.json
+     cast: decision words no ask took: ['feed']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL keral_keep_disciples.json
+     activate: decision words no ask took: ['player:1']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+     activate: decision words no ask took: ['player:1']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL kinetic_augur_power_tracks_count.json
+     step {'op': 'cast', 'key': 's1', 'decisions': ['player:1']}: ValueError: executor: cast: illegal target selection: selection:count_below_min:0<1
+     expect lanes this runner never checks: ['life', 'power', 'toughness', 'zone']
+FAIL kitesail_freebooter_two_only_the_dying_ones_card_returns.json
+     enter: decision words no ask took: ['salve']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL liliana_plus_one_each_player_discards.json
+     activate: decision words no ask took: ['mine', 'theirs']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL liliana_s_devotee_branch01_twin.json
+     end_turn: decision words no ask took: ['skip']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL liliana_waker_plus_one.json
+     activate: decision words no ask took: ['mine']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL lilianas_scrounger.json
+     end_turn: decision words no ask took: ['lili']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL mind_rot.json
+     step {'op': 'cast', 'real': 'Mind Rot', 'key': 'mr', 'decisions': ['c1', 'c2', 'player:1']}: ValueError: executor: cast: illegal target selection: selection:count_below_min:0<1
+     expect lanes this runner never checks: ['graveyard', 'hand', 'life', 'zone']
+FAIL mind_rot_target_player_chooses.json
+     step {'op': 'cast', 'real': 'Mind Rot', 'key': 'mr', 'decisions': ['c2', 'c3', 'player:1']}: ValueError: executor: cast: illegal target selection: selection:count_below_min:0<1
+     expect lanes this runner never checks: ['hand', 'zone']
+FAIL miscast_unless_paid_with_lands.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['damage', 'life', 'mana_pool', 'tapped', 'zone']
+FAIL peer_into_the_abyss.json
+     step {'op': 'cast', 'real': 'Peer into the Abyss', 'key': 'sp', 'decisions': ['player:1']}: ValueError: executor: cast: illegal target selection: selection:count_below_min:0<1
+     expect lanes this runner never checks: ['hand', 'life']
+FAIL peer_into_the_abyss_life_half.json
+     step {'op': 'cast', 'real': 'Peer into the Abyss', 'key': 'sp', 'decisions': ['player:1']}: ValueError: executor: cast: illegal target selection: selection:count_below_min:0<1
+     expect lanes this runner never checks: ['hand', 'life', 'zone']
+FAIL peer_into_the_abyss_self_target.json
+     step {'op': 'cast', 'real': 'Peer into the Abyss', 'key': 'sp', 'decisions': ['player:0']}: ValueError: executor: cast: illegal target selection: selection:count_below_min:0<1
+     expect lanes this runner never checks: ['hand', 'life']
+FAIL portcullis_vine.json
+     activate: decision words no ask took: ['v']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL primal_might_hexproof_not_fought.json
+     cast: decision words no ask took: ['hexer']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL primal_might_up_to_one_declined.json
+     cast: decision words no ask took: ['NONE']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL rambunctious_mutt.json
+     enter: decision words no ask took: ['zz']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL rewind_untap_choice.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['damage', 'tapped', 'zone']
+FAIL runed_halo_protects_player.json
+     step {'op': 'cast', 'real': 'Shock', 'key': 's', 'controller': 1, 'decisions': ['player:0'], 'expect_raise': 'illegal'}: expected raise 'illegal', but it succeeded
+     expect lanes this runner never checks: ['life', 'zone']
+FAIL seasoned_hallowblade.json
+     activate: decision words no ask took: ['h']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL shipwreck_dowser.json
+     enter: decision words no ask took: ['zz']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL sparkhunter_masticore.json
+     cast: decision words no ask took: ['fuel']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL spirit_of_malevolence_dies_trigger.json
+     deal_damage: decision words no ask took: ['foe']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL tolarian_kraken_not_on_put_into_hand.json
+     activate: decision words no ask took: ['wk', 'fire', 'fire', '0']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL traitorous_greed_then_village_rites_sacrifices_the_stolen_creature.json
+     cast: decision words no ask took: ['B']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL turn_history_fathom_fleet_cutthroat.json
+     enter: decision words no ask took: ['hit']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL village_rites_sacrifice_drains_once_with_massacre_wurm.json
+     cast: decision words no ask took: ['fod']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL volcanic_salvo.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['zone']
+FAIL warden_of_the_woods.json
+     cast: decision words no ask took: ['fire']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL znr_murasa_sproutling_kick.json
+     cast: decision words no ask took: ['kc']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL znr_nullpriest_blink_kick.json
+     cast: decision words no ask took: ['crag']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+== top: 764/806 passed
+FAIL cards/FDN/blanchwood_armor_1.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['attached', 'power', 'toughness', 'zone']
+FAIL cards/FDN/brineborn_cutthroat_1.json
+     cast: decision words no ask took: ['first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/crossway_troublemakers_7.json
+     deal_damage: decision words no ask took: ['fire']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/firespitter_whelp_1.json
+     cast: decision words no ask took: ['first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+     cast: decision words no ask took: ['first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/firespitter_whelp_2.json
+     cast: decision words no ask took: ['first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/firespitter_whelp_3.json
+     cast: decision words no ask took: ['first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/firespitter_whelp_4.json
+     cast: decision words no ask took: ['first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/gnarlid_colony_2.json
+     activate: decision words no ask took: ['fodder']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/grow_from_the_ashes_4.json
+     cast: decision words no ask took: ['forest']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/guttersnipe_1.json
+     cast: decision words no ask took: ['first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+     cast: decision words no ask took: ['first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/guttersnipe_2.json
+     cast: decision words no ask took: ['first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/guttersnipe_3.json
+     cast: decision words no ask took: ['first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/halana_and_alena_partners_7.json
+     combat: decision words no ask took: ['bear']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/high-society_hunter_4.json
+     combat: decision words no ask took: ['tok']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/icewind_elemental_2.json
+     cast: decision words no ask took: ['first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/incinerating_blast_1.json
+     cast: decision words no ask took: ['first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/joust_through_1.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['damage', 'hand', 'life', 'mana_pool', 'zone']
+FAIL cards/FDN/joust_through_2.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['hand', 'life', 'mana_pool', 'zone']
+FAIL cards/FDN/make_a_stand_1.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['damage', 'life', 'mana_pool', 'power', 'toughness', 'zone']
+FAIL cards/FDN/make_a_stand_2.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['damage', 'life', 'power', 'turn_seats', 'zone']
+FAIL cards/FDN/nullpriest_of_oblivion_1.json
+     cast: decision words no ask took: ['dead']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/seize_the_spoils_2.json
+     cast: decision words no ask took: ['G']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/spinner_of_souls_2.json
+     deal_damage: decision words no ask took: ['fire']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/stasis_snare_1.json
+     cast: decision words no ask took: ['wolf']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/stasis_snare_2.json
+     cast: decision words no ask took: ['wolf']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/stasis_snare_3.json
+     cast: decision words no ask took: ['wolf']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/stasis_snare_4.json
+     enter: decision words no ask took: ['wolf']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/FDN/vivien_reid_2.json
+     activate: decision words no ask took: ['first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/anticipate_2.json
+     cast: decision words no ask took: ['card:5']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/anticipate_3.json
+     cast: decision words no ask took: ['card:6']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/bloodsoaked_altar_7.json
+     combat: decision words no ask took: ['apo']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/boreal_elemental_3.json
+     cast: decision words no ask took: ['opp_boreal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/cavalier_of_dawn_4.json
+     deal_damage: decision words no ask took: ['pac']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/cavalier_of_gales_1.json
+     deal_damage: decision words no ask took: ['card:4']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/cavalier_of_gales_2.json
+     deal_damage: decision words no ask took: ['card:2']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/chandra's_flame_wave_6.json
+     cast: decision words no ask took: ['card:1']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/goblin_ringleader_1.json
+     cast: decision words no ask took: ['n2']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/golos_tireless_pilgrim_1.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['hand', 'tapped', 'zone']
+FAIL cards/M20/golos_tireless_pilgrim_2.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['zone']
+FAIL cards/M20/golos_tireless_pilgrim_3.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['tapped', 'zone']
+FAIL cards/M20/octoprophet_1.json
+     enter: decision words no ask took: ['a']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/scholar_of_the_ages_1.json
+     cast: decision words no ask took: ['inst_c']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/season_of_growth_5.json
+     enter: decision words no ask took: ['bottom']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/sorin_imperious_bloodlord_1.json
+     activate: decision words no ask took: ['vh']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/sorin_imperious_bloodlord_4.json
+     activate: decision words no ask took: ['player:1']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/starfield_mystic_10.json
+     cast: decision words no ask took: ['obear']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/temple_of_malady_1.json
+     play: decision words no ask took: ['bottom']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/temple_of_silence_2.json
+     play: decision words no ask took: ['bottom']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/temple_of_triumph_1.json
+     play: decision words no ask took: ['bottom']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/trusted_pegasus_1.json
+     combat: decision words no ask took: ['bear']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M20/trusted_pegasus_2.json
+     combat: decision words no ask took: ['bear']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/basri's_aegis_4.json
+     cast: decision words no ask took: ['card:2']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/chandra's_firemaw_5.json
+     enter: decision words no ask took: ['mine']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/chandra's_incinerator_1.json
+     step {'op': 'cast', 'key': 's1', 'decisions': ['player:1']}: ValueError: executor: cast: illegal target selection: selection:count_below_min:0<1
+     expect lanes this runner never checks: ['life', 'mana_pool', 'zone']
+FAIL cards/M21/chandra's_incinerator_3.json
+     step {'op': 'cast', 'key': 's1', 'decisions': ['player:1']}: ValueError: executor: cast: illegal target selection: selection:count_below_min:0<1
+     expect lanes this runner never checks: ['life', 'mana_pool', 'zone']
+FAIL cards/M21/chandra's_incinerator_4.json
+     step {'op': 'cast', 'key': 's1', 'decisions': ['player:1']}: ValueError: executor: cast: illegal target selection: selection:count_below_min:0<1
+     expect lanes this runner never checks: ['damage_received', 'life', 'zone']
+FAIL cards/M21/chandra's_incinerator_5.json
+     step {'op': 'cast', 'key': 's1', 'decisions': ['player:1']}: ValueError: executor: cast: illegal target selection: selection:count_below_min:0<1
+     expect lanes this runner never checks: ['counters', 'life', 'zone']
+FAIL cards/M21/dire_fleet_warmonger_1.json
+     combat: decision words no ask took: ['fod']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/dire_fleet_warmonger_2.json
+     combat: decision words no ask took: ['opp_c', 'wm']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/duress_2.json
+     cast: decision words no ask took: ['0']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/fabled_passage_1.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['tapped', 'zone']
+FAIL cards/M21/fabled_passage_10.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['controller', 'tapped', 'zone']
+FAIL cards/M21/fabled_passage_2.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['tapped', 'zone']
+FAIL cards/M21/fabled_passage_3.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['tapped', 'zone']
+FAIL cards/M21/fabled_passage_4.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['library', 'tapped', 'zone']
+FAIL cards/M21/fabled_passage_5.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['tapped', 'zone']
+FAIL cards/M21/fabled_passage_6.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['library', 'tapped', 'zone']
+FAIL cards/M21/fabled_passage_9.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['library', 'tapped', 'zone']
+FAIL cards/M21/fabled_passage_fetched_land_taps_for_mana.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['mana_pool', 'tapped', 'zone']
+FAIL cards/M21/feline_sovereign_once_per_combat_damage_step.json
+     combat: decision words no ask took: ['charm']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/feline_sovereign_triggers_after_a_non_cat_deals_damage_first.json
+     combat: decision words no ask took: ['charm']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/fierce_empath_1.json
+     enter: decision words no ask took: ['mid5']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/fierce_empath_5.json
+     cast: decision words no ask took: ['first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/garruk's_harbinger_10.json
+     combat: decision words no ask took: ['pick']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/garruk's_harbinger_6.json
+     combat: decision words no ask took: ['pick']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/garruk's_warsteed_4.json
+     enter: decision words no ask took: ['mine']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/ghostly_pilferer_5.json
+     activate: decision words no ask took: ['silk']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/hobblefiend_1.json
+     activate: decision words no ask took: ['fod']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/idol_of_endurance_4.json
+     activate: decision words no ask took: ['skip']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/jeskai_elder_4.json
+     step {'op': 'cast', 'key': 's', 'real': 'Shock', 'decisions': ['player:1']}: ValueError: executor: cast: illegal target selection: selection:count_below_min:0<1
+     expect lanes this runner never checks: ['life', 'power', 'toughness']
+FAIL cards/M21/keral_keep_disciples_1.json
+     activate: decision words no ask took: ['player:0']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+     activate: decision words no ask took: ['player:1']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/keral_keep_disciples_2.json
+     activate: decision words no ask took: ['player:1']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/keral_keep_disciples_3.json
+     activate: decision words no ask took: ['player:0']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/kitesail_freebooter_1.json
+     enter: decision words no ask took: ['zap']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/kitesail_freebooter_2.json
+     enter: decision words no ask took: ['zap']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/liliana's_devotee_4.json
+     end_turn: decision words no ask took: ['fire']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/liliana's_devotee_5.json
+     end_turn: decision words no ask took: ['fire']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/liliana's_scorn_4.json
+     cast: decision words no ask took: ['card:2']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/liliana's_scrounger_1.json
+     end_turn: decision words no ask took: ['olili']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/liliana's_scrounger_2.json
+     end_turn: decision words no ask took: ['fire', 'lili']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/liliana's_scrounger_4.json
+     end_turn: decision words no ask took: ['lili']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+     end_turn: decision words no ask took: ['fire', 'lili']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/liliana's_scrounger_5.json
+     end_turn: decision words no ask took: ['fire', 'lili']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+     end_turn: decision words no ask took: ['lili']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/liliana_waker_of_the_dead_1.json
+     activate: decision words no ask took: ['mine']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/liliana_waker_of_the_dead_13.json
+     activate: decision words no ask took: ['mine', 'theirs']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/liliana_waker_of_the_dead_14.json
+     activate: decision words no ask took: ['theirs']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/liliana_waker_of_the_dead_15.json
+     activate: decision words no ask took: ['s2card']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/liliana_waker_of_the_dead_19.json
+     combat: decision words no ask took: ['dead']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/liliana_waker_of_the_dead_20.json
+     combat: decision words no ask took: ['dead']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/liliana_waker_of_the_dead_6.json
+     activate: decision words no ask took: ['first-legal', 'first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/liliana_waker_of_the_dead_7.json
+     activate: decision words no ask took: ['first-legal', 'first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/lofty_denial_13.json
+     enter: decision words no ask took: ['PAY']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/lofty_denial_2.json
+     cast: decision words no ask took: ['PAY']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/lofty_denial_5.json
+     cast: decision words no ask took: ['PAY']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/lofty_denial_6.json
+     cast: decision words no ask took: ['PAY']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/lofty_denial_9.json
+     cast: decision words no ask took: ['PAY']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/mind_rot_1.json
+     step {'op': 'cast', 'real': 'Mind Rot', 'key': 'mr', 'decisions': ['a', 'g', 'player:1']}: ValueError: executor: cast: illegal target selection: selection:count_below_min:0<1
+     expect lanes this runner never checks: ['hand', 'zone']
+FAIL cards/M21/miscast_2.json
+     cast: decision words no ask took: ['PAY']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/mistral_singer_2.json
+     step {'op': 'cast', 'real': 'Shock', 'key': 'osh', 'controller': 1, 'decisions': ['player:0']}: ValueError: executor: cast: illegal target selection: selection:count_below_min:0<1
+     expect lanes this runner never checks: ['life', 'power', 'toughness', 'zone']
+FAIL cards/M21/niambi_esteemed_speaker_1.json
+     activate: decision words no ask took: ['leg']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/portcullis_vine_2.json
+     activate: decision words no ask took: ['bear']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/portcullis_vine_3.json
+     activate: decision words no ask took: ['oppwall']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/pursued_whale_1.json
+     combat: decision words no ask took: ['first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/pursued_whale_2.json
+     combat: decision words no ask took: ['first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/pursued_whale_4.json
+     combat: decision words no ask took: ['first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/rewind_1.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['mana_pool', 'tapped', 'zone']
+FAIL cards/M21/riddleform_3.json
+     cast: decision words no ask took: ['fire']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/sanctum_of_all_1.json
+     advance_turn: decision words no ask took: ['sh']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/sanctum_of_all_12.json
+     advance_turn: decision words no ask took: ['first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal']; a target or pick with one legal candidate is made without an ask (CR 60
+FAIL cards/M21/sanctum_of_all_15.json
+     advance_turn: decision words no ask took: ['first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal', 'first-legal
+FAIL cards/M21/sanctum_of_all_18.json
+     advance_turn: decision words no ask took: ['gy']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/sanctum_of_all_19.json
+     advance_turn: decision words no ask took: ['lib']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/sanctum_of_all_2.json
+     advance_turn: decision words no ask took: ['sh']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/sanctum_of_all_21.json
+     advance_turn: decision words no ask took: ['gy']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/sanctum_of_all_26.json
+     advance_turn: decision words no ask took: ['la']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/sanctum_of_all_27.json
+     advance_turn: decision words no ask took: ['sl']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/sanctum_of_all_28.json
+     advance_turn: decision words no ask took: ['sg']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/sanctum_of_all_32.json
+     advance_turn: decision words no ask took: ['lb']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/sanctum_of_all_33.json
+     advance_turn: decision words no ask took: ['gb']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/sanctum_of_fruitful_harvest_1.json
+     advance_turn: decision words no ask took: ['G']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/sanctum_of_fruitful_harvest_2.json
+     advance_turn: decision words no ask took: ['G']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/sanctum_of_fruitful_harvest_3.json
+     advance_turn: decision words no ask took: ['G']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/seasoned_hallowblade_1.json
+     activate: decision words no ask took: ['junk']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/sparkhunter_masticore_1.json
+     activate: decision words no ask took: ['player:1']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/spined_megalodon_3.json
+     combat: decision words no ask took: ['bottom']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/teferi's_wavecaster_2.json
+     enter: decision words no ask took: ['tva']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/teferi's_wavecaster_3.json
+     enter: decision words no ask took: ['tva']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/teferi's_wavecaster_5.json
+     enter: decision words no ask took: ['mine']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/ugin_the_spirit_dragon_1.json
+     activate: decision words no ask took: ['NONE']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/ugin_the_spirit_dragon_2.json
+     activate: decision words no ask took: ['NONE']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/ugin_the_spirit_dragon_3.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['hand', 'life', 'zone']
+FAIL cards/M21/unsubstantiate_2.json
+     activate: decision words no ask took: ['top']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/village_rites_1.json
+     cast: decision words no ask took: ['spirit']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/warden_of_the_woods_3.json
+     cast: decision words no ask took: ['fire']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL cards/M21/warden_of_the_woods_4.json
+     cast: decision words no ask took: ['fire']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+== cards: 1882/2026 passed
+FAIL mapped/FDN/ashroot_animist_shares_its_power_and_trample.json
+     combat: decision words no ask took: ['bear']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL mapped/FDN/brass_bounty_a_treasure_per_land_you_control.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['mana_pool', 'tokens', 'zone']
+FAIL mapped/FDN/burrog_befuddler_effect_ends_with_the_turn.json
+     enter: decision words no ask took: ['brute']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL mapped/FDN/burrog_befuddler_minus_one_power_this_turn.json
+     enter: decision words no ask took: ['brute']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL mapped/FDN/campus_guide_basic_land_goes_on_top_after_the_shuffle.json
+     enter: decision words no ask took: ['forest']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL mapped/FDN/campus_guide_offers_only_basic_lands.json
+     enter: decision words no ask took: ['desert']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL mapped/FDN/fiendish_panda_reads_its_last_power_counters_included.json
+     move: decision words no ask took: ['five']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL mapped/FDN/halana_and_alena_counters_equal_power_haste_this_turn.json
+     combat: decision words no ask took: ['cub']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL mapped/FDN/halana_and_alena_negative_power_puts_no_counters.json
+     combat: decision words no ask took: ['bear']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL mapped/FDN/hoarding_dragon_a_returned_dragon_forgets_its_first_card.json
+     enter: decision words no ask took: ['idol']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL mapped/FDN/hoarding_dragon_exiles_an_artifact_and_returns_it_on_death.json
+     enter: decision words no ask took: ['relic']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL mapped/FDN/ingenious_leonin_costs_three_and_white_paid_from_lands.json
+     setup: card key 'p1' is a word the runner reads itself: rename the card
+     expect lanes this runner never checks: ['battlefield_keywords', 'counters', 'life', 'tapped']
+FAIL mapped/FDN/loot_offers_only_creatures_up_to_your_land_count.json
+     activate: decision words no ask took: ['first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL mapped/FDN/micromancer_finds_no_mana_value_zero_or_two.json
+     enter: decision words no ask took: ['zero']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL mapped/FDN/new_horizons_land_taps_for_two_of_one_color.json
+     cast: decision words no ask took: ['bear']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL mapped/FDN/squad_rallier_offers_only_power_two_or_less_creatures.json
+     activate: decision words no ask took: ['first-legal']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL mapped/FDN/voracious_greatshark_counters_a_creature_spell.json
+     cast: decision words no ask took: ['elves']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL mapped/FDN/voracious_greatshark_counters_an_artifact_spell.json
+     cast: decision words no ask took: ['pick']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL mapped/FDN/wardens_of_the_cycle_morbid_gain_then_quiet_turn.json
+     end_turn: decision words no ask took: ['DECLINE']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+FAIL mapped/M20/cavalier_of_night_3.json
+     deal_damage: decision words no ask took: ['g3']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+== mapped: 367/387 passed
+FAIL known_bugs/2026-11-17/lathril_tap_cost_never_taps_its_source/lathril_cannot_tap_herself_as_one_of_the_ten.json
+     step {'op': 'activate', 'key': 'lathril', 'idx': 1, 'seat': 0, 'expect_raise': 'cost:tap:insufficient_candidates:9<10'}: expected raise 'cost:tap:insufficient_candidates:9<10', got ValueError: ability_playable: card:0 has no ability idx 1
+     expect lanes this runner never checks: ['life', 'tapped']
+FAIL known_bugs/2026-11-17/lathril_tap_cost_never_taps_its_source/lathril_combat_damage_to_a_player_makes_that_many_elves.json
+     tokens[Elf Warrior]: expected 2, got 0
+FAIL known_bugs/2026-11-17/lathril_tap_cost_never_taps_its_source/lathril_new_elves_can_be_tapped_for_the_cost.json
+     step {'op': 'activate', 'key': 'lathril', 'idx': 1, 'seat': 0}: ValueError: ability_playable: card:0 has no ability idx 1
+     expect lanes this runner never checks: ['life', 'tapped']
+FAIL known_bugs/2026-11-17/lathril_tap_cost_never_taps_its_source/lathril_ten_other_elves_drain_ten.json
+     step {'op': 'activate', 'key': 'lathril', 'idx': 1, 'seat': 0}: ValueError: ability_playable: card:0 has no ability idx 1
+     expect lanes this runner never checks: ['life', 'tapped']
+FAIL known_bugs/2026-11-17/midnight_snack_life_gained_this_turn_not_implemented/midnight_snack_drains_the_life_you_gained.json
+     step {'op': 'activate', 'key': 'snack', 'idx': 1, 'seat': 0, 'targets': ['p1']}: ValueError: ability_playable: card:0 has no ability idx 1
+     expect lanes this runner never checks: ['life', 'zone']
+FAIL known_bugs/2026-11-17/midnight_snack_life_gained_this_turn_not_implemented/midnight_snack_raid_makes_a_food_token.json
+     tokens[Food]: expected 1, got 0
+FAIL known_bugs/2026-11-17/payer_never_pays_a_filter/prismite.json
+     step {'op': 'activate', 'key': 'p', 'idx': 0, 'seat': 0, 'decisions': ['B']}: PackError: activate p [0]: a mana ability is no menu row (since 2026-11-11): a game activates it only while paying a cost (CR 605.3a, the automatic payer), so a pack pays with it, a cast with "tap": true or an act step, and pins what it made
+     expect lanes this runner never checks: ['hand', 'zone']
+FAIL known_bugs/2026-11-17/payer_never_pays_a_filter/prismite_g_spinner.json
+     step {'op': 'activate', 'key': 'p', 'idx': 0, 'seat': 0, 'decisions': ['G']}: PackError: activate p [0]: a mana ability is no menu row (since 2026-11-11): a game activates it only while paying a cost (CR 605.3a, the automatic payer), so a pack pays with it, a cast with "tap": true or an act step, and pins what it made
+     expect lanes this runner never checks: ['hand', 'life', 'power', 'toughness', 'zone']
+FAIL known_bugs/2026-11-17/payer_never_pays_a_filter/prismite_u_singer.json
+     step {'op': 'activate', 'key': 'p', 'idx': 0, 'seat': 0, 'decisions': ['U']}: PackError: activate p [0]: a mana ability is no menu row (since 2026-11-11): a game activates it only while paying a cost (CR 605.3a, the automatic payer), so a pack pays with it, a cast with "tap": true or an act step, and pins what it made
+     expect lanes this runner never checks: ['hand', 'life', 'power', 'toughness', 'zone']
+FAIL known_bugs/2026-11-18/aura_returned_with_its_creature_enchants_it/brought_back_aura_cannot_enchant_the_creature_returning_with_it.json
+     zone[oak]: expected graveyard, got battlefield
+     attached[oak]: expected None, got card:0
+     power[bear]: expected 2, got 5
+     toughness[bear]: expected 2, got 5
+FAIL known_bugs/2026-11-18/aura_stays_on_a_host_its_enchant_no_longer_allows/dub_falls_off_riddleform_when_its_animation_ends.json
+     zone[dub]: expected graveyard, got battlefield
+     attached[dub]: expected None, got card:0
+FAIL known_bugs/2026-11-18/cast_time_target_restriction_rechecked_at_resolution/enthralling_hold_resolves_after_its_target_untaps.json
+     zone[eh]: expected battlefield, got graveyard
+     attached[eh]: expected ox, got None
+     controller[ox]: expected 0, got 1
+FAIL known_bugs/2026-11-18/lifelink_damage_to_its_own_controller_is_no_life_gain/midnight_reaper_with_lifelink_feeds_ajanis_pridemate.json
+     counters[pm]: expected {'PLUS_1_PLUS_1': 1}, got {}
+FAIL known_bugs/2026-11-18/source_left_and_came_back_still_acted_on/colossus_hammer_equip_misses_the_hammer_brought_back.json
+     attached[hammer]: expected None, got card:1
+     power[bear]: expected 2, got 12
+     toughness[bear]: expected 2, got 12
+FAIL known_bugs/2026-11-18/source_left_and_came_back_still_acted_on/griffin_protector_pump_misses_the_protector_brought_back.json
+     power[gp]: expected 2, got 3
+     toughness[gp]: expected 3, got 4
+FAIL known_bugs/2026-11-18/source_left_and_came_back_still_acted_on/watcher_of_the_spheres_pump_misses_the_watcher_stitched_back.json
+     power[w]: expected 2, got 3
+     toughness[w]: expected 2, got 3
+FAIL known_bugs/furious_rise_play_the_exiled_card.json
+     step {'op': 'act', 'seat': 0, 'words': ['cast:dog']}: PackError: act: words no ask took: ['cast:card:2']
+     expect lanes this runner never checks: ['turn_seats', 'zone']
+FAIL known_bugs/kalastria_highborn_target_player_never_designated.json
+     life[0]: expected 22, got 20
+     life[1]: expected 18, got 20
+     may:card:0:05a3c171902c: pack word 'player:1' not offered in ('fire', 'skip')
+     move: decision words no ask took: ['fire']; a target or pick with one legal candidate is made without an ask (CR 601.2c), so a word written for it is left over or drifts onto the next ask
+== known: 3/21 passed
+elapsed 16s

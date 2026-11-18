@@ -1,0 +1,93 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mr",
+   "real": "Masterful Replication",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mr2",
+   "real": "Masterful Replication",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "alpha",
+   "name": "Alpha Golem",
+   "type": "Artifact Creature — Golem",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "beta",
+   "name": "Beta Construct",
+   "type": "Artifact Creature — Construct",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "zeta",
+   "name": "Zeta Droid",
+   "type": "Artifact Creature — Construct",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 12
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:mr",
+    "1",
+    "zeta"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:mr2",
+    "1",
+    "alpha"
+   ]
+  }
+ ],
+ "expect": {
+  "power": {
+   "alpha": 2,
+   "beta": 2,
+   "zeta": 2
+  },
+  "toughness": {
+   "alpha": 2,
+   "beta": 2,
+   "zeta": 2
+  },
+  "zone": {
+   "mr": "graveyard",
+   "mr2": "graveyard"
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "Printed: 'becomes a copy of that artifact' and CR 707.3 (a copy of a copy copies the copy's copiable values). First Masterful Replication targets Zeta Droid (2/2): Alpha Golem (4/4) and Beta Construct (1/1) become copies of it. The second targets Alpha, which is now a copy of Zeta Droid: the others copy what Alpha is NOW (a 2/2 Zeta Droid), not the printed 4/4 Alpha Golem: all three are 2/2."
+}

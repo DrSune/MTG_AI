@@ -11,7 +11,7 @@
  ],
  "mana": {"0": {"B": 3}},
  "steps": [
-  {"op": "cast", "real": "Mind Rot", "key": "mr", "decisions": ["a", "g", "player:1"]}
+  {"op": "cast", "real": "Mind Rot", "key": "mr", "targets": ["p1"], "decisions": ["a", "g"]}
  ],
  "expect": {
   "zone": {"mr": "graveyard", "a": "graveyard", "b": "hand", "g": "graveyard", "mine": "hand"},

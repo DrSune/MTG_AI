@@ -389,9 +389,21 @@ Every assumption-transfer check below compares a method's setting with this one:
 - the trainer's optimizer: it covers every parameter.
 
 **Inference cost.** When the value is asked for, the branch adds K/L of the trunk's forward work:
-+25% at K = 2 of 8. Play without search does not ask for it. The GPU smoke measures rows a second.
-If inference binds, the trainer can compute V for the batch instead: with γ = λ = 1 any function
-of the state is a valid baseline.
++25% at K = 2 of 8. Play without search does not ask for it, but the actors do ask for V on every
+recorded decision (`actor.py:142-149`). If inference binds, the trainer can compute V for the batch
+instead: with γ = λ = 1 any function of the state is a valid baseline.
+
+**Training cost** (corrected after KNOWLEDGE/2026-11-18/216 N2: the first draft counted the actors
+only).
+- The trainer always computes V. K = 2 branch layers on every token are 2 more encoder layers in
+  the forward and the backward: 10 layer-passes against 8, +25% of the encoder's work. The encoder
+  is 25.2M of 28.07M parameters.
+- r29b is train-bound (160 s an update), so V's updates are slower. At 11 matched machine-hours V
+  would get about 176 updates to C's 220.
+- **So:**
+  - the arms are matched on updates (PLAN_LONG_RUN, the multi-arm A/B);
+  - the throughput read R7 below reports V's rows per machine-hour over C's;
+  - the cost goes on PLAN_LONG_RUN's throughput budget.
 
 **Tests that fail on today's code:**
 1. A converted network gives bitwise the same logits and value on CPU over 2,000 recorded
@@ -456,6 +468,15 @@ of the state is a valid baseline.
     differs from A by less than that.
   - Otherwise the value's share does not dilute the policy's learning on today's network. The
     A/B's treatment is then the cross-entropy loss alone, on the shared trunk.
+  - **That fallback, with its coefficient halved** (216 N10). Cross-entropy raises the value's
+    gradient at confident errors by 3-6× (§1.3 e). Without the detach, that *increases* the
+    value's pull on the trunk, which this item set out to reduce. So the loss-alone arm runs at
+    half today's value coefficient, and R4 (drift) is read as a kill for it, not as a read.
+- **The rule's numbers are hand-set** (216 N5; §8):
+  - "20%" and "three of the five kinds" rest on A2, the noise gauge: a difference A2 does not
+    reach is not noise.
+  - What replaces them: a paired test over the kinds, once the per-kind alignment's own spread is
+    measured.
 - **Why it comes first.**
   - M1 is eight days and about 2,000 updates old.
   - Under Adam any single-loss update moves each coordinate by about lr, so D's KL alone (189's
@@ -477,20 +498,26 @@ of the state is a valid baseline.
 | R3 | **The value:** `ev_turn` over each arm's last 50 updates | V ≥ C − 0.02 in every bucket holding at least 5% of decisions; V > C in turns 1-6 | V below C − 0.05 in any such bucket |
 | R4 | **Drift:** directedness, the Hellinger displacement from the init over the path length through snapshots every 25 updates, on a fixed probe set of 20,000 held-out decisions from the init's games (CPU) | V > C | V < C − 0.05 |
 | R4b | **Drift:** kinds_split on each arm's 100% snapshot, alignment per unit of movement | V ≥ C in at least three of the five frequent kinds | — |
-| R5 | **The puzzles:** every category, both arms' 100% snapshots (`tools/puzzles/runner.py`) | no category's twin-consistent pass rate falls. The value's C-pair margins: V ≥ C, C2's at least 0.05 | a category falls by one pair or more |
+| R5 | **The puzzles:** the whole suite, both arms' 100% snapshots (`tools/puzzles/runner.py`, the tracker carried) | the twin-consistent pair count and the mean probability on the right options, bootstrapped over puzzles: V ≥ C. The value's C-pair margins: V ≥ C, C2's at least 0.05 | none. A category falling by a pair is reported, not a falsifier (216 N3): categories hold 1-2 pairs, and one greedy flip moves them |
 | R6 | **Entropy:** the logged `ent` over the last 50 updates | V within ±0.02 of C | outside: a registered finding (W3) |
+| R7 | **Throughput** (216 N2): trained rows per machine-hour, V over C | 0.75-0.90 at K = 2 | below 0.75: K = 1, or V computed in the trainer only, through the smoke again |
 
 - **Kill V when:**
   - EV is below 0.20 for 10 consecutive updates (C runs about 0.33);
   - any update's `kl` exceeds 0.05;
   - a non-finite loss appears;
   - the run's standard guards fire (the mulligan at 1.80, the memory floor).
-- **The decision, made mechanically:**
-  - **Adopt V for the long run** if R1 and R2 are not falsified, R3 is not falsified, and R3 or R4
-    favours V.
+- **The decision, made mechanically** (corrected after 216 N1: the first draft adopted by
+  construction, since V's own branch and loss all but guarantee its EV is not below C's, and R3
+  alone could carry the adoption):
+  - **Adopt V for the long run as a policy improvement** if R1 and R2 are not falsified, R3 is not
+    falsified, and **R4 or R4b favours V**: the mechanism this item exists for, the policy's
+    directedness or its alignment per unit of movement.
+  - **If only R3 favours V**, the package is adopted for its later uses (the search's leaves, the
+    plan's style critic), not as a policy improvement. The long run's registration says so.
   - **"Favours" means beyond twice the read's own standard error.** For R3 that is the spread of
-    the per-update `ev_turn` over the 50 updates. For R4 it is a bootstrap over the probe set's
-    decisions.
+    the per-update `ev_turn` over the 50 updates. For R4 it is a bootstrap that **resamples games**,
+    not decisions (216 N4): one game's decisions share its states and its outcome.
   - **If R1 or R2 is falsified with R3 intact:** the value's shaping was useful. PPG-lite is
     registered next.
   - **If R3 is falsified:** K = 3, or the auxiliary targets on the branch, through stage 0 again.
@@ -693,6 +720,9 @@ in imperfect-information games (Gilpin and Sandholm 2007).
     Empath), or moves every candidate out of the library (Cavalier of Thorns' five revealed cards).
     That is a static read of the resolving effect's remaining atoms. Without it, two equal cards at
     different depths stay two options, because the one left behind is drawn at a different time.
+  - **That read is an engine accessor** (216 N8: engine knowledge in the actor is patchwork). A
+    `query` function, with its own test, answers "does a library position matter for this
+    resolution". The actor calls it.
 - **Validation (a test).** Over the detector's recorded decisions, no two options the key merges
   have different state signatures. The detector refines the key, never the reverse.
 - **What it changes for an old network.** Its distribution over distinct moves loses the
@@ -705,8 +735,10 @@ in imperfect-information games (Gilpin and Sandholm 2007).
 **F4. A may whose action can do nothing now is not offered** (`query.optional_offer`).
 - **What changes.** The narrowing also covers a CHOOSE, TARGET or ALL selection over an empty
   candidate set, when the action does nothing without its objects.
-- **Why it is exact.** CR 117.3: no resources, no action. The engine's own principle, applied to
-  more selector shapes.
+- **Why it is exact.** A phantom decision removed under AGENTS §10: the choice has no
+  consequence. Corrected after 216 N6: the first draft cited CR 117.3, which is about priority.
+  The rules that apply are 608.2d and 609.3: an impossible part of an effect is skipped. In paper
+  play the "may" is still a choice; for the bot it is a decision of nothing.
 - **Tests.** Liliana's Scrounger with no Liliana asks nothing; Experimental Overload with no
   instant or sorcery in the graveyard asks nothing.
 
@@ -822,6 +854,12 @@ planner build's `C_PLAN_WHEN`..`C_PLAN_TARGET` (§6) and the built `P_GAINED`..`
 - `F_EVENT_N`, a stack trigger's firing count or amount ÷ 5. It is read from the stack object's own
   bindings: the event's objects (`binding.py:1675-1681`) or the event's amount;
 - memory's `F_KNOWN`, `F_LIB_POS` and `F_OPP_KNOWS` (§4).
+
+**Columns and entities differ** (216 N9). "Every column exists from the start, and flags decide
+which are filled" holds for columns. It does not hold for entities: memory's known cards and the
+emblems are tokens, and new tokens change what attention spreads over (§3.3). So a flag that turns
+an entity type on mid-run is a shift, bounded only by the measured KL. The pilot runs with every
+entity type the long run will carry.
 
 **Card pointer columns** (`cards_i`, entity + 1, 0 = none). Each has its own linear map, which
 `upgraded` sets to zero for a checkpoint that lacks it (`model.py:454-457`, the `_ptr.weight`
@@ -974,6 +1012,11 @@ players know"):
   copies there. v's own hand is visible.
 - **L[v][p]:** the cards of p's library whose identity v knows, each with whether v knows its
   position. The position is read from the true library order whenever asked.
+  - **Said plainly** (216 N7). Every event below that adds a card to L[v][p] adds it with its
+    position known: E3b, E4b, E4c, E5, E6 and E9. Every event that loses a position removes the
+    card: E5 and E9 for v ≠ p, and E7. So L[v][p] holds only cards whose identity *and* position
+    v knows. The "whether v knows its position" flag is then always true and can go, `F_LIB_POS`
+    always has a position to show, and the invariant I1 needs no "unknown position" case.
 
 | Event | Update |
 |---|---|
@@ -1167,15 +1210,18 @@ pauses for measurement windows pays it at every pause. The fix is small, and mak
 
 | # | What | Files | Waits on |
 |---|---|---|---|
-| 1 | Stage 0's probe script | `reports/` | nothing; runs at B8's pause tonight |
-| 2 | F1, F2, F4 | `binding.py`, `bench/protocol.py`, `query.py` | nothing |
-| 3 | J1-J4, the journal fixes | `verbs.py`, `state.py`, `events.py`, `games.py` | nothing |
-| 4 | The optimizer state | `trainer.py`, `learner.py` | the planner's `learner.py` merged |
+| 1 | The optimizer state (moved first: 216 C2) | `trainer.py`, `learner.py` | nothing: the planner's `learner.py` is merged (e5101b1e). The main line runs on it before the multi-arm A/B's init is saved |
+| 2 | Stage 0's probe script | `reports/` | nothing; runs at a GPU pause (PLAN_LONG_RUN's calendar, row 3) |
+| 3 | F1, F2, F4: one lane with 215's W-D (F43, F45e) | `binding.py`, `bench/protocol.py`, `query.py` | W2 merged: they share files with it (216 C6). F2 drops a card's duplicate alias, not a copy, so it keeps the owner's no-merge rule |
+| 4 | J3-J4 (a library move's end; SHUFFLE as an event). J1-J2 are 215's F63 with F51, owned by W3, a gate round running since 2026-11-18 (216 C6, E3) | `verbs.py`, `state.py`, `events.py`, `games.py` | W3 merged |
 | 5 | The value package | `model.py`, `ppo.py`, `learner.py` | stage 0's rule; the planner's merge; then a GPU smoke at the real flags |
-| 6 | The knowledge tracker, I1-I3 | `knowledge.py`, `bench/view.py` | 3 |
+| 6 | The knowledge tracker, I1-I3 | `knowledge.py`, `bench/view.py` | 4, and W3 (J1-J2) |
 | 7 | The schema change, memory's view, F3 | `features.py`, `model.py`, `actor.py`, `rig.py` | 6 for memory's entities. After 5 only in merge order, since both edit `model.py`; neither waits on the other's A/B. The disruption measurement and F3's prior shift before it ships |
 
-**The GPU schedule** (one job at a time):
+**The GPU schedule** (one job at a time). **Replaced** by PLAN_LONG_RUN's GPU calendar after the red
+team (216 C2): one multi-arm A/B from one init, with V, memory and the names mask (N) among its
+arms, matched on updates; then the pilot, which tests the combination. The schedule below is the
+first draft's, kept for the record.
 - **Tonight, at B8's pause:** stage 0 (about 40 minutes).
 - **The FDN segment's first 22 machine-hours:** the value A/B, if steps 1 and 5 are done and
   smoked by its launch. Otherwise the FDN segment runs as registered, and the value arm joins the
@@ -1231,6 +1277,10 @@ pauses for measurement windows pays it at every pause. The fix is small, and mak
 - **The log buckets of numbers** (`num:6` ... `num:30+`). A discretisation, as DESIGN_CARD_POOL
   plans. Removable with a learned numeric encoding.
 - **The disruption bound** (the median per-update KL). A rule for shipping, not for play.
+- **Stage 0's rule: 20%, in three of the five frequent kinds** (216 N5). It rests on A2, the noise
+  gauge. Removable: a paired test over the kinds, once the per-kind alignment's spread is measured.
+- **R7's band, 0.75** (216 N2): a quarter of the arm's updates is the most a component whose gain
+  the screens cannot show may cost. Removable: strength per machine-hour, measured in the run.
 - **The detector's null continuation.** A measurement tool. It never touches play.
 
 ## References

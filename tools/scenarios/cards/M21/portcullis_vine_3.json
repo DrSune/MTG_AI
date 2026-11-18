@@ -5,5 +5,5 @@
   {"key": "oppwall", "name": "Opp Wall", "type": "Creature — Wall", "power": 0, "toughness": 4, "keywords": ["DEFENDER"], "zone": "battlefield", "controller": 1}
  ],
  "mana": {"0": {"C": 2}},
- "steps": [{"op": "activate", "key": "vine", "idx": 0, "seat": 0, "decisions": ["oppwall"]}],
+ "steps": [{"op": "activate", "key": "vine", "idx": 0, "seat": 0}],
  "expect": {"zone": {"vine": "graveyard", "oppwall": "battlefield"}, "hand": {"0": 1}}}

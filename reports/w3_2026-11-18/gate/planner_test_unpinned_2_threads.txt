@@ -1,0 +1,61 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+___________________ test_without_the_planner_nothing_changes ___________________
+
+table = CardTable(oracle_ids=['<pad>', '<unk>', '0045c5fa-3229-4050-b139-5712fa24b308', '00c0543c-2a1f-4425-8283-4062d74a1637'...01, 'Sure Strike': 302, 'Garruk, Savage Herald': 303, 'Ghostly Pilferer': 304, 'Walking Corpse': 305, 'Prismite': 306})
+
+    def test_without_the_planner_nothing_changes(table) -> None:
+        """--planner off computes what the code before the planner computed: every encoding's
+        read-back columns are 0, and an encoding cut to the old width collates to the same batch
+        (``widened``); a network built without it has no planner parameter and saves the config it
+        saved; a planner network reads a blank read-back as one without it does (same seed: same
+        logits and values); the update with the planner off reads none of a batch's planner arrays
+        (the same weights after it as from the batch without them)."""
+        feats = []
+    
+        class Recording(HeuristicAgent):
+            def decide(self, ask, obs):
+                if len(ask.options) > 1 and len(feats) < 64:
+                    feats.append(FT.encode(obs.executor, ask.seat, ask, table, obs.ctx))
+                return super().decide(ask, obs)
+    
+        play_game(5, [Recording(), Recording()], pool_mode="verified", deck_mode="coherent")
+        assert len(feats) == 64 and FT.C_PLAN_WHEN == 9
+        assert not any(f["cards_i"][:, FT.C_PLAN_WHEN:].any() for f in feats)
+        old = [{**f, "cards_i": f["cards_i"][:, :FT.C_PLAN_WHEN]} for f in feats]
+        b = M.collate(feats, "cpu")
+        assert all(torch.equal(v, M.collate(old, "cpu")[k]) for k, v in b.items())
+        torch.manual_seed(1)
+        net = M.build(table, d=32, layers=1, heads=4, ff=64).eval()
+        torch.manual_seed(1)
+        planner = M.build(table, d=32, layers=1, heads=4, ff=64, planner=True).eval()
+        assert "planner" not in net.config and not any(k.startswith("plan_") for k in net.state_dict())
+        with torch.no_grad():
+            for got, want in zip(planner(b, plan=True)[:2], net(b), strict=True):
+                assert torch.equal(got, want)
+        a = SimpleNamespace(mb=16, tok_budget=4096, epochs=2, clip=0.2, vclip=0.5, vcoef=0.5,
+                            ent=0.01, max_grad=1.0, target_kl=0.0, planner=False)
+        n = len(feats)
+        rng = np.random.default_rng(0)
+        rows = [(f, 0, -0.5, 0.0, float(rng.normal()), float(rng.normal())) for f in feats]
+        states = []
+        for with_arrays in (False, True):
+            if with_arrays:
+                for f in feats:
+                    PL.attach(f, None)
+            torch.manual_seed(2)
+            model = M.build(table, d=32, layers=1, heads=4, ff=64)
+            opt = torch.optim.AdamW(model.parameters(), lr=1e-3)
+            stats = ppo_train(model, opt, a=a, device=torch.device("cpu"),
+                              rng=np.random.default_rng(3), **pack_buffer(rows))
+            assert "plan" not in stats and stats["steps"] == n
+            states.append(model.state_dict())
+>       assert all(torch.equal(v, states[1][k]) for k, v in states[0].items())
+E       assert False
+E        +  where False = all(<generator object test_without_the_planner_nothing_changes.<locals>.<genexpr> at 0xf31c28a7ec50>)
+
+tools/selfplay/test_planner.py:381: AssertionError
+=========================== short test summary info ============================
+FAILED tools/selfplay/test_planner.py::test_without_the_planner_nothing_changes
+1 failed in 3.46s
+restored ['tools/selfplay/test_planner.py']

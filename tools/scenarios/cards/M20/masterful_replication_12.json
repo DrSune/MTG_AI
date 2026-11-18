@@ -1,0 +1,81 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mr",
+   "real": "Masterful Replication",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "alpha",
+   "name": "Alpha Golem",
+   "type": "Artifact Creature — Golem",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "beta",
+   "name": "Beta Construct",
+   "type": "Artifact Creature — Construct",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  {
+   "key": "late",
+   "name": "Late Construct",
+   "type": "Artifact Creature — Construct",
+   "power": "1",
+   "toughness": "1",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:mr",
+    "1",
+    "alpha"
+   ]
+  },
+  {
+   "op": "enter",
+   "key": "late"
+  }
+ ],
+ "expect": {
+  "power": {
+   "alpha": 4,
+   "beta": 5,
+   "late": 1
+  },
+  "toughness": {
+   "alpha": 4,
+   "beta": 5,
+   "late": 1
+  },
+  "zone": {
+   "late": "battlefield"
+  }
+ },
+ "notes": "Printed: 'Each other artifact you control becomes a copy'. The artifacts affected are those I control as the spell resolves (CR 611.2c): a Late Construct (artifact creature 1/1) that enters later the same turn is not changed (1/1, not a 4/4), while Beta Construct is the copy (5/5 with its counter)."
+}

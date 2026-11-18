@@ -123,7 +123,7 @@ L ≥ 120 (§9). Waves in §5.
 
 | Id | Entry (BACKLOG) | Reach and proof | Direction | CR | IR? | Files | Effort | Wave |
 |---|---|---|---|---|---|---|---|---|
-| F01 | target-player slot with no legal player resolves | C: `binding.TriggerBinder._designate` removes it; `test_executor_hexproof::test_a_trigger_targeting_an_opponent_with_hexproof_is_removed`, pack `runed_halo_names_brash_taunter` | — | 603.3d | — | — | — | W0 remove |
+| F01 | target-player slot with no legal player resolves | C: `binding.TriggerBinder._designate` removes it; `test_executor_hexproof::test_a_trigger_targeting_an_opponent_with_hexproof_is_removed`, pack `runed_halo_names_brash_taunter` | — | 603.3d | — | — | — | W0: closed, entry removed (a414375a) |
 | F02 | "an opponent controls more" sums opponents | 3+ seats only (M21 Garruk, Unleashed) | WRONG (MP) | 102.3 | no | quantity.py | S | W5 |
 | F03 | party counts a multi-class creature twice | L: no party card is dealt (ZNR) | WRONG | 700.8 | no | quantity.py | S | with the card |
 | F04 | `templates_b6` emits Verb.DISCARD (no handler) | L: census F04 0 | crash | — | I8's fold (B-48) | compiler | S | with I8 |
@@ -139,10 +139,10 @@ L ≥ 120 (§9). Waves in §5.
 | F11 | a blocker of several attackers | L: no tree | — | 509.1, 510.1d | IR | `__init__` combat | L | with the card (Commander) |
 | F12 | bench labels a multi-mode token "choice N" | N: LLM bench | — | — | — | bench/protocol.py | S | bench items |
 | **F13** | cast-time target restriction re-read at resolution | **R M21**: pack `enthralling_hold_resolves_after_its_target_untaps` (Tolarian Kraken untaps the Ox; the Hold goes to the graveyard) | **WEAKER** | 601.2c, 608.2b; the card's ruling | no | stack.py (recheck), query.py | S | **W2** |
-| **F14** | an ability acts on its source after it left and came back | **R M20, M21**: packs Griffin Protector 3/4 (Brought Back), Colossus Hammer equips a returned Hammer, Bear 12/12 (Brought Back), Watcher of the Spheres 3/3 (Obsessive Stitcher); **FDN** by census (Fake Your Own Death with Ball Lightning: the old trigger sacrifices the new one) | **STRONGER** (M20, M21), WEAKER (FDN) | 400.7, 113.7a, 608.2h; exceptions 400.7d-e | no | selectors, binding, legality, verbs | L | **W1** |
-| F14b | a re-entered source answers its chosen quality from the new object | R M20 by census: Icon of Ancestry, destroyed and Brought Back while its look waits, chooses again | STRONGER | 400.7, 608.2h | no | quantity.py, binding.py | M | W1 |
-| F14c | LKI lost on exile-and-return within one resolution | L: no flicker in the pools | WRONG | 400.7, 603.10a | no | `__init__` departed_lki | S | W1 rider |
-| F15 | B-54 `legal_casts` offers a spell with no legal target | C for play: games use `menu.menu`, which drops what `stack.can_designate` refuses; `query.legal_casts` is read only by tools/cards (probe, respond) | — | 601.2c | — | tools/cards | S | W0 cleanup |
+| **F14** | an ability acts on its source after it left and came back | **R M20, M21**: packs Griffin Protector 3/4 (Brought Back), Colossus Hammer equips a returned Hammer, Bear 12/12 (Brought Back), Watcher of the Spheres 3/3 (Obsessive Stitcher); **FDN** by census (Fake Your Own Death with Ball Lightning: the old trigger sacrifices the new one) | **STRONGER** (M20, M21), WEAKER (FDN) | 400.7, 113.7a, 608.2h; exceptions 400.7d-e | no | selectors, binding, legality, verbs | L | **W1: fixed** (eacf8ab5) |
+| F14b | a re-entered source answers its chosen quality from the new object | R M20 by census: Icon of Ancestry, destroyed and Brought Back while its look waits, chooses again | STRONGER | 400.7, 608.2h | no | quantity.py, binding.py | M | W1: fixed |
+| F14c | LKI lost on exile-and-return within one resolution | L: no flicker in the pools | WRONG | 400.7, 603.10a | no | `__init__` departed_lki | S | closed by E1 (85dd1bfa); W1 pins it |
+| F15 | B-54 `legal_casts` offers a spell with no legal target | C for play: games use `menu.menu`, which drops what `stack.can_designate` refuses; `query.legal_casts` is read only by tools/cards (probe, respond) | — | 601.2c | — | tools/cards | S | W0: closed, legal_casts removed |
 | F16 | two "target" words with the same text share a slot | L: the one pool card with two target words, M21 Rookie Mistake, has distinct selectors (text census, census F16) | WRONG | 601.2c, 115.3 | IR (a slot id) | compiler, query | M | with the card |
 | F17 | activate takes targets before X | L: census F17 0 | WRONG | 601.2b-c, 602.2b | no | legality.activate | S | W2 rider |
 | F18a | a target reading the player designated beside it raises | L: none printed | crash | 601.2c | no | binding, query | M | with the card |
@@ -163,8 +163,8 @@ L ≥ 120 (§9). Waves in §5.
 | F29 | a token's record keyed by its name | L now (one ability-bearing spec per name and pool, census F29); **R with B3** (FDN token copies with and without Electroduplicate's exceptions share a name) | WRONG | 111.3, 707.9 | no | verbs `_v_create_token` | S | B3 merge condition (B3 builds token copies there) |
 | F30 | entering loyalty journalled on the cast lane only | L (212: the watchers read their own or +1/+1 counters; census F30) | WEAKER | 306.5b, 122.6 | no | `__init__._apply_etb_state`, binding | S | W2 rider |
 | F31a-c | three moments of "exiled with" | L: readers Bag of Holding (M20), Idol of Endurance (M21); neither reaches the three | WRONG | 607.2a, 603.7 | no | binding, legality | S | W4 |
-| F32 | an Equipment unattached by an SBA misses a creature dying in the same check | L (212) | WEAKER | 704.3, 704.5n, 603.10a | no | `__init__._state_checks` | S | W1 rider |
-| F33 | CAST_THIS_TURN_FROM off the stack and battlefield | L (212: Archfiend's Vessel only) | WRONG | 400.7, 608.2h | no | quantity.py | S | W1 rider |
+| F32 | an Equipment unattached by an SBA misses a creature dying in the same check | L (212) | WEAKER | 704.3, 704.5n, 603.10a | no | `__init__._state_checks` | S | W1: fixed |
+| F33 | CAST_THIS_TURN_FROM off the stack and battlefield | L (212: Archfiend's Vessel only) | WRONG | 400.7, 608.2h | no | quantity.py | S | W1: fixed |
 | F34 | a referent over a plural register takes the first | L: Necromentia's exile after its search is a no-op move; a PERMIT reads the whole register (`verbs._v_permit`) | WEAKER if live | 608.2c | no | selectors, verbs | M | W4 (card by card) |
 | F35 | replacement order never asked | L: one life-gain replacement per pool (Angel of Vitality's copies commute); zone-change ones never share an event | WRONG | 616.1 | no (a new ask kind) | replacements.py | M | W5 / with the card |
 | F36 | an ALL over a library top writes the look window on every read | L: four verified readers (Radha, Mystic Forge, Goblin Ringleader, Diviner's Lockbox), none harmful (a static reads the filter only) | hygiene | — | no | selectors.py | S | W4 |
@@ -175,16 +175,16 @@ L ≥ 120 (§9). Waves in §5.
 | F41 | picks from another player's library or hand raise | L, a tripwire (census F41's rows move a battlefield card, not a pick) | crash | 401.4 | no | verbs | — | with the card |
 | F42 | B-30 `identity_of` stamps M21, drops oracle text | no reader in play | data | — | no | `games.identity_of` | S | W4 |
 | F43 | B-64 a may or a Choose offers an impossible action | R M21: Crypt Lurker with an empty hand asks `('0', '1')`, discard included (probe) | phantom decision | 609.3; AGENTS §10 | no | query `optional_offer` | S | W-D |
-| **F44** | B-65 an Aura on a host its enchant no longer allows | **R M21**: pack `dub_falls_off_riddleform_when_its_animation_ends`; Setessan Training with Traitorous Greed by census | **STRONGER** (mostly) | 704.5m, 303.4d | no | `__init__._unattached_auras`, aura_entry | S | **W1** |
+| **F44** | B-65 an Aura on a host its enchant no longer allows | **R M21**: pack `dub_falls_off_riddleform_when_its_animation_ends`; Setessan Training with Traitorous Greed by census | **STRONGER** (mostly) | 704.5m, 303.4d | no | `__init__._unattached_auras`, aura_entry | S | **W1: fixed** |
 | F45a | "for as long as" and phasing | L: only reminder text in the pools; "until leaves" with phasing is pinned (`kitesail_freebooter_phased_out_card_stays_exiled`) | — | 611.2b, 702.26 | IR | — | — | with the card |
 | F45b-c | Calix; the unparsed list | not compiled | — | 610.3 | IR | — | — | with the card |
-| **F45d** | an Aura returned with a creature enchants it | **R M20**: pack `brought_back_aura_cannot_enchant_the_creature_returning_with_it` (a 5/5 Bear) | **STRONGER** | 303.4f-g; Brought Back's ruling | no | verbs `_v_move_zone`, aura_entry | S | **W1** |
+| **F45d** | an Aura returned with a creature enchants it | **R M20**: pack `brought_back_aura_cannot_enchant_the_creature_returning_with_it` (a 5/5 Bear) | **STRONGER** | 303.4f-g; Brought Back's ruling | no | verbs `_v_move_zone`, aura_entry | S | **W1: fixed** |
 | F45e | Kitesail Freebooter's choice asked after it left | R M21 (pinned by `kitesail_freebooter_leaves_before_its_trigger_resolves`) | phantom decision | the card's ruling | no | binding, verbs | S | W-D |
 | F46 | MOVE_ZONE's top-n lane reads the destination's library | L: census F46 0 | WRONG | 108.3, 400.3 | no | verbs `_v_move_zone` | S | W4 |
 | F47 | a Conditional after a step that made several tokens | L: FDN Faebloom Trick's is MAY_DONE, not a characteristic test | WEAKER if live | 608.2c | no | `__init__._conditional_subject` | — | with the card |
-| F48 | CR 111.8 inside one resolution | L: no tree moves one object twice | STRONGER if live | 111.8 | no | verbs `_v_move_zone` | S | W1 rider |
-| F49 | "doesn't untap" blocks every untap | C: only the untap step reads it (`Executor._untap_step`); closed check plus its control pass | — | 502.3 | — | — | — | W0 remove |
-| F50 | damage marked on a permanent that left | L: Sorin's reflexive target now follows the sacrifice | WRONG | 120.1, 400.7 | no | verbs `_deal_damage_to_card` | S | W1 rider |
+| F48 | CR 111.8 inside one resolution | L: no tree moves one object twice | STRONGER if live | 111.8 | no | verbs `_v_move_zone` | S | W1: fixed |
+| F49 | "doesn't untap" blocks every untap | C: only the untap step reads it (`Executor._untap_step`); closed check plus its control pass | — | 502.3 | — | — | — | W0: closed, entry removed |
+| F50 | damage marked on a permanent that left | L: Sorin's reflexive target now follows the sacrifice | WRONG | 120.1, 400.7 | no | verbs `_deal_damage_to_card` | S | W1: fixed |
 | F51 | "reveals their hand" lists the library | = F63 | | | | | | W3 |
 | F52 | moves that ask no replacement; a spell to its caster's graveyard | L: no compiled replacement reads a draw, cast, land drop or token; no pool card casts another's card | WRONG | 614, 400.3 | no | verbs, stack | M | W5 / with the card |
 | F53 | a "from anywhere" self-replacement works on the battlefield only | L: Darksteel Colossus and Progenitus are not compiled | STRONGER if live | 614.1, 113.6 | no | replacements `_source_alive` | S | B13 merge condition |
@@ -198,12 +198,12 @@ L ≥ 120 (§9). Waves in §5.
 | F61 | second-main-phase triggers, extra main phases, Saga lore | L: census F61 0 | — | 505.1a, 505.4, 714 | IR | `__init__` | M | with the card |
 | F62 | the heuristic activates only a planeswalker's first ability | N: `heuristic._act` still takes the first row | weaker baseline | — | — | heuristic.py | S | league plan |
 | **F63** | the journal is not a record of what players know (with F51) | L for play (no reader); **a honesty hazard for memory v1**: a hand reveal is recorded as the whole library (`verbs._look`, `count=QUnbounded`) | WRONG (knowledge) | 701.20, 701.22; OWNER_PREFERENCES #1 | **IR** (REVEAL's zone) | verbs, events, ability_tree | M | **W3, before memory v1** |
-| F64 | Teferi, Master of Time's −3 duration | C, not a fault: the printed reminder reads "until its controller's next turn", classic phasing, which its pack pins | — | 702.26 | — | — | — | W0 remove |
-| F65 | B-73 the detectors flag games | re-measured (§1): no hit changes play; all are detector artefacts but one bookkeeping residue (W0, W1) | — | — | — | tools/audit/detectors.py | M | W0 |
-| G1 | G3's draw-idiom rule is coarser than the draw lane | tooling; it holds See the Truth's stamp (M21 281 of 285) | — | — | — | tools/cards/gates.py | S | W0 |
-| G2 | a cast with `"tap": true` says "cannot pay" for any refusal | tooling | — | — | — | tools/run_scenarios.py | S | W0 |
-| G3 | pack-runner traps (vacuous pass after a loss; drift past a one-candidate ask; a key shadowing a player word; stale notes) | tooling, under every wave's acceptance packs | — | — | — | tools/run_scenarios.py | M | W0 |
-| K1 | known_bugs/2026-11-05 `up_to_one_none_chosen_crashes` (Cavalier of Dawn) | C: the card is verified and `mapped/M20/cavalier_of_dawn_no_target_makes_no_golem` passes | — | — | — | — | — | W0 remove |
+| F64 | Teferi, Master of Time's −3 duration | C, not a fault: the printed reminder reads "until its controller's next turn", classic phasing, which its pack pins | — | 702.26 | — | — | — | W0: not a fault, entry removed |
+| F65 | B-73 the detectors flag games | re-measured (§1): no hit changes play; all are detector artefacts but one bookkeeping residue (W0, W1) | — | — | — | tools/audit/detectors.py | M | W0: fixed; D6 (iv) is a detector artefact too (ae2190b4) |
+| G1 | G3's draw-idiom rule is coarser than the draw lane | tooling; it holds See the Truth's stamp (M21 281 of 285) | — | — | — | tools/cards/gates.py | S | W0: fixed |
+| G2 | a cast with `"tap": true` says "cannot pay" for any refusal | tooling | — | — | — | tools/run_scenarios.py | S | W0: fixed |
+| G3 | pack-runner traps (vacuous pass after a loss; drift past a one-candidate ask; a key shadowing a player word; stale notes) | tooling, under every wave's acceptance packs | — | — | — | tools/run_scenarios.py | M | W0: fixed |
+| K1 | known_bugs/2026-11-05 `up_to_one_none_chosen_crashes` (Cavalier of Dawn) | C: the card is verified and `mapped/M20/cavalier_of_dawn_no_target_makes_no_golem` passes | — | — | — | — | — | W0: folder removed |
 
 **Directions, checked against the staged lines.** F14: the pump lands on the new object and the
 equip attaches a new Hammer for free (stronger); in FDN the old end-step trigger sacrifices the new
@@ -395,6 +395,25 @@ guard):
   - B3 (copy) can be built beside W1. Both touch verbs.py, so the second to merge rebases.
   - F29 and F40 are B3's own merge conditions. Sublime Epiphany's stamp alone waits for W3's F23.
 
+**Amended 2026-11-18, after the red team (KNOWLEDGE/2026-11-18/216 §4: GO, four minor notes) and by
+the coordinator.**
+- **E1. W2 follows W1 because they share files, not because WEAKER ranks lower.** SYSTEM_MAP §3
+  ranks a weaker-than-printed fault with the stronger ones. W2's packs are acceptance lines of the
+  same bug hunt as W1's.
+- **E2. The five stale entries** (F01, F15, F49, F64, K1). The red team grepped F49's one reader
+  (`replacements.py:911`) and did not run any closing check. So W0 removes each entry only after
+  running its closing check and its control, with the wave's fresh-eyes reviewer confirming.
+- **E3. F63 with F51 has one owner: W3, as an IR change in a gate round.** A reveal's zone is a tree
+  concept. PLAN_NETWORK_READINESS's J1-J2 point here (PLAN_LONG_RUN, "Who owns what").
+- **E4. The network read records each fault's rate per 1,000 resolutions as well as per game**, so a
+  run with longer games compares.
+- **W3 is built beside W1, not after W2** (the coordinator; a change to the order above).
+  - Why: W3's F23 is the last engine piece M21 needs (Sublime Epiphany), and the M20 rounds B6, B8
+    and B17 wait on W3's `binding.py` work. The owner put M21 and M20 before everything else.
+  - The cost: W1 and W3 both touch `binding.py` and `verbs.py`, in different functions. The
+    second of them to merge rebases, as B3 did beside E3.
+  - W2 still follows W1, and W-D still follows W2.
+
 ## 7. Logic check against the project's goals
 
 | Goal | How the plan serves it | What could go wrong, and why the design survives it |
@@ -510,3 +529,56 @@ differences are counted, not sampled (the replays are deterministic).
 | Effort | C1's 60 agent-minutes a fault and 209 §6's round costs | F14 and F27 can double; the calendar moves, the order does not |
 | The wave order | One wave in flight (this week's budget); the planner keeps to tools/selfplay; B3 runs on PLAN_PLANNING §6's calendar | With two in flight, W0 ∥ W1 then W2 ∥ W3's F63 lane (distinct files). If B3 is ready first, only Sublime Epiphany's stamp waits. If memory v1 comes before W3, its reveal reader waits for the F63 lane |
 | A closure (F01, F15, F49, F64, K1) | The test or pack named, and the code read, cover every lane of the fault | A lane not proven reopens it. For F01, the trigger lane is read and pinned, the spell lane rests on `menu.menu` dropping undesignatable rows, and the activated lane on BACKLOG's record that `activate()` refuses an empty required designation (2026-11-13), with no pack of mine. The red team is asked to check exactly these |
+
+## 12. Status (2026-11-18): waves W0 and W1 built
+
+On the branch of one agent, beside the W3 gate round (coordinator's order), as five commits on
+0b7f9c22: W0 (5da2869e), its follow-up (ae2190b4), W1 (eacf8ab5), W0's closure (a414375a), and the
+evidence. The table's last column says what each closed row became.
+
+- **W0, the instruments.** As §5 lists them (G1, G2, G3, F65's detectors, the latent-fault guard,
+  `tools/audit/blast_radius.py`), with two corrections:
+  - **D6 (iv) is a detector artefact, not an engine residue.** The live `mandate_block` record of
+    FDN soak seeds 50 and 64 is bound to its source, Joraga Invocation, a sorcery in the graveyard,
+    cast in the game's last turn; its creatures are all on the battlefield. A resolved effect
+    outlives its source (CR 611.2a), so the detector exempts a resolved combat rule (a record with
+    fixed targets). No engine change: `LayerRegistry.forget_departed` does drop a departed target.
+  - **F46's guard shape** keyed on the mill lane; it now mirrors the executor's draw lane.
+  - The five stale entries (F01, F15, F49, F64, K1) were removed only after a second reviewer reran
+    each check with its control and confirmed it (216 E2). B-73 (F65) went with them.
+- **W1, STRONGER and reachable.** Cause A as one rule in the evaluator every selector, count and
+  condition reads: `IS_SOURCE` is false for a source in the `gone` register, and the source's
+  information (power, keywords, controller, chosen quality, "enchanted creature") is its last known
+  information. The exceptions CR 400.7d, 400.7e (`TriggerBinder._aura_finds_itself`) and 400.7h
+  hold, each tested; E3's PUT_COUNTER special case folded into the rule. F14c was already closed by
+  E1's third review (85dd1bfa) and is pinned. F33, F48, F50 and, of cause B, F44, F45d and F32 as
+  §5 says. Verification wave 7's F44 pack (Masterful Replication) is one of the acceptance packs.
+- **The fresh-eyes reviews** (agents started cold from the diffs). W1's found a regression in the
+  wave's first draft: Diviner's Lockbox, Disenchanted while its ability waits, chooses its name in
+  that ability, which the draft read from the departed object (a raise, a voided game); a name the
+  resolution chooses is now the resolution's (`ExecCtx.chosen`, pack
+  `diviners_lockbox_disenchanted_in_response_still_draws`). It also found the register leaking into
+  a record's context (`replacements._record_ctx`), a PREVENT_EFFECT record made for a gone source,
+  and the 704.5m edge's order; all fixed in eacf8ab5 with tests. W0's reviewer confirmed the five
+  closures and found the F46 shape and the D6 (iv) tag; fixed in a414375a.
+- **The evidence (§8):** (a) the six W1 packs fail before and pass after
+  (`reports/engine_wave_w1_2026-11-18/packs_before_after.txt`), and the 23 new tests: 15 fail on
+  the base, the 8 others are pins and controls (`tests_on_base.txt`); (b) `tools/check.sh` green;
+  (c) 0 trees changed (`blast/tree_diff.txt`); (d) 0 of 600 replays differ, identical digests,
+  journals and event logs, 0 crashes (`blast/compare.txt`); (e) the soak, 300 verified games per
+  pool: 0 crashes and 0 detector hits in M21, M20 and FDN (`soak_*.json`; W0's baseline had the
+  two D6 (iv) hits); (f) 2.34 against 2.33 games per CPU-second, −0.2%.
+- **Prediction against outcome.** §5 predicted at most 3 of 600 replays changing outcome; 0
+  changed, which the occurrence run (0 firings in 600 heuristic games) made the likely count.
+- **The network read (§8) was not run.** It needs r29's newest checkpoint (`last.pt`, 111 MB under
+  `runs/`) in 600 network games on the CPU, which the side-job limits of this round excluded (no
+  large files from `runs/`, a training run on most cores). With W1 merged, the faults it would have
+  measured are gone; if it is run for the record, it reads main before W1 and records the rates
+  per 1,000 resolutions as well as per game (216 E4).
+- **W2 follows W1 on the same branch for file-sharing, not for rank** (216 E1, SYSTEM_MAP §3): a
+  WEAKER fault ranks with the STRONGER ones; W2 shares verbs.py, legality.py and `__init__` with W1.
+- **What W1 left** (BACKLOG, "What engine wave W1 left"): a source that left twice while its
+  ability waited reads the later departure's snapshot; an Aura flickered within one resolution loses
+  the attachment it returns with (the binder detaches the old object after the return; F14c's guard
+  shape watches for it); a copy of a gone "this creature" reads the new object's copiable values.
+  None is reachable with a verified card. CREATE_TOKEN still adds Aura copies one by one (B-97).

@@ -4,7 +4,7 @@
   "life": 20,
   "seed": 7
  },
- "notes": "P5308a67d1b G4. Printed: 'When this land enters, scry 1.' Scry 1 looks at ONE card (CR 701.22a): seat 0 would put every card it is shown on the bottom (two 'bottom' answers are queued), but only one scry decision exists, so only the top card (Library 5) goes to the bottom; Library 4 stays on top. The Temple enters tapped.",
+ "notes": "P5308a67d1b G4. Printed: 'When this land enters, scry 1.' Scry 1 looks at ONE card (CR 701.22a): seat 0 puts the card it is shown on the bottom; only one scry decision exists (a second 'bottom' answer would be a word no ask takes, which the runner fails), so only the top card (Library 5) goes to the bottom; Library 4 stays on top. The Temple enters tapped.",
  "cards": [
   {
    "key": "t",
@@ -19,7 +19,6 @@
    "key": "t",
    "seat": 0,
    "decisions": [
-    "bottom",
     "bottom"
    ]
   }

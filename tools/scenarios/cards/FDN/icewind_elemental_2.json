@@ -8,7 +8,7 @@
  ],
  "mana": {"0": {"U": 1, "C": 4}},
  "steps": [
-  {"op": "cast", "real": "Icewind Elemental", "key": "elemental", "decisions": ["first-legal"]}
+  {"op": "cast", "real": "Icewind Elemental", "key": "elemental"}
  ],
  "expect": {
   "zone": {"elemental": "battlefield"},

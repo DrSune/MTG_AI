@@ -1,0 +1,93 @@
+........F....F..........F..F...F                                         [100%]
+=================================== FAILURES ===================================
+_________________ test_no_dealt_card_holds_a_latent_fault[F40] _________________
+
+fault = 'F40'
+
+    @pytest.mark.parametrize("fault", sorted(LATENT))
+    def test_no_dealt_card_holds_a_latent_fault(fault: str) -> None:
+        held = {code: sorted(holders(LATENT[fault], cards)) for code, cards in pools().items()}
+>       assert not any(held.values()), (
+            f"{fault} (KNOWLEDGE/2026-11-18/215 §4) is latent, but dealt cards hold its shape: {held}. "
+            "Fix the fault before the stamp, or judge the cards and pin them")
+E       AssertionError: F40 (KNOWLEDGE/2026-11-18/215 §4) is latent, but dealt cards hold its shape: {'M21': ['Double Vision', 'Runed Halo'], 'M20': ["Chandra's Regulator", 'Diamond Knight', 'Icon of Ancestry', 'Masterful Replication'], 'FDN': []}. Fix the fault before the stamp, or judge the cards and pin them
+E       assert not True
+E        +  where True = any(dict_values([['Double Vision', 'Runed Halo'], ["Chandra's Regulator", 'Diamond Knight', 'Icon of Ancestry', 'Masterful Replication'], []]))
+E        +    where dict_values([['Double Vision', 'Runed Halo'], ["Chandra's Regulator", 'Diamond Knight', 'Icon of Ancestry', 'Masterful Replication'], []]) = <built-in method values of dict object at 0xe04f83973cc0>()
+E        +      where <built-in method values of dict object at 0xe04f83973cc0> = {'M21': ['Double Vision', 'Runed Halo'], 'M20': ["Chandra's Regulator", 'Diamond Knight', 'Icon of Ancestry', 'Masterful Replication'], 'FDN': []}.values
+
+tools/audit/test_fault_reachability.py:132: AssertionError
+_________________ test_no_dealt_card_holds_a_latent_fault[F60] _________________
+
+fault = 'F60'
+
+    @pytest.mark.parametrize("fault", sorted(LATENT))
+    def test_no_dealt_card_holds_a_latent_fault(fault: str) -> None:
+        held = {code: sorted(holders(LATENT[fault], cards)) for code, cards in pools().items()}
+>       assert not any(held.values()), (
+            f"{fault} (KNOWLEDGE/2026-11-18/215 §4) is latent, but dealt cards hold its shape: {held}. "
+            "Fix the fault before the stamp, or judge the cards and pin them")
+E       AssertionError: F60 (KNOWLEDGE/2026-11-18/215 §4) is latent, but dealt cards hold its shape: {'M21': ['Double Vision'], 'M20': ["Chandra's Regulator", 'Masterful Replication'], 'FDN': []}. Fix the fault before the stamp, or judge the cards and pin them
+E       assert not True
+E        +  where True = any(dict_values([['Double Vision'], ["Chandra's Regulator", 'Masterful Replication'], []]))
+E        +    where dict_values([['Double Vision'], ["Chandra's Regulator", 'Masterful Replication'], []]) = <built-in method values of dict object at 0xe04f83a20900>()
+E        +      where <built-in method values of dict object at 0xe04f83a20900> = {'M21': ['Double Vision'], 'M20': ["Chandra's Regulator", 'Masterful Replication'], 'FDN': []}.values
+
+tools/audit/test_fault_reachability.py:132: AssertionError
+____________ test_the_carriers_of_a_fault_are_the_ones_judged[F36] _____________
+
+fault = 'F36'
+
+    @pytest.mark.parametrize("fault", sorted(PINNED))
+    def test_the_carriers_of_a_fault_are_the_ones_judged(fault: str) -> None:
+        shape, want = PINNED[fault]
+        moved = drift(shape, want, pools())
+>       assert not moved, f"{fault} (KNOWLEDGE/2026-11-18/215 §4): its carriers changed: {moved}"
+E       AssertionError: F36 (KNOWLEDGE/2026-11-18/215 §4): its carriers changed: ["M21: joined ['See the Truth'], left []"]
+E       assert not ["M21: joined ['See the Truth'], left []"]
+
+tools/audit/test_fault_reachability.py:141: AssertionError
+____________ test_the_carriers_of_a_fault_are_the_ones_judged[F43] _____________
+
+fault = 'F43'
+
+    @pytest.mark.parametrize("fault", sorted(PINNED))
+    def test_the_carriers_of_a_fault_are_the_ones_judged(fault: str) -> None:
+        shape, want = PINNED[fault]
+        moved = drift(shape, want, pools())
+>       assert not moved, f"{fault} (KNOWLEDGE/2026-11-18/215 §4): its carriers changed: {moved}"
+E       AssertionError: F43 (KNOWLEDGE/2026-11-18/215 §4): its carriers changed: ['M20: joined ["Chandra\'s Regulator"], left []']
+E       assert not ['M20: joined ["Chandra\'s Regulator"], left []']
+
+tools/audit/test_fault_reachability.py:141: AssertionError
+__________ test_the_guard_turns_red_on_a_card_holding_a_latent_shape ___________
+
+    def test_the_guard_turns_red_on_a_card_holding_a_latent_shape() -> None:
+        """A synthetic card in the M21 pool: a Saga (F61, lore counters are not modelled) and a copy
+        effect beside a card that chooses as it enters (F60, F40). Each latent entry it holds fails."""
+        m21 = list(pools()["M21"])
+        base = m21[0]
+        saga = dataclasses.replace(base, name="Synthetic Saga", subtypes=(*base.subtypes, "Saga"))
+        permanent = at.Selector(at.QConst(1), at.SelectorMode.TARGET, at.FAnd(()),
+                                zones=(at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.ANY),))
+        copy = at.Atom(verb=at.Verb.CREATE_TOKEN,  # "create a token that's a copy of target permanent"
+                       args=at.AtomArgs(pairs=(("count", at.QConst(1)), ("tokens", at.CopyOf(permanent)))))
+        copier = dataclasses.replace(base, name="Synthetic Copier",
+                                     abilities=(at.SpellAbility(kind=at.SpellKind.SORCERY, effect=copy),))
+        pooled = [*m21, saga, copier]
+        assert holders(LATENT["F61"], pooled) == {"Synthetic Saga"}
+>       assert holders(LATENT["F60"], pooled) == {"Synthetic Copier"}
+E       AssertionError: assert {'Double Visi...hetic Copier'} == {'Synthetic Copier'}
+E         
+E         Extra items in the left set:
+E         'Double Vision'
+E         Use -v to get more diff
+
+tools/audit/test_fault_reachability.py:175: AssertionError
+=========================== short test summary info ============================
+FAILED tools/audit/test_fault_reachability.py::test_no_dealt_card_holds_a_latent_fault[F40]
+FAILED tools/audit/test_fault_reachability.py::test_no_dealt_card_holds_a_latent_fault[F60]
+FAILED tools/audit/test_fault_reachability.py::test_the_carriers_of_a_fault_are_the_ones_judged[F36]
+FAILED tools/audit/test_fault_reachability.py::test_the_carriers_of_a_fault_are_the_ones_judged[F43]
+FAILED tools/audit/test_fault_reachability.py::test_the_guard_turns_red_on_a_card_holding_a_latent_shape
+5 failed, 27 passed in 6.13s

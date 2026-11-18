@@ -1,0 +1,57 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "b23c1f40-291d-43b3-971d-97ded8b367cb",
+ "name": "See the Truth",
+ "text_sha": "756018518221a991b33e0617e5f1ecd79ebeddb05cea5c23962f2ca52f9db1a5",
+ "verified": {
+  "tree_sha": "9a393228a981235022995c127323dcc45de61cceff718c74bca79d64d6590be7",
+  "probe_sha": "2452a015a3ad1f6895669f21d1e1fa9ee7f36b1e5937debff9cbadc99249d380",
+  "date": "2026-11-18",
+  "reviewer": "claude-sonnet-verifier-wave6",
+  "clauses": [
+   {
+    "clause": "Look at the top three cards of your library.",
+    "status": "OK",
+    "evidence": "[cast]: the first ask after the cast, 'ask one_of: [you:Library 3#1, you:Library 4#1, you:Library 5#1]', offers exactly the top three cards of seat 0's own library (a six-card library; 5#1 is the top card, as the draws elsewhere show). The look is information only (the runner has no REVEAL lane, so it is judged from the trace). abilities[0] step 1 = LOOK_AT(controller YOU, count 3), the compiler's tree (parse: B5b-look-3).",
+    "issue": ""
+   },
+   {
+    "clause": "Put one of those cards into your hand",
+    "status": "OK",
+    "evidence": "[cast], [cast | ask 1 -> you:Library 4#1], [cast | ask 1 -> you:Library 5#1]: the picked card alone 'moves library -> hand (by card/MOVE_ZONE)' and 'change: + <card> (hand, you)'; 'you: library 6 -> 5'; one card, not two or three. The pick is the owner's (ask one_of over the three, ONE_OF count 1).",
+    "issue": ""
+   },
+   {
+    "clause": "and the rest on the bottom of your library in any order.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The trace shows the owner being asked the order ('ask arrange: [you:Library 4#1, you:Library 5#1] -> you:Library 4#1', with the other pick in the other variants) and the two others 'targeted (by card/REST)', but nothing shows where they end up: no move event and no library change is listed. Packs A04_1 and A04_2 pin it: the two cards are the last two of the library, in the order the owner's answers give (Top Three above Top One in one, Top One above Top Two in the other), the fillers keep their order above them, and only the picked card is in the hand.",
+    "issue": ""
+   },
+   {
+    "clause": "If this spell was cast from anywhere other than your hand, put each of those cards into your hand instead.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The probe only casts it from the hand (the else branch above). abilities[0] step 2 = Conditional(FAnd(WAS_CAST_THIS_TURN, FNot(CAST_THIS_TURN_FROM you, Zone(HAND, YOU))), then MOVE_ZONE of the ALL of the top of the library to your hand, else the pick and the rest): the compiler's own composition (templates_b5b._build_cast_elsewhere_instead). Packs A04_3 (from the graveyard), A04_4 (from exile), A04_5 (from the top of the library): all three cards go to the hand, no choice asked, nothing under the library, the opponent's library untouched; A04_6 (cast from the hand, then again from the graveyard in the same turn: the second cast decides).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/see_the_truth_1.json",
+   "tools/scenarios/cards/M21/see_the_truth_2.json",
+   "tools/scenarios/cards/M21/see_the_truth_3.json",
+   "tools/scenarios/cards/M21/see_the_truth_4.json",
+   "tools/scenarios/cards/M21/see_the_truth_5.json",
+   "tools/scenarios/cards/M21/see_the_truth_6.json"
+  ],
+  "mutation": {
+   "mutants": 19,
+   "killed": 16,
+   "score": 0.8421052631578947,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/effect/steps/1/pred",
+    "controller YOU->OPPONENT at 1/0/effect/steps/1/then_effect/args/cards/zones/0/controller",
+    "zone HAND->BATTLEFIELD at 1/0/effect/steps/1/then_effect/args/destination"
+   ]
+  }
+ }
+}

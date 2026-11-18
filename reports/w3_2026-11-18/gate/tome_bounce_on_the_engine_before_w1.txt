@@ -1,0 +1,31 @@
+F.                                                                       [100%]
+=================================== FAILURES ===================================
+_ TestMazemindTome.test_a_tome_bounced_and_replayed_while_its_exile_waits_is_left_alone _
+
+self = <MTG_bot.core.test_executor_w3.TestMazemindTome testMethod=test_a_tome_bounced_and_replayed_while_its_exile_waits_is_left_alone>
+
+    def test_a_tome_bounced_and_replayed_while_its_exile_waits_is_left_alone(self) -> None:
+        """CR 603.8 with 400.7 (gate round W3's review, MINOR-1; engine wave W1's F14): the Tome
+        reaches four page counters and its exile trigger waits; the Tome is bounced and played
+        again, a new object with no counters. The old instance's "exile it" names nothing (its
+        source is gone), so "if you do, you gain 4 life" gains nothing, and the new Tome holds no
+        state. Before W1 the old instance exiled the new Tome and gained the life (STRONGER)."""
+        r = _runner([_card("tome", 0, real="Mazemind Tome", counters={"PAGE": 3})])
+        tome = r.handles["tome"]
+        with r.ex.holding_priority():
+            r.world.cards[tome].counters["PAGE"] = 4
+            r.ex._priority_check()
+            self.assertEqual(len([o for o in r.ex.stack.frames if o.source == tome]), 1)
+            r.run_step({"op": "move", "key": "tome", "to": "hand"})
+            r.run_step({"op": "enter", "key": "tome"})
+        r.ex._settle()
+>       self.assertEqual(r.world.zone_of(tome).kind, ZONE_BATTLEFIELD)
+E       AssertionError: 'exile' != 'battlefield'
+E       - exile
+E       + battlefield
+
+MTG_bot/core/test_executor_w3.py:235: AssertionError
+=========================== short test summary info ============================
+FAILED MTG_bot/core/test_executor_w3.py::TestMazemindTome::test_a_tome_bounced_and_replayed_while_its_exile_waits_is_left_alone
+1 failed, 1 passed in 1.81s
+restored ['MTG_bot/core/executor/__init__.py', 'MTG_bot/core/executor/aura_entry.py', 'MTG_bot/core/executor/binding.py', 'MTG_bot/core/executor/legality.py', 'MTG_bot/core/executor/quantity.py', 'MTG_bot/core/executor/query.py', 'MTG_bot/core/executor/replacements.py', 'MTG_bot/core/executor/selectors.py', 'MTG_bot/core/executor/stack.py', 'MTG_bot/core/executor/verbs.py']

@@ -1,0 +1,89 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mr",
+   "real": "Masterful Replication",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "golem",
+   "real": "Meteor Golem",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "beta",
+   "name": "Beta Construct",
+   "type": "Artifact Creature — Construct",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  {
+   "key": "victim",
+   "name": "Victim Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "victim2",
+   "name": "Victim Ogre",
+   "type": "Creature — Ogre",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:mr",
+    "1",
+    "golem"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "victim": "battlefield",
+   "victim2": "battlefield",
+   "golem": "battlefield",
+   "beta": "battlefield"
+  },
+  "power": {
+   "golem": 3,
+   "beta": 4
+  },
+  "toughness": {
+   "golem": 3,
+   "beta": 4
+  },
+  "counters": {
+   "beta": {
+    "PLUS_1_PLUS_1": 1
+   }
+  }
+ },
+ "notes": "Printed: 'becomes a copy'. A permanent that BECOMES a copy does not enter the battlefield (CR 707.4), so the copied 'When this creature enters, destroy target nonland permanent an opponent controls' (Meteor Golem) never triggers: both opposing creatures survive (no target ask: the step has no word left for one). Beta Construct is a copy of a 3/3 plus its counter: 4/4."
+}

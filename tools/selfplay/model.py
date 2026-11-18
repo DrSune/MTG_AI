@@ -157,7 +157,9 @@ class PolicyValueNet(nn.Module):
 
     def _names(self, idx: torch.Tensor, dropout: bool = True) -> torch.Tensor:
         """The name rows card rows ``idx`` read: the unknown card's under ``mask_names``, and,
-        with ``dropout``, at the name-dropout rate in training."""
+        with ``dropout``, at the name-dropout rate while the module is in train mode. Only the BC
+        phase and distillation train in that mode: PPO runs in eval mode (KNOWLEDGE 183 §4), so
+        PPO training never drops a name (216 C4)."""
         if self.mask_names:
             return torch.where(idx > FT.UNK, torch.full_like(idx, FT.UNK), idx)
         if dropout and self.training and self.name_dropout > 0:

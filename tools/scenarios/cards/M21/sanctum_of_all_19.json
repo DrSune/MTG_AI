@@ -36,8 +36,7 @@
    "op": "advance_turn",
    "decisions": [
     "fire",
-    "1",
-    "lib"
+    "1"
    ]
   }
  ],

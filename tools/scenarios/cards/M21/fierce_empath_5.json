@@ -11,7 +11,7 @@
   ],
   "mana": {"0": {"G": 3}},
   "steps": [
-    {"op": "cast", "real": "Fierce Empath", "key": "empath", "decisions": ["fire", "first-legal"]}
+    {"op": "cast", "real": "Fierce Empath", "key": "empath", "decisions": ["fire"]}
   ],
   "expect": {
     "zone": {"empath": "battlefield", "big": "hand", "small": "library", "spell": "library", "isle": "library", "oppbig": "library"},

@@ -46,10 +46,7 @@
    "op": "activate",
    "key": "fp",
    "idx": 0,
-   "seat": 0,
-   "decisions": [
-    "s1"
-   ]
+   "seat": 0
   }
  ],
  "expect": {

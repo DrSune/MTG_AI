@@ -9,8 +9,8 @@
  ],
  "mana": {"0": {"R": 2, "G": 1}},
  "steps": [
-  {"op": "cast", "key": "s1", "decisions": ["player:1"]},
-  {"op": "cast", "key": "s2", "decisions": ["player:1"]},
+  {"op": "cast", "key": "s1", "targets": ["p1"]},
+  {"op": "cast", "key": "s2", "targets": ["p1"]},
   {"op": "activate", "key": "o", "idx": 0, "seat": 0, "targets": ["i1"]}
  ],
  "expect": {

@@ -9,7 +9,7 @@
  ],
  "mana": {"0": {"B": 2, "C": 4}},
  "steps": [
-  {"op": "cast", "key": "np", "real": "Nullpriest of Oblivion", "controller": 0, "kicked": true, "decisions": ["dead"]}
+  {"op": "cast", "key": "np", "real": "Nullpriest of Oblivion", "controller": 0, "kicked": true}
  ],
  "expect": {
   "kick_rows": {"np": {"kicked": true}},

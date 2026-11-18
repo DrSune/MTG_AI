@@ -34,10 +34,7 @@
    "op": "activate",
    "key": "cat",
    "idx": 0,
-   "seat": 0,
-   "decisions": [
-    "player:1"
-   ]
+   "seat": 0
   },
   {
    "op": "loyalty",
@@ -51,9 +48,6 @@
    "seat": 0,
    "targets": [
     "ke"
-   ],
-   "decisions": [
-    "player:1"
    ]
   }
  ],

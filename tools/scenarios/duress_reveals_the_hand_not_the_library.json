@@ -8,7 +8,7 @@
   {"key": "deep", "real": "Forest", "zone": "library", "controller": 1}
  ],
  "mana": {"0": {"B": 1}},
- "steps": [{"op": "cast", "key": "duress", "targets": ["p1"], "decisions": ["shock"]}],
+ "steps": [{"op": "cast", "key": "duress", "targets": ["p1"]}],
  "expect": {"zone": {"shock": "graveyard", "bear": "hand", "deep": "library"},
             "revealed": {"shock": true, "bear": true, "deep": false}}
 }

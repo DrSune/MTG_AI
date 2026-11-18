@@ -1,0 +1,29 @@
+{
+ "set": "M21",
+ "name": "A04_6_cast_from_hand_then_from_the_graveyard_the_same_turn_the_second_cast_counts",
+ "notes": "Printed: 'If this spell was cast from anywhere other than your hand, put each of those cards into your hand instead.' See the Truth is cast from the HAND first (two Islands): the owner takes Top Two and puts Top Three over Top One on the bottom. It is then cast again from the GRAVEYARD the same turn (the test permission, {1}{U} from the pool): it is a new spell (CR 400.7), cast from the graveyard, so the next three cards (Top Four, Top Five, Top Six) ALL go to the hand with no choice. Hand: Top Two and those three (4). The first cast, from the hand, does not decide the second.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "stt", "real": "See the Truth", "zone": "hand", "controller": 0},
+  {"key": "i1", "real": "Island", "zone": "battlefield", "controller": 0},
+  {"key": "i2", "real": "Island", "zone": "battlefield", "controller": 0},
+  {"key": "t6", "name": "Top Six", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "t5", "name": "Top Five", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "t4", "name": "Top Four", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "t3", "name": "Top Three", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "t2", "name": "Top Two", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "t1", "name": "Top One", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "cast", "key": "stt", "real": "See the Truth", "tap": true, "decisions": ["t2", "t3"]},
+  {"op": "mana", "seat": 0, "add": {"U": 2}},
+  {"op": "test_permission_cast", "key": "stt", "from": "graveyard"}
+ ],
+ "expect": {
+  "zone": {"stt": "graveyard", "t2": "hand", "t4": "hand", "t5": "hand", "t6": "hand", "t1": "library", "t3": "library"},
+  "hand": {"0": 4},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Top Three", "Top One"]},
+  "mana_pool": {"0": {}},
+  "kick_rows": {"stt": {"from": "graveyard"}}
+ }
+}

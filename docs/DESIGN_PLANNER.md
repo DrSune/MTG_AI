@@ -89,6 +89,18 @@ A target ask's answer is the target of the use before it.
 - **What follows.** Without plan-following, the search's plans (§4) could not be played out
   faithfully, and its continuation would not follow through: the failure the puzzles found
   (KNOWLEDGE/2026-11-18/214).
+- **What v1's plan-following is: commitment without exploration** (KNOWLEDGE/2026-11-18/216 P2).
+  - In v1 no plan is sampled: forecasts are never sampled, and styles arrive in v2 (3.3).
+  - At play time the read-back is the argmax forecast. Hindsight trains that forecast to predict
+    the policy's own most frequent use. Plan-following then trains the policy to execute the
+    read-back.
+  - So the loop is: the forecast predicts the habit; the policy learns to follow the forecast; the
+    forecast is the habit. It sharpens habits by construction, and the puzzles found one habit per
+    decision kind (214 §5).
+  - The owner's "exploration by commitment" has two halves. v1 builds the commitment half only;
+    the exploration half arrives with v2's sampled styles or v3's search.
+  - So v1's arms are read for what plan-following **costs** (entropy, the harm screens), not for
+    whether it helps (§5).
 
 **3.2. A free "mode" collapses.**
 - **The problem.** A learned mode token with no meaning of its own is a known failure of latent
@@ -169,10 +181,47 @@ A and B.
    - It has: when, verb, window and target labels on every plannable object; hindsight heads;
      the label columns read back; plan-following.
    - It is a registered A/B against the control on every category and on L.
-   - **What it should move.** Memory, holds and coherence should move B (counters), D
-     (overextension) and A (sequencing). The C failures (attacking into a lethal crack-back, not
-     chumping) are value errors that v1 reaches only through the forecasting task, so no
-     prediction favours them.
+   - **The hypothesis** (216 P3: a hypothesis, not a prediction): holds and coherence might move
+     B (counters), D (overextension) and A (sequencing).
+     - The red team found no mechanism for it at a puzzle root. The holds the puzzles test are
+       decided by visible facts (open Islands, the land count) that the policy already sees, and
+       v1 adds no input about them and no better value.
+     - The C failures (attacking into a lethal crack-back, not chumping) are a missing trunk
+       feature, "incoming damage ≥ my life", which both heads lack (PLAN_NETWORK_READINESS §1.2).
+       v1 reaches them only through the forecasting task, so no prediction favours them.
+   - **The registered A/B** (216 P1-P4, N3). Its arms run inside PLAN_LONG_RUN's multi-arm A/B,
+     from its one init:
+     - **C**, the control;
+     - **P**, `--planner` (hindsight and plan-following at their defaults);
+     - **P0**, `--planner --follow-coef 0` (hindsight only).
+
+     Reading P and P0 apart separates the forecasting task from the following term.
+   - **Prerequisites** (§7, "Before the A/B"):
+     - the puzzle runner carries a tracker;
+     - the iter row reports each head's per-class recall.
+   - **The reads.** The multi-arm A/B's shared reads:
+     - R1 (harm) and R2 (L);
+     - entropy per kind of decision;
+     - the whole suite's twin-consistent pair count and the mean probability on the right options,
+       bootstrapped over puzzles;
+     - throughput.
+
+     Plus each head's macro-averaged recall. A category falling is reported, never a falsifier
+     (216 N3).
+   - **Kill an arm** (216 P2) when either holds:
+     - the per-kind `ent` of `priority` or `act` falls below the control's by more than 0.03 over 10
+       updates (189 §8: 0.003 a update is already a near-deterministic day);
+     - `kinds.priority.pass` rises above 0.99 (0.974 today; 198 §3's collapse).
+   - **The falsifier, per arm** (216 P3). If the arm does not beat C on the suite's
+     twin-consistent pair count by at least 2 pairs of 8, at both the 90% and the 100% snapshots,
+     and L is within noise:
+     - v1's side losses in that form are dropped from the long run;
+     - v2 is not built on v1's evidence.
+
+     Once PLAN_PLANNING P2's generator gives variants, the same rule is read on their pair counts.
+     If P0 passes and P does not, the hindsight-only form is the one carried.
+   - **What a null result ends:** v1's side losses in the long run, nothing more. The per-object
+     plan as the interface of v3's search (§4) is its own registration.
 2. **v2:** round styles, the style critic, styles sampled at ε; the combo and sweeper puzzles.
 3. **v3:** search over plans, multi-turn (P3).
 4. **Then:** the hidden vector, measured (3.4).
@@ -184,6 +233,13 @@ A and B.
 - **The style statistics** (3.2). Removable: a learned clustering of rounds.
 - **The side losses' weights** (hindsight, plan-following). Read on an A/B; a weight that is too
   high pulls the trunk from winning.
+- **v1's flags at their defaults:**
+  - `--plan-coef 0.05`;
+  - `--follow-coef 0.1`;
+  - `--follow-share 0.25`, the share of rows the following loss sees, weighted 1/share.
+
+  They are docs/BACKLOG.md scaffolds since the A/B's registration (216 C8). Removable: the arms'
+  reads, then a schedule learned from the entropy and harm reads.
 
 ## 7. Built: v1 (2026-11-18)
 
@@ -351,6 +407,44 @@ counts were left (a few a micro-batch, beside PPO's own).
 choices this v1 made by hand are BACKLOG scaffolds: the vocabularies, and the side losses'
 coefficients and share.
 
+**Before the A/B: the red team's fixes to the code** (KNOWLEDGE/2026-11-18/216; the code may stay
+merged behind its flag as it is). One agent builds them, after item 6, the optimizer state.
+- **P1. The puzzle runner reads a planner network with a blank read-back.**
+  - Why it matters: in training, every decision after a seat's first reads back its last
+    forecast. So the A/B's puzzle read would measure the planner off its own distribution.
+  - The fix: `runner.root` gives the decider's scripted prelude driver a
+    `planner.Tracker(seat, keep=False)`. At each of its asks:
+    1. `begin`;
+    2. encode through the tracker;
+    3. ask the network for its forecast and pass it to `forecast`;
+    4. answer the scripted word;
+    5. `end`.
+
+    The root is encoded through the same tracker.
+  - Report both roots, blank and carried, for one checkpoint, so the size of the difference is on
+    record.
+  - L's reads through the learner's `--eval-only` already set `job["plan"]` per seat: no change
+    there.
+- **P4.** The iter row's `plan` reports each head's per-class recall (macro-averaged), not the
+  overall accuracy. 60-80% of "when" labels are "never", which "always never" already scores.
+- **P5.** The following mask is drawn from the trainer's rng, which also deals the minibatch order
+  (`ppo.py:132`, `:140`). The order is drawn first, so an update's own order is unchanged. But the
+  mask's draws move the rng, so every later update's order differs from the control's at the same
+  seed. Draw the mask from its own substream (`rng.py`), so the arms share their minibatch orders.
+- **P6.** `_aim` relies on the cast's hand-to-stack ZONE_CHANGE row being journalled after the
+  target asks (`stack.py:838-840`).
+  - Add tests for a creature target and for an activated ability's target.
+  - Add a comment in `Tracker.end` naming that engine fact, so a change in the park's boundary turns
+    a test red.
+- **P2, item 3 (a choice to measure, not yet made).** A flag that shifts the following loss's
+  read-back to uses strictly after the current decision.
+  - Why: today the read-back row of an object used now names this very action, so the loss can
+    learn "copy the row" rather than "act consistently with what you will do later".
+  - Measure both forms on the CPU smoke before choosing. v3's search needs the unshifted form, so
+    the flag stays.
+- **P7, on v3's build list.** The searcher's simulated seats carry a tracker. That must hold before
+  any L read of a planner network with search, since the deployment target is search at play time.
+
 ## 8. Do the borrowed methods transfer? Assumptions, and what they change (the owner, 2026-11-18)
 
 The owner asked whether the literature's assumptions hold here, and that every assumption, theirs
@@ -361,7 +455,7 @@ or the coordinator's, be named with its effect on the conclusions. Each borrowed
 
 | Method | Its assumptions | Here | What it changes |
 |---|---|---|---|
-| Hindsight relabelling (HER, Andrychowicz et al. 2017; the "upside-down" goal-conditioned family) | Goals are states the agent can reach, and the reward is defined by the goal, so a relabelled transition is a valid sample for its new goal and can train the policy with its reward | Our goal is winning against an opponent who adapts. A plan is not a reward-defining goal, so relabelling cannot create valid PPO samples (the behaviour log-probabilities were for the plan as played). | Plan-following is a **supervised side loss** only (self-imitation given the realized plan). It makes plan inputs causal; it claims none of HER's sample-efficiency gains. The train/test gap (realized plans in the side loss, forecasts at play) is a known risk, read in the A/B |
+| Hindsight relabelling (HER, Andrychowicz et al. 2017; the "upside-down" goal-conditioned family) | Goals are states the agent can reach, and the reward is defined by the goal, so a relabelled transition is a valid sample for its new goal and can train the policy with its reward | Our goal is winning against an opponent who adapts. A plan is not a reward-defining goal, so relabelling cannot create valid PPO samples (the behaviour log-probabilities were for the plan as played). | Plan-following is a **supervised side loss** only (self-imitation given the realized plan). It makes plan inputs causal for the realized plan; it claims none of HER's sample-efficiency gains. The train/test gap (realized plans in the side loss, forecasts at play) is a known risk, read in the A/B. **If wrong, also** (216 P8): at play the read-back is the argmax forecast of the policy's own habit, so it is causal only as far as the forecast-habit loop of §3.1 allows. That loop sharpens habits; the entropy kill of §5 reads it |
 | Options and intra-option learning (Sutton, Precup & Singh 1999; option-critic) for the round style | Options are temporally extended behaviours with their own termination. Their values can be learned from any experience under the option. Option discovery tends to collapse without an incentive | The style is a label, not a sub-policy. Its "termination" is the round's end. Collapse is real (§3.2) | Styles are hindsight labels of observable round statistics, so they carry meaning by construction. The style critic V(state, style) is learned on-policy from rounds played in that style. Choosing by it is an approximate improvement step, only as good as each style's coverage (ε) |
 | Gumbel AlphaZero / MuZero policy improvement (Danihelka et al. 2022) and expert iteration (Anthony et al. 2017), for search over plans | A perfect-information model or a learned one, and a value accurate enough at the leaves. The improvement guarantee is relative to the value used | The game has hidden cards. Worlds are sampled from the opponent simulator (PIMC with per-seat views in the playouts, no fusion inside a playout). The value is weak where the puzzles fail (C) | The search's targets inherit the simulator's and the value's errors, so its pull on the planner anneals (PLAN_CEILING's own caveat). Information-set MCTS comes in if the puzzles show strategy fusion. The guarantee does not carry over; only measured improvement on the puzzles and on L counts |
 | Reverse curriculum (Florensa et al. 2017; Salimans & Chen 2018), for puzzle starts (PLAN_PLANNING P2) | The environment resets to chosen states near the goal; the task is goal-reaching with a sparse reward; a demonstration to roll back along | Resets: yes (the pack world arranges any position). The opponent is a learner or the league, not a fixed environment. The positions are arranged, not natural (a shift of the state distribution). The demonstrations are the solver's proven lines | Starts are generated variants, not the evaluation puzzles. Their share anneals, and a skill that fades when they are removed is read as a habit (PLAN_PLANNING P2). That no goal is fixed under an adapting opponent is accepted: the reward stays the game's result |

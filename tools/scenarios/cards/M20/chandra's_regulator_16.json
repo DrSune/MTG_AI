@@ -1,0 +1,87 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "players": 3
+ },
+ "cards": [
+  {
+   "key": "reg",
+   "real": "Chandra's Regulator",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "chandra",
+   "real": "Chandra, Flame's Fury",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "LOYALTY": 4
+   }
+  },
+  {
+   "key": "ogre1",
+   "name": "Ogre One",
+   "type": "Creature — Ogre",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "ogre2",
+   "name": "Ogre Two",
+   "type": "Creature — Ogre",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 2
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:chandra:1",
+    "ogre1",
+    "fire",
+    "ogre2"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ogre1": "graveyard",
+   "ogre2": "graveyard"
+  },
+  "life": {
+   "0": 20,
+   "1": 18,
+   "2": 18
+  },
+  "counters": {
+   "chandra": {
+    "LOYALTY": 2
+   }
+  },
+  "mana_pool": {
+   "0": {
+    "R": 1
+   }
+  },
+  "lost": {
+   "0": false,
+   "1": false,
+   "2": false
+  }
+ },
+ "notes": "Printed: 'copy that ability. You may choose new targets for the copy.' Chandra, Flame's Fury's [-2] ('4 damage to target creature and 2 damage to that creature's controller') is aimed at seat 1's Ogre One; the copy's new target is seat 2's Ogre Two. Each resolves on its own target: Ogre One dies and its controller (seat 1) takes 2; the copy kills Ogre Two and its controller (seat 2) takes 2. I pay {1} once and Chandra loses loyalty once (4 -> 2)."
+}

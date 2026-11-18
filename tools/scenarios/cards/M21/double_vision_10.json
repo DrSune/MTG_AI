@@ -1,0 +1,58 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dv",
+   "real": "Double Vision",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "rtt",
+   "real": "Read the Tides",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Ogre",
+   "type": "Creature — Ogre",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:rtt",
+    "0"
+   ]
+  }
+ ],
+ "expect": {
+  "hand": {
+   "0": 6
+  },
+  "zone": {
+   "rtt": "graveyard",
+   "ogre": "battlefield"
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "Printed: 'copy that spell'. The copy keeps the original's mode (CR 707.10): Read the Tides ('Choose one - Draw three cards / Return up to two target creatures to their owners' hands'), cast for its first mode with Double Vision in play: the original and the copy each draw three: 6 cards in hand. No ask is made for the copy (it has no target: no new targets to choose), the Ogre is not bounced, the spell cost {5}{U} once."
+}

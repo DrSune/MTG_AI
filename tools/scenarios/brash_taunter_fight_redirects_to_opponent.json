@@ -8,7 +8,7 @@
  ],
  "mana": {"0": {"R": 3}},
  "steps": [
-  {"op": "activate", "key": "bt", "idx": 1, "seat": 0, "targets": ["giant"], "decisions": ["p1"]}
+  {"op": "activate", "key": "bt", "idx": 1, "seat": 0, "targets": ["giant"]}
  ],
  "expect": {
   "life": {"0": 20, "1": 16},

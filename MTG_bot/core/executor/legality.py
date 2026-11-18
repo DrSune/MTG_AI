@@ -426,7 +426,7 @@ def _zone_handles(ctx: ExecCtx, zone: Zone) -> list[Handle]:
     (:func:`stack.stack_zone`) and then its abilities on the stack
     (:func:`stack.stack_abilities`). A card whose TARGET selector names the
     stack (M21 Unsubstantiate prints ``BATTLEFIELD + STACK``) must enumerate
-    here, or :func:`legal_casts` would fold its cost and call it castable
+    here, or the menu (``menu.menu``) would fold its cost and call it castable
     while :func:`spell_target_slots` raised on the very next question. The
     stack stays OUT of :data:`PLAYER_ZONES`, so ``Zone(ANY)`` never reaches
     it; only an explicit STACK zone does.
@@ -1353,7 +1353,7 @@ def ability_playable(
         return "window:loyalty:once_per_turn"
     # The X lane (CR 602.2b -> 601.2b): an activation whose cost carries X is
     # legal iff some announcement is payable; X = 0 is the cheapest one (the
-    # witness ``legal_casts`` uses for X spells), so the cost folds at X = 0.
+    # witness the menu uses for X spells), so the cost folds at X = 0.
     x_max = activation_x_max(world, handle, ability.cost)
     ctx = ctx_for(
         executor, source=handle, controller=seat, x_value=0 if x_max is not None else None
@@ -1402,7 +1402,7 @@ def spell_record(executor: Executor, handle: Handle):
 
 def kicker_of(record):
     """CR 702.27a: the card's KickerAbility node, or None. The cast lane,
-    ``legal_casts``' kicked row and the engine-supported gate all ask the
+    the menu's kicked row and the engine-supported gate all ask the
     same question through this one accessor (one encoding per concept)."""
     return next((a for a in record.abilities if isinstance(a, KickerAbility)), None)
 
@@ -1593,7 +1593,7 @@ def spell_castable(
     path: Any = None,
 ) -> tuple[str | None, SpellAbility | None, object, PaymentPlan | None]:
     """The CAST legality fold — re-checkable from the API at any time
-    (same answer as the one ``legal_casts`` gave, until the world
+    (same answer as the one the menu gave, until the world
     changes). Returns ``(reason, node, record, plan)``: exactly one of
     ``reason`` / (node+plan) is set.
 
@@ -1606,7 +1606,7 @@ def spell_castable(
     cost when ``kicked``) against the pool, with ``x`` bound for QX (a
     declared-too-big X shrinks the pool fold into an ordinary
     ``cost:mana`` SHORTAGE — an illegal-cast reason, never a raise: X is
-    enumerated at 0-floor by ``legal_casts``; with an alternative cost X is 0, CR 107.3b) and
+    enumerated at 0-floor by the menu; with an alternative cost X is 0, CR 107.3b) and
     the spell handle as the
     mana-USE subject (THIS_MANA restrictions read their filter over the
     spell being cast); last, an Aura needs something it could enchant.
@@ -1689,7 +1689,7 @@ def spell_castable(
     if aura_slot is not None and not aura_slot.candidates:
         # CR 601.2e: an aura with nothing it could enchant is
         # UNCASTABLE — the synthesized ENCHANT slot's population is
-        # the oracle, and an empty one disappears the legal_casts row
+        # the oracle, and an empty one disappears the menu row
         # instead of letting a floating aura resolve into a no-op.
         return f"cast:aura_no_legal_target:{handle}", None, None, None
     return None, node, record, plan

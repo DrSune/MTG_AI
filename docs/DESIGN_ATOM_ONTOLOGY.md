@@ -3091,10 +3091,12 @@ static's condition (the gate corrected this line; BACKLOG).
    only in the middle of one resolution would be missed: weaker than printed. Assumed rare: for
    Nine Lives or the Tome it needs their counters put on and taken off within one resolution.
 2. An instance blocks only its own object: a Nine Lives that left and came back triggers for
-   itself while the old instance waits (CR 400.7). The old instance should then find no "it" to
-   exile; it does so only after engine wave W1's F14 (selectors read IS_SOURCE on the battlefield
-   without the source-gone register): until then it exiles the new object, and a returned
-   Mazemind Tome is exiled with 4 life gained (STRONGER, W1's; the gate review's MINOR-1). If the
+   itself while the old instance waits (CR 400.7). The old instance finds no "it" to exile since
+   engine wave W1's F14, merged here (a source in the `gone` register is no object's
+   IS_SOURCE); before, it exiled the new object, and a returned Mazemind Tome was exiled with 4
+   life gained (STRONGER; the gate review's MINOR-1). Pinned by
+   `test_a_tome_bounced_and_replayed_while_its_exile_waits_is_left_alone`, red on the engine
+   before W1 (`reports/w3_2026-11-18/gate/tome_bounce_on_the_engine_before_w1.txt`). If the
    rulings meant the old instance to block the new object, a returned Nine Lives would be exiled
    once more than printed.
 3. The extra-trigger statics are read live as the ability triggers, including one whose object
@@ -3145,8 +3147,9 @@ branch; each code fix has a test that fails at 5a310010 (`reports/w3_2026-11-18/
   which also covers two equal steps in one static, so the Seq-level check went. Refusal tests:
   `test_any_other_cards_is_refused` (four hands), `test_a_hand_revealed_is_one_players`,
   `test_two_additional_times_over_one_ability_are_one_count`. MAPPER_GUIDE says both.
-- MINOR-1: assumption 2 and a test's note said the old state instance "finds no it"; it exiles a
-  returned Nine Lives until W1's F14. Corrected; the returned Mazemind Tome is W1's case.
+- MINOR-1: assumption 2 and a test's note said the old state instance "finds no it"; it exiled a
+  returned Nine Lives until W1's F14. Corrected; with W1 merged (main 67a351c1), the returned
+  Mazemind Tome's test passes: no exile, no 4 life.
 - MINOR-2: a state of the object's characteristics alone validated and would trigger after every
   resolution: refused (`CHARACTERISTIC_PREDS`; `test_a_state_of_characteristics_alone_is_refused`).
 - MINOR-3: `reveal_result()` validated after a token made or an exile from the battlefield, a
@@ -3169,3 +3172,26 @@ branch; each code fix has a test that fails at 5a310010 (`reports/w3_2026-11-18/
 - Also: G3's REVEAL `cards` is dead again for every form (the fresh `result` refinement of
   5a310010 had no operator to test it: none yields another valid `cards`; the BACKLOG scaffold
   says when that changes).
+- Where re-verification should look (the reviewer's list of re-baked cards whose play changed):
+  M21 Nine Lives (one exile instance however many counters land; it triggers again once
+  countered, or exiled from the stack by an effect ending the turn); M21 and FDN Mazemind Tome
+  (the same); M21 Sanctum of All (no carrier object, option or priority window; the six Shrines
+  read once, as the ability triggers); M20 Yarok, the Desecrated (the whole card, never
+  verified; with the cast pack); M21 Alpine Houndmaster (two reveal rows, one per search, so the
+  event count after them is one higher: a later random order in that resolution draws another
+  seed, no rules change). Every other re-baked card changed its rows only. A wrong `cards` passes
+  G3 (the scaffold): the verifier checks the `revealed` lane.
+- Main b84282a9 merged (engine waves W0 and W1, verification wave 7, See the Truth's stamp). W0's
+  pack runner refuses a decision word no ask takes: three of this round's packs named a pick with
+  one legal candidate (made without an ask, CR 601.2c) and lost the word, and three Sanctum of
+  All packs lost the word the carrier's order ask took (F24: no carrier, no ask). Three card
+  packs of re-baked records had passed vacuously, their record not dealt by the "all" supply
+  (Battalion Foot Soldier 3 and 4, Pilfer 3): moved to `mapped/`, where they test the record.
+  W0's latent-fault guard (`tools/audit/test_fault_reachability.py`): F23, F24 and F63 are
+  closed, so their entries and shapes went; the re-baked cards left the pins of F27 self-damage,
+  F37 and F43 (a re-verification brings each back, and its verifier pins it again); F43 gained
+  Chandra's Regulator, which wave 7 stamped (a reachable fault's pin records its carriers). The
+  guard's four other reds (F40 and F60 latent but held by wave 7's copy cards, F36 joined by See
+  the Truth, and the guard's own F60 assertion) fail on main b84282a9 alone: they wait for their
+  owners' judgment, not this round's. W1's F14 makes the old state instance leave a returned
+  object alone (assumption 2; the Tome's bounce test).

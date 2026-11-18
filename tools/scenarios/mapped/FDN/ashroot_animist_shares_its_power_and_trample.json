@@ -9,7 +9,7 @@
   {"key": "ocub", "name": "Opp Cub", "type": "Creature — Bear", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 1}
  ],
  "steps": [
-  {"op": "combat", "seat": 0, "attack": {"ashroot": true, "bear": true}, "decisions": ["bear"], "block": {"ocub": "bear"}, "divide": {"ocub": 1}}
+  {"op": "combat", "seat": 0, "attack": {"ashroot": true, "bear": true}, "block": {"ocub": "bear"}, "divide": {"ocub": 1}}
  ],
  "expect": {
   "power": {"bear": 7, "ashroot": 5},

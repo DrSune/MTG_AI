@@ -23,13 +23,26 @@ resumed by `decide.py` after the A/B (`KNOWLEDGE/2026-11-14/208` §11).
 - **How it runs.** The unit is `mtg-r29b` with its guard `mtg-r29b-guard`. It runs from the
   worktree `/home/sune/Desktop/MTG_AI-r29`, pinned at 60f0913f (do not edit it), into
   `runs/selfplay/r29b_pself055`.
-- **B8,** the plateau test, is read at B's update 300 (§9's comparator). After it, FDN joins as a
-  new segment under a short registration of its own. With it come:
-  - the engine wave E3's fixes (in progress);
-  - zero fallback (KNOWLEDGE/2026-11-18/213);
-  - every public card as an entity;
-  - the turn-so-far columns (69b3f5ad);
-  - the cards verified since.
+- **B8,** the plateau test, was read at B's update 300 (208 §12). B − A = −0.0010, 95% [−0.0137,
+  +0.0118]: neither met nor falsified, so B goes on to update 500 (about 04:40 on 11-19) and B8 is
+  read again there.
+  - A second "neither" counts as not met (registered before the data). `--p-self 0.55` stays, and
+    gate B (P3) is the next GPU job.
+  - After that comes the **M21+M20 segment**: by the owner, "M21 and M20 in full before FDN", so
+    FDN's segment waits. With it come:
+    - E3's fixes;
+    - zero fallback (KNOWLEDGE/2026-11-18/213);
+    - every public card as an entity;
+    - the turn-so-far columns (69b3f5ad);
+    - the rails (984aa3c4);
+    - the cards verified since.
+- **The readiness plans are red-teamed** (KNOWLEDGE/2026-11-18/216) and fixed (b380356e).
+  `docs/PLAN_LONG_RUN.md` holds:
+  - the long run's purpose and stall rule;
+  - one GPU calendar;
+  - one multi-arm A/B from one init;
+  - the accumulation bound;
+  - the throughput budget.
 - **The planning plan** is `docs/PLAN_PLANNING.md`. Its first readout (KNOWLEDGE/2026-11-18/214)
   found that no network passes both twins of any proven puzzle pair.
 - **No CPU-heavy agent work** beside it beyond the usual side-job caps.

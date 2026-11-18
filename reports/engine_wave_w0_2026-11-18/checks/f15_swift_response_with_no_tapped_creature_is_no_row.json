@@ -1,0 +1,15 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "F15 (B-54) CHECK: Swift Response ('Destroy target tapped creature') with no tapped creature on the battlefield has no legal target (CR 601.2c). The menu a game acts from offers seat 0 nothing (menu.menu leaves out a row stack.can_designate refuses), so the act op is never asked and its word is left over; a cast with a target the slot refuses is refused. query.legal_casts listed this row (B-54); it is gone, and the card tools read the menu (probe.hand_rows). Control: f15_control_swift_response_with_a_tapped_creature.json.",
+ "cards": [
+  {"key": "sr", "real": "Swift Response", "zone": "hand", "controller": 0},
+  {"key": "ox", "name": "Untapped Ox", "type": "Creature", "power": "2", "toughness": "4", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"W": 1, "C": 1}},
+ "steps": [
+  {"op": "act", "seat": 0, "words": ["cast:sr"], "expect_raise": "words no ask took: ['cast:"},
+  {"op": "cast", "key": "sr", "targets": ["ox"], "expect_raise": "illegal target"}
+ ],
+ "expect": {"zone": {"sr": "hand", "ox": "battlefield"}}
+}

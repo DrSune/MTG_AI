@@ -331,6 +331,9 @@ are weak, not strong (Moment of Heroism z -3.6, Colossus Hammer z -3.2).
     but 6 of 10 own-side pumps flip to opposing creatures. Whether a targeted effect helps or hurts
     is mostly read from the card's NAME, not its components: a generalisation gap for the King
     goal's second tier. Training masks names only 10% of the time (`name_dropout` 0.1).
+    **Corrected 2026-11-18** (KNOWLEDGE/2026-11-18/216 C4): PPO has run the network in eval mode
+    since 16805b39 (2026-11-03; 183 §4), so name dropout never acts in PPO training. Names were
+    visible 100% of the time in PPO updates; `name_dropout` acts only in the BC phase.
   - The heuristic anchor misdirects too (Pacifism on its own creature, buffs on the network's).
 
 ## 17. The next game: postcombat main phase, own-cost discounts, damage batching (2026-11-06)

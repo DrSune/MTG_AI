@@ -5,7 +5,7 @@
   {"key": "temple", "real": "Temple of Malady", "zone": "hand", "controller": 0}
  ],
  "steps": [
-  {"op": "play", "key": "temple", "decisions": ["bottom", "bottom"]}
+  {"op": "play", "key": "temple", "decisions": ["bottom"]}
  ],
  "expect": {
   "zone": {"temple": "battlefield"},

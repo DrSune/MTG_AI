@@ -648,6 +648,27 @@ def test_owner_zone_rule_leaves_the_top_n_draw_idiom_live() -> None:
     assert outcomes[1] == "executor: zone controller ref OPPONENT needs multiple owners (12b)"
 
 
+def test_an_all_over_a_library_top_is_a_partition_not_the_draw_idiom() -> None:
+    """See the Truth, cast from anywhere other than your hand: "put all cards looked at this way
+    into your hand" is an ALL over the library's top, which the executor moves as a partition
+    (verbs.py ``partition``: the looked-at cards as resolved, each into its owner's hand); only the
+    draw idiom reads the destination's player. So the destination-controller mutant is dead, and
+    both trees play the same game: the three cards reach the caster's hand whichever player the
+    destination names (verification wave 6's lone survivor, BACKLOG G1)."""
+    stt = _card("See the Truth")
+    move = "1/0/effect/steps/1/then_effect"
+    assert not gates._draw_idiom(_at(stt, move))
+    assert ("controller YOU->OPPONENT", f"{move}/args/destination/controller") not in _where(stt)
+    pack = _pack([{"key": "stt", "real": "See the Truth", "zone": "graveyard", "controller": 0},
+                  *_library(0, "Yours", 3), *_library(1, "Theirs", 3)],
+                 [{"op": "test_permission_cast", "key": "stt", "from": "graveyard"}], {"0": {"U": 1, "C": 1}})
+    real = _game(pack)
+    assert sorted(o[0] for o in real[0].values() if o[1] == "hand") == ["Yours 0", "Yours 1", "Yours 2"]
+    dest = _at(stt, f"{move}/args/destination")
+    theirs = _mutant(stt, f"{move}/args/destination", dataclasses.replace(dest, controller=ControllerRef.OPPONENT))
+    assert _game(pack, theirs) == real
+
+
 AUGUR_DISCARD = "1/1/effect/steps/0/args/cards/zones/0/controller"
 
 

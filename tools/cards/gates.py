@@ -614,12 +614,19 @@ def _partition_step(step: Any) -> bool:
 def _draw_idiom(atom: Atom) -> bool:
     """MOVE_ZONE's top-n draw idiom (verbs.py _v_move_zone: "move THE top n of your library to
     hand"), the one move lane whose destination names a player: zone_owner picks whose library is
-    drawn. The idiom is an unpartitioned, referent-free, unfiltered selector over one library."""
+    drawn. The idiom is an unpartitioned, referent-free, unfiltered selector over one library.
+    The partition is the executor's own (``partition`` there): a ONE_OF/REST pick, and an ALL over
+    a library's top, which moves the looked-at cards as resolved, each to its owner's hand (See the
+    Truth's "put all cards looked at this way into your hand"; verification wave 6 found its
+    destination-controller mutant offered and surviving, BACKLOG G1)."""
     sel = atom.args.get("cards")
     dest = atom.args.get("destination")
-    return (atom.verb is Verb.MOVE_ZONE and isinstance(sel, Selector) and isinstance(dest, Zone)
-            and dest.kind is ZoneKind.HAND
-            and sel.mode not in (SelectorMode.ONE_OF, SelectorMode.REST) and sel.referent is None
+    if not (atom.verb is Verb.MOVE_ZONE and isinstance(sel, Selector) and isinstance(dest, Zone)):
+        return False
+    partition = sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST) or (
+        sel.mode is SelectorMode.ALL
+        and any(z.kind is ZoneKind.LIBRARY and z.position is ZonePosition.TOP for z in sel.zones))
+    return (dest.kind is ZoneKind.HAND and not partition and sel.referent is None
             and len(sel.zones) == 1 and sel.zones[0].kind is ZoneKind.LIBRARY
             and isinstance(sel.filter, FAnd) and not sel.filter.children)
 

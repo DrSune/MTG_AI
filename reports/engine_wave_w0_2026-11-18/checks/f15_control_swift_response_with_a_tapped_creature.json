@@ -1,0 +1,14 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "F15 CONTROL of f15_swift_response_with_no_tapped_creature_is_no_row.json: the Ox starts tapped, so the menu offers Swift Response, the act op casts it (its one legal target designated without an ask) and the Ox is destroyed: the check's missing row is the empty target slot's, not a spell the menu never offers.",
+ "cards": [
+  {"key": "sr", "real": "Swift Response", "zone": "hand", "controller": 0},
+  {"key": "ox", "name": "Tapped Ox", "type": "Creature", "power": "2", "toughness": "4", "zone": "battlefield", "controller": 1, "start_tapped": true}
+ ],
+ "mana": {"0": {"W": 1, "C": 1}},
+ "steps": [
+  {"op": "act", "seat": 0, "words": ["cast:sr"]}
+ ],
+ "expect": {"zone": {"sr": "graveyard", "ox": "graveyard"}}
+}

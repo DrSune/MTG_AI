@@ -6,6 +6,6 @@
   {"key": "whale", "real": "Pursued Whale", "zone": "library", "controller": 0},
   {"key": "top", "real": "Llanowar Visionary", "zone": "library", "controller": 0}
  ],
- "steps": [{"op": "enter", "key": "empath", "decisions": ["fire", "whale"]}],
+ "steps": [{"op": "enter", "key": "empath", "decisions": ["fire"]}],
  "expect": {"zone": {"whale": "hand", "top": "library"}, "revealed": {"whale": true, "top": false}}
 }

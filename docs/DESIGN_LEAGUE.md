@@ -202,7 +202,7 @@ check. A method whose key assumption fails is adapted, with the adaptation argue
 | Method | Its assumptions | Here | Adaptation and conclusion |
 |---|---|---|---|
 | **AlphaStar's league** (Vinyals et al. 2019): main agents; main exploiters that beat the current mains; league exploiters against the whole league; PFSP | (a) many agents train at once on large compute; (b) exploiters reset to a supervised human policy, which keeps them diverse; (c) strategy cycles exist and matter; (d) per-pair win rates are cheap; (e) exploiters find weaknesses within their budget (2-4·10⁹ steps); (f) mains patch what exploiters find | (a) **fails**: one GPU, one job; (b) **fails**: there is no human policy; (c) **unmeasured**: L is transitive, B9 unread; (d) holds: about 1,000 games an update; (e) **doubtful**: 211's exploiter gained +20 Elo in 4 h; (f) **doubtful**: the plateau | **Adopted with three changes:** (1) exploiters are time-sliced phases with the main paused, start from the snapshot they target, and stop when they find nothing (§3.3); (2) no league exploiters, which need parallel compute; (3) the league is insurance plus a measuring instrument, never a promised gain. Its branch structure is kept: self-play, PFSP over the past, a verification share |
-| **PFSP's weightings** (the same paper): x(1 − x) favours even opponents, (1 − x)² those the learner loses to | win-rate estimates fresh enough to rank opponents; a pool spread in strength | holds: a member drawn in 5% of games gets about 50 games an update, so its decayed estimate has an SE near 0.02-0.03; near x = 0.5 the weights are flat (x(1 − x) is 0.25, 0.24 and 0.21 at 0.5, 0.6 and 0.7) | **Adopted.** x(1 − x) over the past, as D22 settled; (1 − x)² only in the verification share, where the point is "make sure you can beat this one", as AlphaStar uses it. Flat weights near 0.5 mean PFSP mostly trims the extremes, which is its job here |
+| **PFSP's weightings** (the same paper). In AlphaStar the main agents weight their PFSP branch by f_hard = (1 − x)^p, and the main exploiters weight the main's checkpoints by f_var = x(1 − x) | win-rate estimates fresh enough to rank opponents; a pool spread in strength | **holds only while the league is small** (corrected after 216 G1). At the week's end there are about 40 members, an active set of 8, and a history branch of 0.25-0.55 of about 1,000 games. A member is then active about one update in five, at about 6-14 games an update on average. Its decayed estimate rests on 60-140 games: an SE of 0.04-0.065 near x = 0.5, and stale for a member not drawn in ten updates. The first draft's 0.02-0.03 holds only under about ten members. Near x = 0.5 the weights are flat (x(1 − x) is 0.25, 0.24 and 0.21 at 0.5, 0.6 and 0.7), so with this noise **PFSP is near-uniform over the history branch**, trimming only members the learner beats or loses to by a wide margin | **Adopted, with what it really does said aloud.** x(1 − x) over the past, as D22 settled: in AlphaStar it is the exploiters' function against the main, used here in the history branch by D22's decision (PLAN_CEILING §7.1's argument holds). (1 − x)², AlphaStar's f_hard with p = 2, only in the verification share, where the point is "make sure you can beat this one" (216 G3). **Forgetting is detected by X0's 48-hour sweep (200 deals a member) and by the floor, not by the weights.** The active set is drawn once per 5 updates, so an estimate rests on about five times the games at the same throughput; the iter row reports each estimate's SE beside x (§3.2) |
 | **OpenAI Five's past-opponent sampling** (Berner et al. 2019): 80% self-play, 20% past versions by a learned quality score | the same as PFSP, with a bandit update in place of win rates | holds | **Considered, not adopted**: it does the same job as PFSP, and PFSP is settled (D22) with an evaluation trail behind it |
 | **PSRO / double oracle** (Lanctot et al. 2017; McMahan et al. 2003): each new best response is trained against the population's Nash mixture, and the deployed agent is that mixture | (a) the full payoff matrix between members, N² entries with hundreds of games each; (b) a mixture of policies is what gets deployed; (c) each best response is trained close to convergence | (a) **fails** at any useful frequency: 20 members are 190 pairs, about 190,000 games at 500 deals a pair, 3-4 GPU-hours a refresh at evaluation speed (about 16 games a second, 205 §1); (b) **fails**: one network is deployed under a match clock; (c) **fails**: PPO's best responses are slow (211) | **Dropped as the training procedure.** The meta-game survives as an evaluation tool on a small spine of members (§2.2, §5.3) |
 | **Fictitious play / NFSP** (Heinrich et al. 2015-16) | an average-policy network kept beside the best response | needs a second trained network, and an average policy is not our deployed player | **Dropped.** PFSP is its practical form |
@@ -328,7 +328,14 @@ x is the learner's score against the member (a win 1, a draw 0.5).
 
 **The payoff estimate.**
 - Counts of the learner's results against each member, from training games, decayed by 0.9 per
-  update: about 10 updates of memory, with an SE near 0.03 at 50 games an update.
+  update: about 10 updates of memory.
+- **Its precision** (corrected after 216 G1).
+  - With a handful of members, a member gets about 50 games an update, and the SE is near 0.03.
+  - At the week's end, about 40 members, a member is active about one update in five, at 6-14
+    games an update on average. Its estimate rests on 60-140 games: an SE of 0.04-0.065.
+  - So the x(1 − x) weights are near-uniform over the history branch: they trim the extremes
+    only.
+  - The iter row reports each estimate's SE beside x, so this is visible, not assumed.
 - A member never played reads x = 0.5 (AlphaStar's convention), which gives a newcomer full
   weight until it is measured.
 - The critic's pilot terms give the same strengths with deck luck regressed out. They are reported
@@ -341,8 +348,13 @@ x is the learner's score against the member (a win 1, a draw 0.5).
 **The active set.**
 - Each frozen network costs a forward per inference batch (`learner.py:692-757`: requests are
   grouped by model). Many members means many small batches.
-- So each update draws up to **K = 8 distinct networks**, without replacement, by the branch
-  weights; scripted members are free. Games go only to the active set until the next update.
+- So **every 5 updates** draws up to **K = 8 distinct networks**, without replacement, by the
+  branch weights; scripted members are free. Games go only to the active set until the next draw.
+  - **Why 5 updates, not 1** (216 G1). The same throughput, fewer and longer exposures: an active
+    member's estimate rests on about five times the games, and fewer members are loaded lazily.
+  - **The cost:** each update's opponents are less varied. Over 5 updates the set is the same 8.
+  - **Said aloud** (§4.4). What removes it: a measured payoff SE at which per-update draws rank
+    members as well.
 - K is a performance scaffold, set by the GPU smoke's throughput curve (§5.1).
 - Inactive members stay on disk. They load lazily through `_load_net` (`learner.py:418-434`),
   which already checks that a member's card table is a prefix of the learner's.
@@ -357,8 +369,17 @@ removed.
 **Main exploiter phases.**
 - **The protocol** is 211's, which already ran once:
   - the main stops at a save;
-  - an exploiter run starts from the newest snapshot, trained only against it
+  - an exploiter run starts, trained only against the newest snapshot
     (`--p-heuristic 0 --p-past 0 --p-self 0`), on the main's deck mix;
+  - **its init alternates** (216 G2):
+    - odd phases start from the target itself;
+    - even phases start from another lineage already in the registry: r28's v1 now; later the
+      heuristic-imitating start of PLAN_CEILING §8, or a specialist.
+
+    Why: AlphaStar resets its exploiters to the supervised policy to keep them diverse. An
+    exploiter started at its target's own weights searches only the target's neighbourhood. 211
+    did exactly that (an exploiter from v2 against v2): +20 Elo greedy in 4 h, the sampled win
+    rate flat at 0.50, "no line v2 fails to answer". Alternating costs nothing extra.
   - its gates run every 10 updates on 1,000 fresh deals, and it never freezes
     (`--gate-score 1.01`).
 - **Length: 8 machine-hours, one phase every 48 machine-hours of main training** (14% of machine
@@ -368,8 +389,9 @@ removed.
     about 7 h.
   - **Why every 48.** It bounds the cost while the main is the priority.
 - **It always joins at the end.** Its final x places it in verification (x < 0.7) or history.
-- **The stop rule:** two consecutive phases whose final gate is below 0.55 end the phases. The
-  time returns to the main.
+- **The stop rule, per init kind** (216 G2): two consecutive phases of one init kind whose final
+  gate is below 0.55 end that kind. When both kinds have ended, the time returns to the main. X1
+  is recorded per init kind.
 - **A flag at 0.60 or more** (211's): replay its winning games and judge each line, legal Magic
   or an engine fault. A fault is fixed by its cause (the bug-hunt protocol, 209 §9).
 - **What a phase reads:**
@@ -490,6 +512,10 @@ The brief: say how non-stationarity is kept from corrupting the value function. 
    - The baseline is a function of the state. The member is drawn before the game, independently
      of the learner's actions, so E[∇log π(a|s) · b(s, member)] = 0 for any such b.
    - A lagging value costs variance, not direction (Williams 1992; Greensmith et al. 2004).
+   - **The assumption this rests on** (216 G7): the policy is trained by PPO alone. With the
+     planner on, the policy is also trained by a supervised side loss (DESIGN_PLANNER §3.1), and
+     the baseline argument does not apply to that loss. Its effect is read by the planner's own
+     arms (DESIGN_PLANNER §5), not argued here.
 4. **The rate of change is bounded:**
    - payoff estimates decay over about 10 updates;
    - a new member enters at x = 0.5, inside its branch's share;
@@ -783,7 +809,7 @@ call when to spend them, after H1-class runs.
 | | Sampled training win rates rank members well enough (mine) | Sampled and greedy diverge (211: 0.50 against 0.53): weights misallocate mildly; the floor bounds the damage |
 | Exploiters of 8 h | They climb at about 211's 5 Elo/h against a fixed target (mine, from one probe) | Slower: two null phases, then stop; the read "not exploitable at this budget" is reported as bounded by the budget, never as "robust" |
 | PFSP x(1 − x) in history, (1 − x)² in verification | The learner is near the top of its league (mine) | A much stronger member (F1, later) would draw too many lost games: the curriculum fallback of AlphaStar's self-play branch (play that member's weaker checkpoints by x(1 − x)) is the registered extension |
-| The 0.4/0.2/0.2/0.2 deck mix | Training on a shape closes its familiarity gap (mine, from 205) | Gap persists: the shapes cost coherent practice; R1/R2 and X4 show it, and the mix moves back toward coherent |
+| The 0.4/0.2/0.2/0.2 deck mix | Training on a shape closes its familiarity gap (mine, from 205) | Gap persists: the shapes cost coherent practice; R1/R2 and X4 show it, and the mix moves back toward coherent. **Said plainly** (216 G6): the familiarity gain is bought with coherent practice. Each seat is coherent 40% of the time, so both seats are coherent in 16% of games, while L's anchor and r29's whole history are coherent. X4's "coherent L not below the init's" is the standing guard |
 | | "Realistic decks have a higher skill ceiling" (owner) | Not relied on: 205 found no extra one-turn headroom; the mix rests on familiarity and frequency |
 | | "Deals that hold synergies" teach synergies (owner) | Not relied on as a gain: 202 found no package line with value; packages are coverage |
 | | More frequent counter and sweeper situations help planning (mine) | The bottleneck is the signal (214), not frequency: role decks cost little (they are real decks), and the planner and value items carry the gain |
@@ -801,11 +827,12 @@ call when to spend them, after H1-class runs.
 |---|---|---|---|
 | Branch shares | §3.2 table | AlphaStar's 35/50/15 scaled to r29's self share; the heuristic as today minus 0.05 | A meta-solver's mixture over lineages, once the member matrix is cheap enough (§2.1) |
 | History floor | 0.10 | a trickle of games to every member; the 48-hour sweep (§3.2) refreshes every estimate | Thompson sampling over members' posterior x |
-| Payoff decay | 0.9 per update | about 10 updates of memory at an SE near 0.03 | A Bayesian estimate with a drift model |
+| Payoff decay | 0.9 per update | about 10 updates of memory; an SE near 0.03 only while the league is small, 0.04-0.065 at about 40 members (216 G1) | A Bayesian estimate with a drift model |
 | Verification thresholds | exploiter x < 0.7; forgotten x < 0.5 | AlphaStar's 70% join rule; "no longer beats" | The meta-solver above |
 | Active set K | 8, set by the smoke | throughput | Batched multi-model inference (stacked weights) |
+| Active-set draw | every 5 updates | about five times the games per estimate at the same throughput (216 G1) | A measured payoff SE at which per-update draws rank members as well |
 | Snapshot timeout | 100 updates | about 4.6 machine-hours; 37 snapshots a week | Snapshots by measured policy change (KL from the last snapshot) |
-| Exploiter phases | 8 h every 48 h; stop after two below 0.55 | 211's rate; a 14% cap | Co-trained exploiters on a second GPU |
+| Exploiter phases | 8 h every 48 h; inits alternating (the target, another lineage); stop a kind after two of it below 0.55 | 211's rate; a 14% cap; diversity of starts (216 G2) | Co-trained exploiters on a second GPU |
 | Deck mix | 0.4/0.2/0.2/0.2 | coverage; the familiarity gap; the drafter's bias capped | T2's rule (§3.8), then the drafter's decks |
 | Role copies | 4 | 60% chance in the first 12 cards | T2, or roles learnt as clusters of the card embedding |
 | Role definitions | counterspell; sweeper | the two roles puzzles B and D need, rare in coherent deals | Learnt roles (clusters), or the drafter |
@@ -825,8 +852,15 @@ call when to spend them, after H1-class runs.
 
 ### 5.2 E-L, the harm screen
 
-**Arms**, from the long run's init (the coordinator's: the FDN segment's checkpoint or B's
-latest):
+**Changed after the red team (216 C2, G5).**
+- E-L now runs as arm G of PLAN_LONG_RUN's multi-arm A/B, from its one init and sharing its
+  control C. That A/B's shared reads (L, the whole puzzle suite, entropy, throughput) are added to
+  this section's reads, and its arms are matched on updates.
+- **B9 (208 §7, the cycle check among versions) is read before it.** It costs about an hour of
+  evaluation, and it is the one measurement that says whether the league's insurance is for a real
+  risk.
+
+**Arms**, from the multi-arm A/B's init (the main line's checkpoint, PLAN_LONG_RUN's calendar):
 - **C:** the long run's configuration without this plan's items: today's opponent shares and
   coherent decks.
 - **T:** C plus `--league` (v0, r28's v1, the probe exploiter, the heuristic; snapshots every 100),
@@ -856,8 +890,9 @@ its kill criteria.
 **Checks:**
 - **L on package and drafted decks** (500 deals per opponent): T − C 0 to +30 Elo, the
   familiarity read.
-  - An upper bound below 0 says training on a shape did not help it within 5.5 h. That is
-    reported, and is not a kill.
+  - **Uninformative at this size** (216 G4). Its SE is near 10-15 Elo per shape, so at 5.5 h it
+    cannot tell 0 from +30. It is reported, never read as a result. The familiarity question is
+    read at X4, inside the run.
 - Voids per recipe, 0.5% or less.
 - Per-branch value EV.
 - The exploit scan of T's games: no new flag.

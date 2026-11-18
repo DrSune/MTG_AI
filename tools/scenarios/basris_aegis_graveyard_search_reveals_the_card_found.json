@@ -8,6 +8,6 @@
   {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
  ],
  "mana": {"0": {"W": 2, "G": 2}},
- "steps": [{"op": "cast", "key": "aegis", "targets": ["bear"], "decisions": ["fire", "2", "basri"]}],
+ "steps": [{"op": "cast", "key": "aegis", "targets": ["bear"], "decisions": ["fire", "2"]}],
  "expect": {"zone": {"basri": "hand", "top": "library"}, "revealed": {"basri": true, "top": false}}
 }
