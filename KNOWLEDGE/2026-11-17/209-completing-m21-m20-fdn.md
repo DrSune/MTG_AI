@@ -350,3 +350,16 @@ first: B3, then B6, B4 + B12, B13 with I5, and on. Why, and at what cost:
 those cards added get a redundancy review before FDN's rounds build on them. The review asks
 whether any new component breaks down into existing ones, folding it in from the start, as 210's
 review did for the components then.
+
+**Amended 2026-11-18 evening (coordinator).** Two order changes, both for M21 and M20 first:
+- **W3 of KNOWLEDGE/2026-11-18/215 runs beside W1**, not after W2. Its F23 is the last engine piece
+  M21 needs (Sublime Epiphany). Its `binding.py` work is what B6, B8 and B17 wait on.
+- **B12 runs before B4, narrowed to M20's packages:** LEYLINE, PROHIBIT and GAMEEND. HANDSIZE is
+  FDN-only and waits.
+  - Why: B4 (COUNTERKIND, POISON) completes no M20 card. They were ordered B4-first only because
+    both touch the state-based actions, so B12 designs "can't lose" for B4's poison to reuse.
+  - B12 completes Rule of Law, Grafdigger's Cage, Leyline of Sanctity and Leyline of the Void.
+  - It maps the LEYLINE sentence of Leyline of Anticipation (also needs B15), Leyline of
+    Combustion (B6) and Leyline of Abundance (B11), and Atemsis's GAMEEND (also DISTINCT, B13).
+- **Running now:** W0+W1, W3 and B12 in three worktrees; blind verification wave 7 (Double Vision,
+  Masterful Replication, Chandra's Regulator).
