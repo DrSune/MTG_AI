@@ -69,7 +69,12 @@ Pack vocabulary (all keys required as noted):
               |"battlefield"|"library"}     a journalled move by "another
                                             effect" (a bounce, a destroy, an
                                             exile) to the card's OWNER's
-                                            zone,
+                                            zone; "keys": [k...] in place of
+                                            "key" moves them all in one
+                                            instruction, one event (CR
+                                            603.2c: two creatures entering at
+                                            once), whose source and controller
+                                            are the first card's,
              {"op": "gain_control", "key": k, "seat": N}
                                             a control change by "another
                                             effect": the player at seat N gains
@@ -854,22 +859,25 @@ class ScenarioRunner:
             )
         elif op == "move":
             # A journalled zone move by another effect, to the card's owner's zone
-            # (the destroy / bounce / exile stand-in).
-            handle = self.handles[step["key"]]
+            # (the destroy / bounce / exile stand-in). "keys" moves several cards in one
+            # instruction, one event (CR 603.2c), as a wrath or a return of two cards does.
+            handles = [self.handles[k] for k in (step["keys"] if "keys" in step else [step["key"]])]
+            if not handles:
+                raise PackError("move: no card to move (\"keys\" is empty)")
             self.ex.execute(
                 _atom(
                     Verb.MOVE_ZONE,
                     cards=Selector(
-                        QConst(1),
+                        QConst(len(handles)),
                         SelectorMode.TARGET,
                         UNIV,
                         zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),),
                     ),
                     destination=Zone(_MOVE_TO[step["to"]], ControllerRef.OWNER),
                 ),
-                source=handle,
-                controller=self.world.controller_of(handle),
-                bindings={"cards": handle},
+                source=handles[0],
+                controller=self.world.controller_of(handles[0]),
+                bindings={"cards": handles},
             )
         elif op == "gain_control":
             # A control change by another effect (the steal stand-in): the seat gains control,

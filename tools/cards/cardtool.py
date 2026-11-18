@@ -291,9 +291,13 @@ def cmd_mutate(args: argparse.Namespace) -> int:
     supply, oid = _supply_and_oid(args.set, args.card)
     res = gates.g3(supply, args.set, oid, limit=args.limit)
     print(f"mutants {res['mutants']}, killed {res['killed']}, score {res['score']}")
-    critical = [s for s in res["survived"] if gates.is_critical(s[0])]
+    equivalent = equivalent_mutants(oid, supply.pool.results[oid].card)
+    critical = [s for s in res["survived"]
+                if gates.is_critical(s[0]) and f"{s[0]} at {s[1]}" not in equivalent]
     for op, where in res["survived"]:
-        print(f"  SURVIVED{' (critical)' if (op, where) in critical else ''}: {op} at {where}")
+        note = " (critical)" if (op, where) in critical else (
+            " (proven equivalent)" if f"{op} at {where}" in equivalent else "")
+        print(f"  SURVIVED{note}: {op} at {where}")
     return 1 if critical else 0
 
 
@@ -453,17 +457,35 @@ def lock_problem(path: Path, verdict: dict) -> str | None:
     return None
 
 
+#: Survivors proven to play exactly like the card, a shape one card has (a shape several cards share
+#: is a dead-role rule in ``gates.mutants``): by oracle id, the tree they were proven on and each
+#: mutant ("<operator> at <where>") with its reason and proof.
+EQUIVALENT = HERE / "equivalent_mutants.json"
+
+
+def equivalent_mutants(oid: str, card: Any) -> set[str]:
+    """The mutants of ``card`` a proof shows to play exactly like it (:data:`EQUIVALENT`), which G3
+    honours. An entry holds only for the tree it was proven on: a changed tree drops it, and the
+    proof has to be made again."""
+    entry = json.loads(EQUIVALENT.read_text()).get(oid)
+    if entry is None or entry["tree_sha"] != card_records.tree_sha(card):
+        return set()
+    return {m["mutant"] for m in entry["mutants"]}
+
+
 def uncovered_survivors(supply: Any, set_code: str, oid: str, packs: list[Path],
                         limit: int) -> tuple[dict, list[tuple[str, str, Any]]]:
     """G3, then every critical survivor that no pack tells apart from the card (the pack fails on
-    the mutant), as (operator, where, mutant)."""
+    the mutant) and no proof shows to be equivalent (:func:`equivalent_mutants`), as (operator,
+    where, mutant)."""
     from run_scenarios import run_pack
 
     card = supply.pool.results[oid].card
     g3 = gates.g3(supply, set_code, oid, limit=limit)
+    equivalent = equivalent_mutants(oid, card)
     out = []
     for op, where in g3["survived"]:
-        if not gates.is_critical(op):
+        if not gates.is_critical(op) or f"{op} at {where}" in equivalent:
             continue
         mutant = next(m for o, w, m in gates.mutants(card) if (o, w) == (op, where))
         with gates.swapped(supply, oid, mutant):

@@ -1,0 +1,16 @@
+{
+ "set": "M21",
+ "name": "chandra_flames_catalyst_minus_two_pays_with_an_untapped_mountain",
+ "notes": "Printed: '[-2]: You may cast target red instant or sorcery card from your graveyard.' The spell cast as the -2 resolves is paid like any cast: its controller may activate mana abilities while paying (CR 601.2g, 605.3a), so an untapped Mountain pays Shock's {R}: the -2 is offered with Shock its target, the Mountain taps, Shock kills the Bear and is exiled. An engine fault until engine wave E3 (found by mapper wave 5, 2026-11-18; a known-bugs pack then): the effect-cast lane priced and paid from the mana pool only (query._cast_option_payable and stack.cast_card read legality.build_payment_plan alone), and the menu clamped the -2's target to cards the pool could pay for, so with the mana in a land the -2 was not offered (fails on main fa284327). In a dealt game no mana floats (a mana ability is no menu row), so the -2 was never usable.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cf", "real": "Chandra, Flame's Catalyst", "zone": "battlefield", "controller": 0},
+  {"key": "shock", "real": "Shock", "zone": "graveyard", "controller": 0},
+  {"key": "mtn", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "act", "seat": 0, "words": ["act:cf:1", "fire", "bear"]}
+ ],
+ "expect": {"zone": {"bear": "graveyard", "shock": "exile"}, "tapped": {"mtn": true}, "counters": {"cf": {"LOYALTY": 3}}}
+}

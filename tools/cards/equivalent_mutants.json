@@ -1,0 +1,14 @@
+{
+ "cbcb6d9a-6ae5-4bcd-8013-2b657553764a": {
+  "name": "Mangara, the Diplomat",
+  "set": "M21",
+  "tree_sha": "7549321cccd1f82b481334e6b2853a3d818aa83d92055ca85a6f5d7adcdb167e",
+  "mutants": [
+   {
+    "mutant": "controller YOU->OPPONENT at 1/0/event/attacked/children/0/children/0/who",
+    "reason": "The intervening 'if' (ATTACK_AGAINST_COUNT_GE over the same 'you and/or planeswalkers you control', checked as the ability would trigger and again as it resolves, CR 603.4) needs two attackers the card's own event filter takes. The mutant's event also takes attackers at planeswalkers an opponent controls (three or more seats only: in two, an opponent attacks only you and yours), but a firing only the mutant makes has no attacker the condition counts, so it never triggers, and where both fire the condition counts the same attackers.",
+    "proof": "reports/g3_equivalence_2026-11-12/proof_mangara.py: scenarios S1-S6 (two seats) and T1-T3 (three seats) play the card and the mutant to identical games; N2 shows the condition is what makes them identical"
+   }
+  ]
+ }
+}

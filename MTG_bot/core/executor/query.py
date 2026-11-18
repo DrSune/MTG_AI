@@ -734,10 +734,13 @@ def _cast_option_payable(
     "without paying its mana cost", CR 118.9), its ``additional`` and the spell's own
     additional costs added (legality.effect_cast_cost). The fold runs with cast_card's own
     context shape (source=the card, X at its 0 floor, CR 107.1) and the same ``mana_use``
-    restriction read. One source of truth: this is literally the same
-    :func:`build_payment_plan` call ``stack.cast_card`` makes — legality and execution can never
+    restriction read. Paid from the pool and by the mana abilities its caster activates while
+    paying (CR 601.2g, 605.3a): the free sources every payment inside a resolution taps
+    (``legality.plan_mana_taps``; the automatic-payment scaffold, BACKLOG, which leaves a
+    creature's mana and a sacrificed Treasure to a cast from the menu). One source of truth: this
+    is literally the same payment ``stack.cast_card`` makes — legality and execution can never
     disagree."""
-    from MTG_bot.core.executor.legality import effect_cast_cost, spell_record
+    from MTG_bot.core.executor.legality import effect_cast_cost, plan_mana_taps, spell_record
     from MTG_bot.core.executor.stack import can_designate
 
     record = spell_record(executor, handle)
@@ -756,7 +759,11 @@ def _cast_option_payable(
             return True  # waiver (CR 118.9) / costless: nothing to fold
         tctx = ctx_for(executor, source=handle, controller=ctx.controller, x_value=0,
                        bindings={"target": list(targets)} if targets else None)
-        return build_payment_plan(executor.world, tctx, cost, mana_use=handle)[0] is not None
+        return plan_mana_taps(
+            executor, ctx.controller,
+            lambda: build_payment_plan(executor.world, tctx, cost, mana_use=handle)[1],
+            keep=frozenset(targets), payable_only=True,
+        ) is not None
 
     if modal_choose(node) is None:
         slots = spell_target_slots(executor, node, spell_handle=handle, seat=ctx.controller, pay=pay)

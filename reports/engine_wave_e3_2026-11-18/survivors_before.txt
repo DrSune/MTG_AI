@@ -1,0 +1,66 @@
+== Radha, Heart of Keld (A06)
+G3: 22 mutants, 7 survive the probe; 2 critical survive your 9 pack(s)
+- controller YOU->OPPONENT at 1/1/effect/steps/0/args/controller
+  a pack that kills it: let only one side qualify and pin that it is the printed one: both players' creatures on the board, only the opponent casting the spell, the opponent's library left untouched
+  in: A(Verb.LOOK_AT, {'controller': ControllerRef.YOU, 'count': QConst(value=1)})
+- amount+1 at 1/1/effect/steps/0/args/count
+  a pack that kills it: pin the exact number with more on offer than the text names: two Vampire cards in hand for 'a Vampire', three cards for 'two'; for P/T, toughness as well as power
+  in: A(Verb.LOOK_AT, {'controller': ControllerRef.YOU, 'count': QConst(value=1)})
+== Mystic Forge (A07)
+G3: 9 mutants, 4 survive the probe; 3 critical survive your 9 pack(s)
+- controller YOU->OPPONENT at 1/0/effect/args/controller
+  a pack that kills it: let only one side qualify and pin that it is the printed one: both players' creatures on the board, only the opponent casting the spell, the opponent's library left untouched
+  in: A(Verb.LOOK_AT, {'controller': ControllerRef.YOU, 'count': QConst(value=1)})
+- amount+1 at 1/0/effect/args/count
+  a pack that kills it: pin the exact number with more on offer than the text names: two Vampire cards in hand for 'a Vampire', three cards for 'two'; for P/T, toughness as well as power
+  in: A(Verb.LOOK_AT, {'controller': ControllerRef.YOU, 'count': QConst(value=1)})
+- amount+1 at 1/2/effect/args/target/count
+  a pack that kills it: pin the exact number with more on offer than the text names: two Vampire cards in hand for 'a Vampire', three cards for 'two'; for P/T, toughness as well as power
+  in: A(Verb.MOVE_ZONE, {
+              'destination': Zone(kind=ZoneKind.EXILE, controller=ControllerRef.OWNER),
+              'target': Selector(
+                  count=QConst(value=1),
+                  mode=SelectorMode.ONE_OF,
+                  filter=FAnd(children=()),
+                  zones=(
+                      Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU, position=ZonePosition.TOP),
+                  ),
+              ),
+      ...
+== Mangara, the Diplomat
+Mangara, the Diplomat: 20 mutants, 2 killed by the probe, score 0.1
+  survives the probe: CRITICAL trigger count: once per event -> each occurrence at 1/0
+  survives the probe: widen filter (drop part 0) at 1/0/event/filter
+  survives the probe: widen filter (drop part 1) at 1/0/event/filter
+  survives the probe: CRITICAL controller OPPONENT->YOU at 1/0/event/filter/children/0/who
+  survives the probe: widen filter (drop part 0) at 1/0/event/attacked/children/0
+  survives the probe: widen filter (drop part 1) at 1/0/event/attacked/children/0
+  survives the probe: CRITICAL controller YOU->OPPONENT at 1/0/event/attacked/children/0/children/0/who
+  survives the probe: CRITICAL controller YOU->OPPONENT at 1/0/event/attacked/children/1/who
+  survives the probe: CRITICAL amount+1 at 1/0/condition/count
+  survives the probe: widen filter (drop part 0) at 1/0/condition/inner_filter/children/0
+  survives the probe: widen filter (drop part 1) at 1/0/condition/inner_filter/children/0
+  survives the probe: CRITICAL controller YOU->OPPONENT at 1/0/condition/inner_filter/children/0/children/0/who
+  survives the probe: CRITICAL controller YOU->OPPONENT at 1/0/condition/inner_filter/children/1/who
+  survives the probe: CRITICAL amount+1 at 1/0/effect/args/amount
+  survives the probe: CRITICAL controller YOU->OPPONENT at 1/0/effect/args/controller
+  survives the probe: CRITICAL controller OPPONENT->YOU at 1/1/event/actor/who
+  survives the probe: CRITICAL amount+1 at 1/1/effect/args/amount
+  survives the probe: CRITICAL controller YOU->OPPONENT at 1/1/effect/args/controller
+  UNCOVERED (no pack kills it): controller YOU->OPPONENT at 1/0/event/attacked/children/0/children/0/who
+  1 uncovered critical survivor(s) with 4 pack(s)
+== Watcher of the Spheres
+Watcher of the Spheres: 14 mutants, 3 killed by the probe, score 0.21428571428571427
+  survives the probe: widen filter (drop part 0) at 1/0/filter
+  survives the probe: widen filter (drop part 1) at 1/0/filter
+  survives the probe: CRITICAL controller YOU->OPPONENT at 1/0/controller_ref
+  survives the probe: CRITICAL each occurrence -> once per event at 1/1
+  survives the probe: CRITICAL controller YOU->OPPONENT at 1/1/event/to_zone/controller
+  survives the probe: widen filter (drop part 0) at 1/1/event/subject
+  survives the probe: widen filter (drop part 1) at 1/1/event/subject
+  survives the probe: CRITICAL controller YOU->OPPONENT at 1/1/event/subject/children/0/who
+  survives the probe: CRITICAL until-end-of-turn->permanent at 1/1/effect/args/duration
+  survives the probe: CRITICAL amount+1 at 1/1/effect/args/power/magnitude
+  survives the probe: CRITICAL amount+1 at 1/1/effect/args/toughness/magnitude
+  UNCOVERED (no pack kills it): each occurrence -> once per event at 1/1
+  1 uncovered critical survivor(s) with 3 pack(s)

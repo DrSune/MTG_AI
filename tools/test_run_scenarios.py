@@ -393,6 +393,25 @@ def test_a_permanent_another_seat_controls(tmp_path) -> None:
     assert _fails_with(_run(tmp_path, {"cards": [hand]}), "controlled_by: only a permanent")
 
 
+def test_a_move_of_several_cards_is_one_event() -> None:
+    """The move op's "keys" moves its cards in one instruction, so their zone changes are one
+    event (CR 603.2c): the rows share a batch, and a "whenever another creature enters" trigger
+    without "one or more" triggers once for each (watcher_of_the_spheres_two_fliers_entering_at_
+    once); "key" moves one card, as before."""
+    a, b = _creature("a", 0), _creature("b", 0)
+    r = _runner({"cards": [{**a, "zone": "graveyard"}, {**b, "zone": "graveyard"}]})
+    start = len(r.ex.journal.events)
+    r.run_step({"op": "move", "keys": ["a", "b"], "to": "battlefield"})
+    rows = [e for e in r.ex.journal.events[start:] if e.kind == "ZONE_CHANGE"]
+    assert [str(e.subject) for e in rows] == [str(r.handles["a"]), str(r.handles["b"])]
+    assert rows[0].batch == rows[1].batch != 0
+    r.run_step({"op": "move", "key": "a", "to": "graveyard"})
+    assert r.world.zone_of(r.handles["a"]).kind == "graveyard"
+    assert r.world.zone_of(r.handles["b"]).kind == "battlefield"
+    with pytest.raises(Exception, match="no card to move"):
+        r.run_step({"op": "move", "keys": [], "to": "graveyard"})
+
+
 def test_a_tap_by_another_effect(tmp_path) -> None:
     """The tap op taps a permanent as "tap target artifact" does, a pack card or an object an
     effect made, named by its handle (the one Food's {T}: bake_into_a_pie_a_tapped_food_cannot_

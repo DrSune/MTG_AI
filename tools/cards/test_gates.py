@@ -452,6 +452,79 @@ def test_reveal_nothing_reads_is_dead() -> None:
     assert _game(pack, _mutant(empath, f"{EMPATH_REVEAL}/count", QConst(2))) == real
 
 
+RADHA_LOOK = "1/1/effect/steps/0/args"
+FORGE_LOOK = "1/0/effect/args"
+FORGE_EXILE_COUNT = "1/2/effect/args/target/count"
+
+
+def test_a_statics_own_look_is_dead() -> None:
+    """"You may look at the top card of your library any time" (M21 Radha, Heart of Keld; M20
+    Mystic Forge) is a disclosure record nothing reads (layers' static lane runs no look): its
+    controller and count are dead, while its permission beside it stays live."""
+    radha = _card("Radha, Heart of Keld")
+    forge = _card("Mystic Forge", "M20")
+    assert not {w for _op, w in _where(radha) if w.startswith(RADHA_LOOK)}
+    assert not {w for _op, w in _where(forge) if w.startswith(FORGE_LOOK)}
+    assert ("amount+1", "1/1/effect/args/source/filter/children/1/inner/count") in _where(forge)
+    pack = _pack([{"key": "radha", "real": "Radha, Heart of Keld", "zone": "battlefield", "controller": 0},
+                  {"key": "mtn", "real": "Mountain", "zone": "library", "controller": 0},
+                  *_library(1, "Theirs", 3)],
+                 [{"op": "play", "key": "mtn"}])
+    real = _game(pack)
+    assert next(o for o in real[0].values() if o[0] == "Mountain")[1] == "battlefield"
+    assert _game(pack, _mutant(radha, f"{RADHA_LOOK}/controller", ControllerRef.OPPONENT)) == real
+    assert _game(pack, _mutant(radha, f"{RADHA_LOOK}/count", QConst(2))) == real
+
+
+def test_a_pick_from_the_one_top_card_has_a_dead_count() -> None:
+    """Mystic Forge's "Exile the top card of your library" picks from a zone holding one card, so
+    every count of 1 or more exiles that card; a pick from a look window keeps its count (See
+    the Truth's "Put one of those cards into your hand")."""
+    forge = _card("Mystic Forge", "M20")
+    assert ("amount+1", FORGE_EXILE_COUNT) not in _where(forge)
+    truth = _card("See the Truth")
+    assert any(op == "amount+1" and w.endswith("cards/count") for op, w in _where(truth))
+    every_top = _mutant(forge, "1/2/effect/args/target/zones/0/controller", ControllerRef.ANY)
+    assert ("amount+1", FORGE_EXILE_COUNT) in _where(every_top)  # each player's top card: two
+    pack = _pack([{"key": "forge", "real": "Mystic Forge", "zone": "battlefield", "controller": 0},
+                  *_library(0, "Yours", 3), *_library(1, "Theirs", 3)],
+                 [{"op": "activate", "key": "forge", "idx": 2, "seat": 0}], code="M20")
+    real = _game(pack)
+    assert [o[1] for o in real[0].values() if o[0].startswith("Yours")].count("exile") == 1
+    assert _game(pack, _mutant(forge, FORGE_EXILE_COUNT, QConst(2))) == real
+
+
+def test_every_proven_equivalent_mutant_holds_for_the_tree_it_was_proven_on() -> None:
+    """A survivor a proof shows to play exactly like the card (tools/cards/equivalent_mutants.json:
+    M21 Mangara, the Diplomat's widened attack event, which its intervening "if" cuts back) is
+    honoured by G3 only for the tree it was proven on: each entry names a mutant G3 still makes
+    from the card's tree, with its reason and a proof that still holds on this engine (it is
+    run: the equivalence can rest on how the engine plays, Mangara's on the intervening "if"
+    read again), and a changed tree drops it."""
+    import json
+    import subprocess
+
+    import cardtool
+
+    from MTG_bot.core.compiler import card_records
+
+    entries = json.loads(cardtool.EQUIVALENT.read_text())
+    assert entries
+    for oid, entry in entries.items():
+        card = _supply(entry["set"]).pool.results[oid].card
+        assert card_records.tree_sha(card) == entry["tree_sha"], f"{entry['name']}: prove it again"
+        made = {f"{op} at {where}": mutant for op, where, mutant in gates.mutants(card)}
+        for m in entry["mutants"]:
+            assert m["mutant"] in made and m["reason"], m["mutant"]
+            proof = HERE.parents[1] / m["proof"].split(":")[0]
+            done = subprocess.run([sys.executable, str(proof)], cwd=HERE.parents[1], capture_output=True,
+                                  text=True, timeout=600)
+            assert done.returncode == 0, done.stdout[-2000:] + done.stderr[-2000:]
+        assert cardtool.equivalent_mutants(oid, card) == {m["mutant"] for m in entry["mutants"]}
+        changed = made[entry["mutants"][0]["mutant"]]
+        assert cardtool.equivalent_mutants(oid, changed) == set()
+
+
 def test_reveal_read_by_a_conditional_keeps_controller_live_and_count_dead() -> None:
     track = _card("Track Down")
     offered = _where(track)

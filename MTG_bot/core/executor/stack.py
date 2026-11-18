@@ -56,10 +56,12 @@ from MTG_bot.core.executor.legality import (
     build_payment_plan,
     ctx_for,
     pay_costs,
+    plan_mana_taps,
     player_targetable,
     spell_castable,
     spell_cost,
     spell_record,
+    tap_for_payment,
 )
 from MTG_bot.core.executor.offers import offer_or_autopick
 from MTG_bot.core.executor.quantity import Binding
@@ -1138,12 +1140,15 @@ def cast_card(
     type sets (CR 608.2g).
 
     The caster makes the spell's choices as it is cast (CR 601.2b-c): a modal spell's modes
-    (:func:`cast_modes`), then X when it pays a mana cost with X (the values the pool can pay;
+    (:func:`cast_modes`), then X when it pays a mana cost with X (the values its mana can pay;
     with an alternative cost X is 0, CR 107.3b), then each target, slot by slot
     (``target:<seat>:<spell>:<digest>`` asks, as a trigger's; one legal choice is made without
     asking). ``targets`` (a pack's or a test's designation) and ``x`` skip those asks. The
     may-offer upstream (``query.cast_designee_ok``) offers only a cast whose targets can be
-    chosen and whose cost can be paid.
+    chosen and whose cost can be paid. It is paid from the pool and by the mana abilities the
+    caster activates while paying (CR 601.2g, 605.3a): the free sources
+    ``legality.plan_mana_taps`` picks for every payment inside a resolution (the automatic-payment
+    scaffold, BACKLOG: a creature's mana and a sacrificed Treasure pay a cast from the menu only).
 
     The frame still gets parked, journalled and fingerprinted: an effect
     cast IS a cast — the ``CAST`` event fires, so "whenever you cast"
@@ -1203,11 +1208,20 @@ def cast_card(
     if x is None:
         x, decisions = _effect_cast_x(executor, caster, handle, cost, decisions)
 
-    def pay(chosen: Sequence[Handle]) -> bool:
-        """The total cost with these targets is payable (a target's tax, CR 601.2f)."""
+    def taps(chosen: Sequence[Handle], payable_only: bool = False):
+        """The mana abilities that pay the total cost with these targets (a target's tax, CR
+        601.2f): () when the pool pays it, None when nothing does. The caster may activate mana
+        abilities while paying (CR 601.2g, 605.3a): the free sources a payment inside a
+        resolution taps (``legality.plan_mana_taps``; the payment scaffold, BACKLOG)."""
         tctx = ctx_for(executor, source=handle, controller=caster,
                        bindings={"target": list(chosen)} if chosen else None, x_value=x)
-        return not cost.parts or build_payment_plan(world, tctx, cost, mana_use=handle)[0] is not None
+        return plan_mana_taps(
+            executor, caster, lambda: build_payment_plan(world, tctx, cost, mana_use=handle)[1],
+            keep=frozenset(chosen), payable_only=payable_only,
+        )
+
+    def pay(chosen: Sequence[Handle]) -> bool:
+        return not cost.parts or taps(chosen, payable_only=True) is not None
 
     if targets is None:
         targets = _effect_cast_targets(executor, caster, handle, target_node, decisions, pay)
@@ -1224,6 +1238,11 @@ def cast_card(
     executor.journal.emit_targeting(handle, caster, flat)
     plan = None
     if cost.parts:
+        sources = taps(flat)
+        if sources:
+            # CR 605.3b: mana abilities activated while paying resolve at once, inside the
+            # resolution that casts the spell.
+            tap_for_payment(executor, caster, sources, inside_atom=True)
         ctx = ctx_for(
             executor,
             source=handle,
@@ -1274,17 +1293,21 @@ def _effect_cast_x(
 ) -> tuple[int | None, tuple[str, ...]]:
     """X for a spell a cast verb casts (CR 601.2b, 107.3a): None when the card has no X; 0 when
     its total cost has none (an alternative cost replaced the mana cost, CR 107.3b); else the
-    caster announces it among the values the pool can pay, 0 up, asked as
-    ``x:<seat>:<spell>:<digest>`` like an activation's X, without an ask when only 0 is
-    payable."""
+    caster announces it among the values its mana can pay (the pool and the mana abilities it may
+    activate while paying, CR 601.2g), 0 up, asked as ``x:<seat>:<spell>:<digest>`` like an
+    activation's X, without an ask when only 0 is payable."""
     if not _cost_has_x(cost):
         record = spell_record(executor, handle)
         has_x = record is not None and record.mana_cost is not None and _cost_has_x(record.mana_cost)
         return (0 if has_x else None), decisions
     payable: list[int] = []
-    for value in range(64):  # a pool pays a bounded X; 64 is far past any pool of the 19 sets
+    for value in range(64):  # mana pays a bounded X; 64 is far past any pool of the 19 sets
         ctx = ctx_for(executor, source=handle, controller=caster, x_value=value)
-        if build_payment_plan(executor.world, ctx, cost, mana_use=handle)[0] is None:
+        if plan_mana_taps(
+            executor, caster,
+            lambda c=ctx: build_payment_plan(executor.world, c, cost, mana_use=handle)[1],
+            payable_only=True,
+        ) is None:
             break
         payable.append(value)
     if len(payable) <= 1:

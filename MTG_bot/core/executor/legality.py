@@ -2577,7 +2577,7 @@ def tap_for_payment(
     """Activate the planned mana abilities. At top level (paying for a cast or
     an activation) each is the ordinary journalled activation move, with no
     priority point between them. Inside a running atom ("you
-    may pay", "unless its controller pays") a mana ability resolves at once
+    may pay", "unless its controller pays", a spell an ability casts) a mana ability resolves at once
     without the stack (CR 605.3b): the permanent taps and its mana is added in
     place, and the running atom's journal diff records the tap once. A nested
     activation would journal the tap twice and settle unrelated triggers in the

@@ -1,0 +1,18 @@
+{
+ "set": "M21",
+ "notes": "Printed: 'Whenever another creature you control with flying enters, this creature gets +1/+1 until end of turn.' Two fliers enter in one event (the move op's keys: one instruction): each is another creature with flying entering, and the trigger has no 'one or more', so it triggers once for each (CR 603.2c), +2/+2 in all: the 2/2 Watcher is a 4/4. This kills G3's critical 'each occurrence -> once per event' mutant (one trigger for the event, a 3/3), which no pack of M21 cards could stage: no M21 card puts two fliers onto the battlefield at once (M20 Brought Back can, in a mixed game).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "watcher", "real": "Watcher of the Spheres", "zone": "battlefield", "controller": 0},
+  {"key": "f1", "name": "Flier One", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "graveyard", "controller": 0},
+  {"key": "f2", "name": "Flier Two", "type": "Creature — Bird", "power": "1", "toughness": "1", "keywords": ["FLYING"], "zone": "graveyard", "controller": 0}
+ ],
+ "steps": [
+  {"op": "move", "keys": ["f1", "f2"], "to": "battlefield", "decisions": ["watcher"]}
+ ],
+ "expect": {
+  "zone": {"f1": "battlefield", "f2": "battlefield", "watcher": "battlefield"},
+  "power": {"watcher": 4},
+  "toughness": {"watcher": 4}
+ }
+}

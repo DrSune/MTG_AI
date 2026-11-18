@@ -5,8 +5,9 @@ ACTIONABLE when the designated card ({3}{R}) cannot be paid from {R:3}: on
 fire the deterministic CHOOSE designation names that card and
 ``stack.cast_card`` raises LOUD at its payment invariant (kept loud as the
 last line). So an option is offered only when the cast it hands the engine
-is CURRENTLY PAYABLE (CR 601.2b-e), priced by the SAME
-``build_payment_plan`` the engine folds (one source of truth), the atom's
+is CURRENTLY PAYABLE (CR 601.2b-e), priced by the SAME payment the engine
+makes (one source of truth: the pool and, since engine wave E3, the free mana
+sources its caster may tap while paying, CR 601.2g), the atom's
 own ``cost`` role respected (EMPTY Cost = the corpus cost-waiver idiom,
 CR 498.2 — always payable; a Cost with parts is an additional cost on top
 of the printed one, CR 601.2f). A CHOOSE designation is priced through the
@@ -612,6 +613,52 @@ class CastPayabilityCase(unittest.TestCase):
                 sel, ctx, ok=lambda h: cast_designee_ok(self.ex, ctx, h, None)
             )
             self.assertEqual(out, [payable])
+
+    # ------------------------------------------------ mana abilities while casting
+    # A spell an ability casts is paid as its caster pays while casting: from the pool and by the
+    # mana abilities it activates then (CR 601.2g, 605.3a), the free sources a payment inside a
+    # resolution taps. Engine wave E3: before, the pool alone paid, so with the mana in a land the
+    # cast was neither offered nor payable (Chandra, Flame's Catalyst's -2).
+    def mountain(self):
+        from MTG_bot.core.ability_tree import ActivatedAbility, CostTap
+        from MTG_bot.core.test_executor_legality import add_mana
+
+        land = self.world.add_card(card_id("Mountain", type_line="Land"), self.p0, ZONE_BATTLEFIELD)
+        oid = self.world.cards[land].identity.oracle_id
+        tap_for_r = ActivatedAbility(cost=Cost(parts=(CostTap(),)), effect=add_mana("R"))
+        self.ex.attach_card(land, record_of([tap_for_r], name="Mountain", oid=oid))
+        return land
+
+    def test_an_untapped_land_pays_for_the_cast_it_is_offered(self):
+        spell = self.spell_in_library("Bolt", _cost(color="R"))
+        land = self.mountain()
+        self.assertEqual(self.offer(), MAY_VOCAB)
+        may = OptionalEffect(inner=atom(Verb.CAST, source=Selector(QConst(1), SelectorMode.CHOOSE, UNIV,
+                                                                    zones=(LIB_YOU,))))
+        self.ex.apply_effect(may, source=self.src, controller=self.p0, decisions=("fire",))
+        self.assertEqual(self.world.zone_of(spell).kind, "graveyard")  # cast and resolved
+        self.assertTrue(self.world.cards[land].tapped)
+        self.assertEqual(self.world.players[self.p0].mana_pool, {})
+
+    def test_a_tapped_land_pays_for_nothing(self):
+        self.spell_in_library("Bolt", _cost(color="R"))
+        land = self.mountain()
+        self.world.cards[land].tapped = True
+        self.assertEqual(self.offer(), MAY_VOCAB[1:])
+
+    def test_x_ranges_over_what_the_lands_can_pay(self):
+        """{X}{R} with two untapped Mountains and an empty pool: X is 0 or 1."""
+        from MTG_bot.core.ability_tree import QX
+        from MTG_bot.core.executor.stack import _effect_cast_x
+
+        spell = self.spell_in_library("Blaze", Cost(parts=(CostManaGeneric(amount=QX()),
+                                                           CostManaColor(color="R", amount=QConst(1)))))
+        self.mountain()
+        self.mountain()
+        cost = self.ex.binder.records[self.world.cards[spell].identity.oracle_id].mana_cost
+        self.assertEqual(_effect_cast_x(self.ex, self.p0, spell, cost, ("1",)), (1, ()))
+        with self.assertRaises(ValueError):  # 2 is not offered: the lands pay {1}{R} at most
+            _effect_cast_x(self.ex, self.p0, spell, cost, ("2",))
 
 
 if __name__ == "__main__":

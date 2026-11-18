@@ -420,6 +420,58 @@ def _one_card_result_moves(ability: Any, base: tuple) -> set[tuple]:
     return out
 
 
+def _static_disclosures(ability: Any, base: tuple) -> set[tuple]:
+    """Paths of the controller and count of the REVEAL and LOOK_AT atoms a static ability
+    performs itself ("You may look at the top card of your library any time": M21 Radha, Heart of
+    Keld, M20 Mystic Forge; "Play with the top card of your library revealed": Conspicuous Snoop),
+    which no game state can observe (see ``mutants``): the static lane registers each as a
+    "disclosure" layer record (``layers.LayerRegistry._new_static``) that nothing reads, and runs
+    no look. A duration stays live: one the layer lane cannot parse drops the whole static, its
+    permission beside the look included. Only the static's own instructions (its effect's steps,
+    a "you may" around one), never an ability it grants."""
+    if not isinstance(ability, StaticAbility):
+        return set()
+    out: set[tuple] = set()
+
+    def visit(node: Any, path: tuple) -> None:
+        if isinstance(node, Atom) and node.verb in (Verb.REVEAL, Verb.LOOK_AT):
+            out.update({(*path, "args", "controller"), (*path, "args", "count")})
+        elif isinstance(node, Seq):
+            for i, step in enumerate(node.steps):
+                visit(step, (*path, "steps", i))
+        elif isinstance(node, OptionalEffect):
+            visit(node.inner, (*path, "inner"))
+
+    visit(ability.effect, (*base, "effect"))
+    return out
+
+
+def _one_card_picks(ability: Any, base: tuple) -> set[tuple]:
+    """Paths of the counts no game can observe on a CHOOSE or ONE_OF selector of one card over the
+    top or the bottom of one player's library (see ``mutants``): the zone holds that one card
+    (``selectors.enumerate_zone``), so a count of 2 or more picks it too (a CHOOSE slices its
+    population; a ONE_OF over one candidate takes it, resolving as much as it can, CR 608.2c).
+    M20 Mystic Forge's "{T}, Pay 1 life: Exile the top card of your library". Only the count 1:
+    a count that can be 0 picks nothing then, and a larger one over the top card is a
+    miscompile ("the top three cards") whose mutants a pack must still catch. A ONE_OF over the
+    library top reads the look window instead when a look opened one (``resolve_selector``), so
+    the ability must have no REVEAL or LOOK_AT; a cost's selector is the payment ask's."""
+    nodes = list(_paths(ability, base))
+    if any(isinstance(n, Atom) and n.verb in (Verb.REVEAL, Verb.LOOK_AT) for _p, n in nodes):
+        return set()
+    costs = [p for p, n in nodes if isinstance(n, Cost)]
+    one_player = (ControllerRef.YOU, *DESIGNATED_PLAYER_REFS)
+    return {
+        (*path, "count")
+        for path, n in nodes
+        if isinstance(n, Selector) and n.referent is None and n.count == QConst(1)
+        and n.mode in (SelectorMode.CHOOSE, SelectorMode.ONE_OF) and len(n.zones) == 1
+        and n.zones[0].kind is ZoneKind.LIBRARY and n.zones[0].controller in one_player
+        and n.zones[0].position in (ZonePosition.TOP, ZonePosition.BOTTOM)
+        and not any(path[: len(c)] == c for c in costs)
+    }
+
+
 def _one_per_option(ability: Any, atoms: list[Atom]) -> bool:
     """Each of ``atoms`` lies in a different option of the same count-1 Choose of ``ability``."""
     found: list[tuple[tuple, Any]] = list(_paths(ability))
@@ -731,7 +783,9 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
     # Ability-level rules (their docstrings carry the argument): a REVEAL nothing reads; a TARGET
     # selector whose twin keeps the one designation slot (role_handles gives a referent-free ALL
     # selector in the bound role the designation itself); an end-step trigger whose condition
-    # already requires your turn; the condition of a printed static's PREVENT_EFFECT.
+    # already requires your turn; the condition of a printed static's PREVENT_EFFECT; a static's
+    # own look or reveal (a disclosure record nothing reads); the count of a pick from the one
+    # card on top of or under a library.
     twins: set[tuple] = set()
     scope_fixed = {(1, i, "event") for i, ability in enumerate(card.abilities) if _scope_fixed_by_condition(ability)}
     # A static permission's "you may" is stripped before its payload is parsed (layers._new_static),
@@ -746,6 +800,8 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         twins |= _twin_targets(ability, (1, i))
         one_card |= _one_card_result_moves(ability, (1, i))
         dead |= _static_prevention_conditions(ability, (1, i))
+        dead |= _static_disclosures(ability, (1, i))
+        dead |= _one_card_picks(ability, (1, i))
         roles = _reveal_dead_roles(ability)
         for path, node in _paths(ability, (1, i)) if roles else ():
             if isinstance(node, Atom) and node.verb is Verb.REVEAL:

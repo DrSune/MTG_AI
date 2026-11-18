@@ -1,0 +1,16 @@
+{
+ "set": "M21",
+ "notes": "Printed: '[-2]: You may cast target red instant or sorcery card from your graveyard.' The spell is paid when it is cast (CR 601.2g-h): with its only Mountain tapped, seat 0 cannot pay Shock's {R}, so Shock is no legal choice for the -2's target and the -2, with no other target, is not offered (CR 601.2c by 602.2b). The twin of chandra_flames_catalyst_minus_two_pays_with_an_untapped_mountain, where the untapped Mountain pays.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cf", "real": "Chandra, Flame's Catalyst", "zone": "battlefield", "controller": 0},
+  {"key": "shock", "real": "Shock", "zone": "graveyard", "controller": 0},
+  {"key": "mtn", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "tap", "key": "mtn"},
+  {"op": "act", "seat": 0, "words": ["act:cf:1"], "expect_raise": "does not offer 'act:card:0:1'"}
+ ],
+ "expect": {"zone": {"shock": "graveyard", "bear": "battlefield"}, "counters": {"cf": {"LOYALTY": 5}}}
+}
