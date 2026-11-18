@@ -325,3 +325,19 @@ meaningful work."
   Answered in PLAN_PLANNING §5: a readable step is a verb from the network's own option vocabulary
   plus pointers to cards that exist now. The engine labels it and matching is exact by card
   handle; steps about objects that do not exist yet stay hidden.
+
+**The owner's answers (2026-11-18, third round).**
+- **Both, hidden plus readable.** "We can have implicit knowledge like cards being kept in hand
+  might be saved for later. If it is part of the planned sequence for next action sequence we can
+  assume it is being held with some objective in mind."
+- **The horizon goes to the BACKLOG**: "Maybe it should plan next two, not just next one. Maybe even
+  more, I dont know what is optimal". The owner's cases are combo decks ("balance just surviving
+  until it has the full combo, or good conditions to execute it with draws, or it just needs to send
+  all in before losing soon") and a held sweeper ("As long as they keep it, you should keep your
+  card, but it should be the plan to use it when they commit/if they do"). "Not sure how to encode
+  this in the plan implementation best possible. Spar with me here."
+- **History.** On "history, planner functionality, history encoder (of opponents actions, since
+  board history is visible with cards, and how long they have been somewhere, and possibly where
+  they were before, though this is a lot of things to attend to, and not sure all of it matters)":
+  "Work what you are sure of how to implement for this account. When unsure, dont rush to
+  conclusions, spar with me to find the optimal path forward."

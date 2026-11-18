@@ -40,8 +40,20 @@ The owner, 2026-11-18:
 - **Puzzle answers are proven by exact solving wherever the puzzle is small enough** (§4). The
   owner's point: a ceiling cannot be measured with a model that is not good at the skill.
 - **The order is the coordinator's**, for the best information first: P0 first.
-- **Open:** the plan slots' readable intended-action heads (§5). The owner asked whether they need
-  a large lookup table or a language model. They need neither (§5); the owner's answer is pending.
+- **Readable plus hidden plan slots** (the owner, third round). The owner: "We can have implicit
+  knowledge like cards being kept in hand might be saved for later. If it is part of the planned
+  sequence for next action sequence we can assume it is being held with some objective in mind."
+  So "hold" is a verb of the readable plan (§5).
+- **BACKLOG: the plan's horizon** (how many action sequences ahead). It is tested once the
+  simplest case works. The owner's cases:
+  - a combo deck balancing survival until the combo is assembled against an all-in before losing;
+  - a sweeper kept for as long as the opponent keeps back, and used when they commit.
+- **History** (§5, P1): what is certain is built, and the rest is measured first.
+  - The turn so far is built (2026-11-18): per player, life gained and lost, their events, draws
+    and casts.
+  - What a player has legitimately seen in hidden zones is next.
+  - Card ages, previous zones, summaries of the opponent's actions and an event encoder are
+    measured before any is built.
 
 ## Summary for the owner
 
@@ -272,7 +284,7 @@ uses generated variants (§5, P2).
     follow it. A whole line is tried consistently instead of one decision at a time: holding Cancel
     takes the right pass at many priority decisions, which are 42% of the learner's decisions and
     are passed 97% of the time.
-  - **Readable heads (proposed; the owner's answer pending).** Each slot may also state one
+  - **Readable heads (settled with the owner: hidden plus readable).** Each slot also states one
     intended action:
     - a verb from the closed vocabulary the network already chooses from: cast, activate, attack,
       block, target, pass or hold;
@@ -288,11 +300,60 @@ uses generated variants (§5, P2).
 
     An intended action on an object that does not exist yet, such as "counter their next big
     spell", points at what exists (Cancel in hand). The rest stays in the hidden part.
+  - **Conditional intentions: "hold X until ..." (proposed; in discussion).** The owner's cases
+    are a sweeper held while the opponent holds back and a combo held until it is complete. A hold
+    step points at the held card. Two more readable heads say when and on what it will be used:
+    - *time to use*: this sequence, the next, within two rounds, later, or never;
+    - *the event before its use*: one of the engine's own event kinds (their cast, their attack, my
+      turn's start), a closed vocabulary.
+
+    Both are trained by hindsight from what actually happened to the card, so a plan reads, for
+    example, "Planar Cleansing: hold; use within two rounds; after their creature casts". There
+    is no hand-written condition grammar. The release itself is the policy's, which reads the
+    plan and the board at every decision.
+  - **Strategic modes and a plan critic (proposed; in discussion).** Survive versus go all-in is a
+    choice between whole plans. A small learned "mode" token, sampled each round, is explored by
+    commitment. A value read with the plan as input, V(state, plan), scores candidate plans. The
+    learner can then compare "assemble and survive" with "all in now" without simulating, and the
+    search refines it where it runs.
+  - **Built in steps** (the owner: make the simplest case work, then test):
+    - v1: this action sequence only; readable next actions; hindsight; commitment.
+    - v2: one or two sequences ahead, revised at execution; hold steps with their two heads.
+    - v3: modes and the plan critic.
+
+    Each step is read on the puzzles: A and C for v1, B and D for v2, and the combo and sweeper
+    puzzles for v3.
   - **Not in this step: repeated reasoning ("think again") and its game clock** (BACKLOG). The
     capacity probe (194) found a deeper or wider network fits r27's value no better, so more
     passes per decision wait until network size limits quality.
-- **Memory v1, explicit history features**, cheapest first, as OWNER_VISION_LEARNING §3 and §4
-  order them:
+- **History, in two parts: what is certain is built, the rest is measured first.**
+  - **Built (2026-11-18): the turn so far.** Per player: life gained and lost (damage included,
+    CR 120.3a), the gain and loss events, cards drawn, spells cast (`features.P_GAINED` to
+    `P_CAST`). These are the states the rules' turn-history atoms read: "the first time each turn",
+    "if you gained life this turn". It joins at the FDN segment as an observation fix, with zero
+    weights on load.
+  - **Next, certain: what a player has legitimately seen in hidden zones** (`bench/view.py`'s known
+    limit):
+    - a revealed hand card, until it leaves the hand;
+    - a card returned to a hand from a public zone;
+    - a card an effect put at a known place in a library, until a shuffle;
+    - one's own scried cards left on top.
+
+    Counted by name, so a known Shock stops being known once a Shock leaves that hand.
+  - **Measured first:**
+    - each card's age in its zone and the zone it came from;
+    - summaries of the opponent's actions: mana left open when passing, instant-speed casts, cards
+      held for many turns, spells by type last turn;
+    - an event encoder: tokens for the opponent's public actions since one's last turn.
+
+    The instruments are three: the value-residual regression of KNOWLEDGE/2026-11-12/200 §1 (does
+    a history feature explain the value's error?), the E puzzles, and the tokens each feature
+    costs a decision.
+  - **The owner's call:** whether the ages of the opponent's unknown hand cards are fair. In paper
+    play a hand can be reordered, so they are not knowable; some digital clients show draw order
+    (OWNER_VISION_LEARNING §4).
+- **Memory v1's explicit features**, cheapest first, as OWNER_VISION_LEARNING §3 and §4 order
+  them:
   - the opponent's untapped mana at each of their last two end steps and passes;
   - spells cast this game by type;
   - cards they revealed and that have not left their hand since (the engine records reveals as

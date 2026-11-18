@@ -1837,13 +1837,6 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   source entity (`features.py` ~503 reads only a `card:` handle from the site) and an emblem's
   trigger on the stack is left out (~514-521). Fix before a run deals the makers (M21 Basri Ket,
   Garruk, Unleashed, Liliana, Waker of the Dead once re-verified).
-- **The observation holds no turn history** (2026-11-13, the life family): `players_f` has each
-  player's life exactly (`life / 20`), but nothing of what happened this turn: life gained or lost,
-  cards drawn, spells cast. So the state the turn-history atoms and the event ordinals read is
-  hidden: whether Vengeful Warchief's "first time each turn" is used up, Mystic Skyfish's second
-  draw, LIFE_GAINED_THIS_TURN_GE's sum. The card tokens show the atom (`@ordinal num:1`); only the
-  network's own inference covers the count. Add per-player turn counters (life gained, life lost,
-  gain and loss events, draws, casts) at the next observation-schema change.
 - **Card tokens bucket every number above 5** (`features._bucket`: `num:0`..`num:5`, `num:6+`):
   Twinblade Paladin's and Angel of Vitality's 25, Serra Ascendant's 30 and Elderscale Wurm's 7 read
   alike, as do Thieves' Guild Enforcer's 8 and Speaker of the Heavens' 7. The life totals they are
@@ -2113,6 +2106,23 @@ live document at all.
   ([`DESIGN_BENCHMARK.md`](DESIGN_BENCHMARK.md)); only its public-leaderboard half is parked, below.
 
 ### Parked, with the reason
+
+**The plan's horizon: how many action sequences ahead it plans** (owner, 2026-11-18;
+PLAN_PLANNING §5).
+- **The question.** The plan module starts with the current action sequence (v1), then one or two
+  ahead (v2). The owner: "we must make sure that the planning sequence number is optimal. Maybe it
+  should plan next two, not just next one. Maybe even more."
+- **The cases that decide it:**
+  - a combo deck balancing survival until its combo is assembled (or the draws make it safe)
+    against sending everything in before it loses;
+  - a sweeper kept for as long as the opponent keeps back, and used when they commit.
+- **How to settle it**, once v1 works:
+  - hindsight heads at several horizons at once (the actions and uses of the next 1, 2 and 4
+    sequences);
+  - ablate what the policy reads from each horizon;
+  - the puzzles by horizon (B2 at two rounds, D multi-turn), and the combo and sweeper puzzles.
+
+  The useful horizon is where reading further stops paying.
 
 **Repeated reasoning ("think again") with a game clock** (owner, 2026-11-18; OWNER_VISION_LEARNING §12,
 PLAN_PLANNING §5).

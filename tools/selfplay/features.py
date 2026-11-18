@@ -36,7 +36,15 @@ from typing import Any
 import numpy as np
 
 from MTG_bot.core.ability_tree import CounterKind, Phase, to_dict
-from MTG_bot.core.executor.events import KIND_TURN_PHASE, KIND_ZONE_CHANGE
+from MTG_bot.core.executor.events import (
+    KIND_CARD_DRAWN,
+    KIND_CAST,
+    KIND_DAMAGE,
+    KIND_LIFE_GAINED,
+    KIND_LIFE_LOST,
+    KIND_TURN_PHASE,
+    KIND_ZONE_CHANGE,
+)
 from MTG_bot.core.executor.legality import (
     BEGIN_COMBAT,
     CLEANUP,
@@ -148,7 +156,12 @@ F_STACK_DEPTH, F_ACTIVATED, F_TRIGGERED, F_ABILITY_IDX, F_STACK_TARGETED = range
 )
 CF = F_STACK_TARGETED + 1
 P_STACK_TARGETED = P_TARGETED + 1
-PF = P_STACK_TARGETED + 1
+# The turn so far, per player (CR 500.1: the turn's events, which "the first time each turn", "if
+# you gained life this turn" and the draw and cast ordinals read): life gained and lost (damage
+# included, CR 120.3a), the gain and loss events, cards drawn, spells cast.
+P_GAINED, P_LOST, P_GAINS, P_LOSSES, P_DRAWN, P_CAST = range(P_STACK_TARGETED + 1,
+                                                             P_STACK_TARGETED + 7)
+PF = P_CAST + 1
 STEPS = (UPKEEP, DRAW, FIRST_MAIN, BEGIN_COMBAT, DECLARE_ATTACKERS, DECLARE_BLOCKERS,
          FIRST_STRIKE_DAMAGE, COMBAT_DAMAGE, END_OF_COMBAT, SECOND_MAIN, END_STEP, CLEANUP)
 G_STEP0 = G_SLOT + 1
@@ -542,9 +555,10 @@ def ask_kind_index(kind: str, phase: str | None = None) -> int:
     return ASK_INDEX.get(kind, ASK_INDEX["other"])
 
 
-def _sick_set(executor: Any) -> set:
-    """Handles that entered the battlefield this turn (CR 302.6 read the way
-    ``legality._controlled_since_turn_start`` reads it), in one journal pass."""
+def _this_turn(executor: Any) -> tuple[set, dict]:
+    """In one journal pass over the turn so far: the handles that entered the battlefield (CR
+    302.6, read the way ``legality._controlled_since_turn_start`` reads it), and per player the
+    turn's counts (``P_GAINED`` .. ``P_CAST``, in that order)."""
     events = executor.journal.events
     start = -1
     upkeep = Phase.UPKEEP.name
@@ -553,15 +567,34 @@ def _sick_set(executor: Any) -> set:
         if row.kind == KIND_TURN_PHASE and row.data[0] == upkeep:
             start = i
             break
-    out = set()
+    sick = set()
+    counts: dict = {}
     for row in events[start + 1:]:
-        if row.kind == KIND_ZONE_CHANGE and row.zone_move[1] == ZONE_BATTLEFIELD:
-            out.add(row.subject)
+        kind = row.kind
+        if kind == KIND_ZONE_CHANGE:
+            if row.zone_move[1] == ZONE_BATTLEFIELD:
+                sick.add(row.subject)
+            continue
+        if kind == KIND_LIFE_GAINED:
+            who, col, n = row.subject, 0, row.amount
+        elif kind == KIND_LIFE_LOST or (kind == KIND_DAMAGE and row.subject is not None
+                                        and row.subject.namespace == "player"):
+            who, col, n = row.subject, 1, row.amount
+        elif kind == KIND_CARD_DRAWN:
+            who, col, n = row.draw[0], 4, 1
+        elif kind == KIND_CAST:
+            who, col, n = row.data[0], 5, 1
+        else:
+            continue
+        c = counts.setdefault(who, [0, 0, 0, 0, 0, 0])
+        c[col] += n
+        if col < 2 and n > 0:
+            c[col + 2] += 1
     turn = executor.world.turn
     for h, gained in executor.control_gained_turn.items():
         if gained >= turn:
-            out.add(h)
-    return out
+            sick.add(h)
+    return sick, counts
 
 
 def encode(executor: Any, seat: int, ask: Any, table: CardTable,
@@ -631,7 +664,7 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
     for j, (h, _, _) in enumerate(ents):
         ent_index[h] = 2 + j
 
-    sick = _sick_set(executor)
+    sick, turn_counts = _this_turn(executor)
     attackers = set(executor.attackers)
     blocked_by = executor.blocked_by
     blocking = {b for bs in blocked_by.values() for b in bs}
@@ -756,6 +789,13 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
         row[15] = ph in executor.lost_players
         row[P_TARGETED] = ph in ctx.targeted
         row[P_STACK_TARGETED] = stack_targeted.get(ph, 0) / 2.0
+        gained, lost, gains, losses, drawn, cast = turn_counts.get(ph, (0, 0, 0, 0, 0, 0))
+        row[P_GAINED] = gained / 20.0
+        row[P_LOST] = lost / 20.0
+        row[P_GAINS] = gains / 3.0
+        row[P_LOSSES] = losses / 3.0
+        row[P_DRAWN] = drawn / 3.0
+        row[P_CAST] = cast / 3.0
 
     glob_f = np.zeros(GF, dtype=np.float32)
     glob_f[0] = world.turn / 20.0

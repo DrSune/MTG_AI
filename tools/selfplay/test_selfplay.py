@@ -1587,7 +1587,7 @@ def test_the_appended_asks_start_as_other_and_an_old_network_computes_what_it_di
 
     new = ("exile", "remove_counter", "divide")
     assert FT.ASK_KINDS[-3:] == new and set(new) <= SITE_KINDS and not set(new) & set(FT.ASK_GROWN_FROM)
-    assert (FT.CI, FT.CF, FT.PF, FT.GF, FT.OI) == (9, 62, 18, 23, 6)
+    assert (FT.CI, FT.CF, FT.PF, FT.GF, FT.OI) == (9, 62, 24, 23, 6)
     net = M.build(table, d=32, layers=1, heads=4, ff=64).eval()
     with torch.no_grad():
         for p in net.parameters():
@@ -1744,6 +1744,30 @@ def test_a_network_from_before_name_options_computes_what_it_did(table, tmp_path
         for ask in _wide_asks(game, table):
             b = M.collate([FT.encode(game.executor, 0, ask, table)], "cpu")
             assert all(torch.equal(g, w) for g, w in zip(old(b), net(b), strict=True))
+
+
+def test_the_turn_so_far_is_observed(table) -> None:
+    """The observation held no turn history (BACKLOG, 2026-11-13): what "the first time each turn"
+    and "if you gained life this turn" read was invisible. Each player's life gained and lost this
+    turn (damage included), its gain and loss events, draws and casts are player columns."""
+    from MTG_bot.bench.protocol import Ask, Option
+    from MTG_bot.core.ability_tree import Atom, AtomArgs, ControllerRef, QConst, Verb
+
+    game, _router, me = _teach(field0=("Forest",))
+    source = _named(game, "Forest")
+    ask = Ask(seat=0, kind="may", site=f"may:{source}", prompt="",
+              options=(Option("yes", "yes"), Option("no", "no")))
+    cols = [FT.P_GAINED, FT.P_LOST, FT.P_GAINS, FT.P_LOSSES, FT.P_DRAWN, FT.P_CAST]
+    before = FT.encode(game.executor, 0, ask, table)["players_f"][:, cols]
+    for _ in range(2):
+        game.executor.apply_effect(
+            Atom(verb=Verb.GAIN_LIFE, args=AtomArgs(pairs=(("controller", ControllerRef.YOU),
+                                                            ("amount", QConst(3))))),
+            source=source, controller=me)
+    after = FT.encode(game.executor, 0, ask, table)["players_f"][:, cols]
+    assert not before.any()
+    assert [round(float(v), 3) for v in after[0]] == [0.3, 0.0, 0.667, 0.0, 0.0, 0.0]
+    assert not after[1].any()  # the opponent's turn so far is its own
 
 
 def test_heuristic_never_casts_an_x_spell_for_x_zero() -> None:
