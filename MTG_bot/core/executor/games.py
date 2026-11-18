@@ -74,6 +74,7 @@ from MTG_bot.core.ability_tree import (
     BackFace,
     CardRecord,
     ControllerRef,
+    OpeningHandAbility,
     QConst,
     Quantity,
     SpellAbility,
@@ -601,6 +602,35 @@ def mulligans(
     return taken
 
 
+def opening_hand_actions(executor: Executor, order: list[Handle]) -> None:
+    """The opening-hand actions (CR 103.6), after the mulligans and before the first turn: the
+    starting player (``order[0]``) takes theirs, then each other player in turn order (the
+    Leylines' ruling). Each card in a player's hand whose record holds an
+    :class:`OpeningHandAbility` runs that ability's effect, the card its source and its owner
+    "you": the Leylines' "you may begin the game with it on the battlefield" is a may ask
+    (``may:<card>:<digest>``, fire or skip, the network's "may" row with the card as the ask's
+    source) and, fired, the move from the hand onto the battlefield (CR 103.6a), the engine's
+    own zone move (the journal sees it enter, a replacement applies to it).
+
+    It all runs inside :meth:`Executor.atomic`: nobody receives priority before the first turn
+    (CR 117), so the state-based actions wait for the first check and an ability the move
+    triggers waits for the first player who would receive priority, in the first upkeep (CR
+    603.3). A player's cards are taken in handle order: "in any order" would matter only between
+    actions that change one another, and none of the 19 sets' do (each moves its own card; no
+    opening-hand card triggers on another one entering)."""
+    from MTG_bot.core.executor.legality import spell_record
+
+    world = executor.world
+    with executor.atomic():
+        for seat in order:
+            for card in sorted(world.players[seat].zone(ZONE_HAND).entries):
+                record = spell_record(executor, card)
+                action = next((a for a in record.abilities if isinstance(a, OpeningHandAbility)),
+                              None) if record is not None else None  # one at most (the IR)
+                if action is not None:
+                    executor.apply_effect(action.effect, source=card, controller=seat)
+
+
 # --------------------------------------------------------------- policy side
 @dataclass
 class Act:
@@ -1058,6 +1088,7 @@ _LOSS_KINDS = {
     "LIFE": "life<=0",
     "EMPTY_LIBRARY": "draw from empty library (CR 704.5b)",
     "LOSE_GAME": "LOSE_GAME",
+    "WIN_GAME": "an opponent won (WIN_GAME, CR 104.2b)",
 }
 
 
@@ -1433,6 +1464,7 @@ def _play_turns(
         if not resumed:
             if game.mulligans_pending:
                 mulligans(executor, order)
+                opening_hand_actions(executor, order)  # CR 103.6, then the first turn
                 game.mulligans_pending = False
             executor.start_turn(order[0])
         while True:
@@ -1461,9 +1493,7 @@ def _play_turns(
                     continue  # the turn ended (CR 724.1)
             finally:  # a combat death ends the game inside combat (GameOver)
                 if in_combat:
-                    game.combat_losses += sum(
-                        1 for s, life in lives.items() if life > 0 and world.players[s].life <= 0
-                    )
+                    game.combat_losses += _combat_deaths(executor, lives)
             seat = executor.priority_holder
             assert seat is not None
             if (
@@ -1492,11 +1522,19 @@ def _play_turns(
                     executor.pass_priority()
                 finally:
                     if in_combat:
-                        game.combat_losses += sum(
-                            1 for s, life in lives.items() if life > 0 and world.players[s].life <= 0
-                        )
+                        game.combat_losses += _combat_deaths(executor, lives)
     finally:
         executor.driven = driven
+
+
+def _combat_deaths(executor: Executor, lives: dict[Handle, int]) -> int:
+    """The players whose life crossed 0 since ``lives`` was read, but a player who can't lose
+    the game (Platinum Angel: no death, CR 104.3b's loss prohibited)."""
+    return sum(
+        1 for s, life in lives.items()
+        if life > 0 and executor.world.players[s].life <= 0
+        and not executor.prohibited_outcome(s, won=False)
+    )
 
 
 #: The steps of the combat phase: a life crossing 0 in them is a combat loss (Game.combat_losses).

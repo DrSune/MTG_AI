@@ -71,7 +71,6 @@ from MTG_bot.core.executor.offers import offer_or_autopick
 from MTG_bot.core.executor.durations import duration_tag
 from MTG_bot.core.executor.events import (
     KIND_COUNTER,
-    KIND_GAME_LOST,
     KIND_KICKBACK,
 )
 from MTG_bot.core.executor.quantity import (
@@ -141,6 +140,42 @@ def _replaced_moves(ctx: ExecCtx, moves: Sequence[tuple[Handle, Handle, str]]) -
     return replaced
 
 
+def _cant_enter(ctx: ExecCtx, moves: Sequence[tuple[Handle, Handle, str]]) -> set[Handle]:
+    """The cards among the moves of one event, each ``(card, player, kind)``, that a prohibition
+    keeps off the battlefield (CR 101.2; Grafdigger's Cage: "Creature cards in graveyards and
+    libraries can't enter the battlefield"). Each lane that moves cards asks it before the
+    replacements (:func:`_replaced_moves`: a move that can't happen is not replaced either), and
+    such a card stays where it is, out of the instruction's ``result``, while the instruction goes
+    on with the others ("manifesting a card from a graveyard or library is an impossible
+    action", the Cage's ruling). An audit row says so."""
+    if ctx.replacements is None:
+        return set()
+    cant: set[Handle] = set()
+    for card, player, kind in moves:
+        if kind == ZONE_BATTLEFIELD and ctx.replacements.prevents_entering(card, player):
+            ctx.events.append((len(ctx.events), "MOVE_PROHIBITED", str(card), kind))
+            cant.add(card)
+    return cant
+
+
+def _possible_entries(
+    ctx: ExecCtx, dest_ir: Zone, dest_kind: str
+) -> Callable[[Handle], bool] | None:
+    """The ``possible`` predicate of a pick made as the effect resolves that puts the picked
+    cards onto the battlefield (``selectors.resolve_selector``): a card :func:`_cant_enter`
+    would keep where it is, judged under the player it would enter under, is an impossible
+    option, which the player can't choose (CR 608.2d). None for any other destination."""
+    if dest_kind != ZONE_BATTLEFIELD or ctx.replacements is None:
+        return None
+    registry = ctx.replacements
+
+    def possible(card: Handle) -> bool:
+        owner, controller = move_destination(ctx, dest_ir, dest_kind, card)
+        return not registry.prevents_entering(card, controller or owner)
+
+    return possible
+
+
 def _off_the_stack(
     ctx: ExecCtx, moves: Sequence[tuple[Handle, Handle, str]]
 ) -> list[tuple[Handle, Handle, str]]:
@@ -203,6 +238,8 @@ def _move_all(
     # journal_kind is the event-kind column of the raw journalled row: a SLOT
     # of the MOVE_ZONE atom, never derived from the verb, so a mill writes "MILL".
     moves = _off_the_stack(ctx, [move for move in moves if not _left_token(ctx, move[0])])
+    cant = _cant_enter(ctx, moves)
+    moves = [move for move in moves if move[0] not in cant]
     replaced = _replaced_moves(ctx, moves)
     moved: list[Handle] = []
     for card, player, kind in moves:
@@ -377,12 +414,10 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
             # lane, so "Exile target card from a graveyard. If it was a
             # creature card, ..." (Scavenging Ooze) judges the exiled card.
             targets = list(role_handles(ctx, atom, "target"))
-            _move_all(
-                ctx,
-                [(card, ctx.world.controller_of(card), dest_kind) for card in targets],
-                journal_kind,
-            )
-            ctx.bindings["result"] = targets
+            moves = [(card, ctx.world.controller_of(card), dest_kind) for card in targets]
+            stayed = _cant_enter(ctx, moves)  # stays where it is, and is no "it"
+            _move_all(ctx, [move for move in moves if move[0] not in stayed], journal_kind)
+            ctx.bindings["result"] = [card for card in targets if card not in stayed]
             return
         if not isinstance(sel, Selector):
             raise ValueError("executor: MOVE_ZONE cards role has no binding")
@@ -426,10 +461,15 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
                         (len(ctx.events), "MOVE", str(card), "library->hand")
                     )
             return
+        # A pick onto the battlefield offers only the cards that can enter (_possible_entries).
         pool = [
             h
             for h in resolve_selector(
-                sel, ctx, journal_partition=partition, ask_choose=True
+                sel,
+                ctx,
+                journal_partition=partition,
+                ask_choose=True,
+                possible=_possible_entries(ctx, dest_ir, dest_kind),
             )
             if h.namespace == "card"
         ]
@@ -459,11 +499,15 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
     # Replacement before apply for the moves themselves: a replaced enter never makes a
     # permanent (no placement, no tapped_on_enter stamp: Containment Priest), a replaced move
     # into a graveyard never reaches it (Dryad Militant). A permanent's side is the player it
-    # would enter under.
-    replaced = _replaced_moves(
-        ctx, [(card, dests[card][1] or dests[card][0], dest_kind) for card in order]
+    # would enter under. A card that can't enter stays (_cant_enter), unreplaced, and chooses no
+    # host.
+    moves = [(card, dests[card][1] or dests[card][0], dest_kind) for card in order]
+    cant = _cant_enter(ctx, moves)
+    replaced = _replaced_moves(ctx, [move for move in moves if move[0] not in cant])
+    hosts, stayed = _entering_hosts(
+        ctx, [card for card in order if card not in cant], dests, replaced, dest_kind
     )
-    hosts, stayed = _entering_hosts(ctx, order, dests, replaced, dest_kind)
+    stayed |= cant
     for card in order:
         if card in replaced or card in stayed:
             continue
@@ -641,6 +685,12 @@ def _v_destroy(ctx: ExecCtx, atom: Atom) -> None:
 def _v_gain_life(ctx: ExecCtx, atom: Atom) -> None:
     n = amount(ctx, atom, "amount")
     for player in sorted(role_players(ctx, atom)):
+        if n > 0 and ctx.replacements is not None and ctx.replacements.prevents_life_gain(player):
+            # CR 101.2: a player who can't gain life (Giant Cindermaw) gains none, and a gain
+            # that can't happen is not replaced either (Leyline of Punishment's ruling); the
+            # rest of the effect happens
+            ctx.events.append((len(ctx.events), "GAIN_PROHIBITED", str(player), n))
+            continue
         # Replacement before apply, as in _v_deal_damage. A live
         # LifeGainedEvent replacement (Angel of Vitality) consumes the event: no
         # life mutation happens (the journal sees no gain at all), and the
@@ -1897,7 +1947,9 @@ def _v_draw(ctx: ExecCtx, atom: Atom) -> None:
         ctx.events.append((len(ctx.events), "DRAW", str(player), run))
 
 
-def _search_designation(atom: Atom, ctx: ExecCtx) -> list[Handle]:
+def _search_designation(
+    atom: Atom, ctx: ExecCtx, possible: Callable[[Handle], bool] | None = None
+) -> list[Handle]:
     """The SEARCH ``cards`` role designation — the shared enumeration the
     handler runs and :func:`MTG_bot.core.executor.query.legal_search`
     mirrors. Explicit bindings take precedence (the caller designated the
@@ -1905,7 +1957,7 @@ def _search_designation(atom: Atom, ctx: ExecCtx) -> list[Handle]:
     controller's pick when there is a choice (``ask_choose``), RANDOM =
     seeded ctx.rng draw, ONE_OF = the channel ask (Handle-sorted candidate
     vocabulary; exhaustion stays loud); TARGET reads the spell's designation
-    or raises."""
+    or raises. ``possible``: the pick's narrowing (:func:`_v_search`)."""
     cards = ctx.binding_handles("cards")
     if cards is not None:
         return cards
@@ -1924,6 +1976,7 @@ def _search_designation(atom: Atom, ctx: ExecCtx) -> list[Handle]:
             journal_partition=sel.mode in (SelectorMode.ONE_OF, SelectorMode.REST),
             ask_choose=True,  # a CHOOSE search designation is a decision
             search=True,  # its searcher sees the searched zones, hidden or not (CR 701.23a)
+            possible=possible,
         )
         if h.namespace == "card"
     ]
@@ -1945,7 +1998,14 @@ def _v_search(ctx: ExecCtx, atom: Atom) -> None:
             f"executor: SEARCH to {dest_ir.kind.name} is not a card zone (13a)"
         )
     tapped_on_enter = bool(atom.args.get("tapped_on_enter"))
-    cards = _search_designation(atom, ctx)
+    # A search may find nothing (CR 701.23b). A found card that can't enter the battlefield
+    # stays in the library, unrevealed and out of ``result`` (below), so finding it is the same
+    # as finding nothing: when this atom delivers onto the battlefield itself, only the cards
+    # that can enter are offered (Garruk, Unleashed's emblem under Grafdigger's Cage finds
+    # nothing and asks nothing). Not inside a partition: there a found card may go to the other
+    # destination, so finding it has a consequence (Cultivate's "the other into your hand").
+    possible = None if ctx.search_partition else _possible_entries(ctx, dest_ir, dest_kind)
+    cards = _search_designation(atom, ctx, possible)
     if ctx.search_partition:
         # Cultivate: the Seq's sibling MOVE_ZONE atoms are a ONE_OF/REST
         # PARTITION ("put one onto the battlefield tapped and the other into
@@ -1962,10 +2022,17 @@ def _v_search(ctx: ExecCtx, atom: Atom) -> None:
         for card in cards:
             ctx.events.append((len(ctx.events), "SEARCH", str(card), "designated"))
         return
-    # The owner's zone, a non-owner controller as a control entry.
+    # The owner's zone, a non-owner controller as a control entry. A card that can't enter stays
+    # (_cant_enter), unreplaced, and chooses no host. A permanent's side is the player it would
+    # enter under, as in MOVE_ZONE's cards lane and the narrowing above.
     dests = {card: move_destination(ctx, dest_ir, dest_kind, card) for card in cards}
-    replaced = _replaced_moves(ctx, [(card, dests[card][0], dest_kind) for card in cards])
-    hosts, stayed = _entering_hosts(ctx, cards, dests, replaced, dest_kind)
+    moves = [(card, dests[card][1] or dests[card][0], dest_kind) for card in cards]
+    cant = _cant_enter(ctx, moves)
+    replaced = _replaced_moves(ctx, [move for move in moves if move[0] not in cant])
+    hosts, stayed = _entering_hosts(
+        ctx, [card for card in cards if card not in cant], dests, replaced, dest_kind
+    )
+    stayed |= cant
     for card in cards:
         if card in replaced or card in stayed:
             continue
@@ -2081,18 +2148,31 @@ def _v_phase_out(ctx: ExecCtx, atom: Atom) -> None:
 
 
 def _v_lose_game(ctx: ExecCtx, atom: Atom) -> None:
-    """LOSE_GAME: the frozen GameWorld carries no per-player lost flag
-    (state.py is frozen) — so the loss lands on an EXECUTOR-side ledger;
-    the game ends at the next state-based-action check
-    (``Executor._player_losses``, which also owns the CR 704.5a/b losses).
-    It also emits a GAME_LOST GameEvent row — subject the player — so every
-    journal subscriber (dump, binder) sees the game end."""
+    """LOSE_GAME: the player the ``controller`` role names loses the game (CR 104.3e), unless
+    they can't (a "can't lose the game" prohibition, CR 101.2: Platinum Angel's ruling, "no game
+    effect can cause you to lose"). The frozen GameWorld carries no per-player lost flag, so the
+    loss lands on the executor's ledger (``Executor.lose``, which the state-based losses share)
+    and the game ends at the next state-based-action check (``Executor._player_losses``)."""
     executor = _executor_or_raise(ctx, atom.verb.name)
-    executor.lost_players.append(ctx.controller)
-    executor.journal.emit(
-        KIND_GAME_LOST, ctx.controller, None, "LOSE_GAME", ("LOSE_GAME",)
-    )
-    ctx.events.append((len(ctx.events), "LOSE_GAME", str(ctx.controller)))
+    for player in role_players(ctx, atom):
+        if executor.lose(player, "LOSE_GAME", "LOSE_GAME"):
+            ctx.events.append((len(ctx.events), "LOSE_GAME", str(player)))
+
+
+def _v_win_game(ctx: ExecCtx, atom: Atom) -> None:
+    """WIN_GAME: the player the ``controller`` role names wins the game (CR 104.2b), unless they
+    can't (a "can't win the game" prohibition: Platinum Angel's "your opponents can't win the
+    game"). The game ends: every other player still in it is out, and the ledger records them as
+    losers of this kind (``WIN_GAME``), a loss no "can't lose the game" stops (Lich's Mastery's
+    ruling: "your opponents can still win the game if an effect says so")."""
+    executor = _executor_or_raise(ctx, atom.verb.name)
+    for player in role_players(ctx, atom):
+        if player in executor.lost_players or executor.prohibited_outcome(player, won=True):
+            continue  # a player who lost is out of the game (CR 104.3f, 800.4a)
+        ctx.events.append((len(ctx.events), "WIN_GAME", str(player)))
+        for other in executor.world.player_order:
+            if other != player:
+                executor.lose(other, "WIN_GAME", "WIN_GAME", by_win=True)
 
 
 # ------------------------------------------------------------ cast-side verbs
@@ -2919,6 +2999,7 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.EXTRA_TURN: _v_extra_turn,
     Verb.PHASE_OUT: _v_phase_out,  # CR 702.26
     Verb.LOSE_GAME: _v_lose_game,
+    Verb.WIN_GAME: _v_win_game,
     # The cast-side verbs.
     Verb.PAY: _v_pay,
     Verb.CAST: _v_cast,

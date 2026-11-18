@@ -5,8 +5,8 @@
  "name": "Atemsis, All-Seeing",
  "text_sha": "7697e5c521b2012e0f59f04e8372cdaeef81b6ecf4fe5999efe6c26551ab34a3",
  "needs_atom": {
-  "missing": "'If cards with at least six different mana values are revealed this way, that player loses the game.': LOSE_GAME takes no player role and makes the ability's controller lose (verbs.py _v_lose_game), so 'that player' (the opponent Atemsis dealt damage to) cannot be named; EachPlayer(ALL_OPPONENTS) would be wrong in multiplayer. (Ontology round R12 met the other half: the number of different mana values among the revealed cards is QDistinct(MANA_VALUE) under the one comparison.) The other sentences ('{2}{U}, {T}: Draw two cards, then discard a card.', the DamageDealtEvent to an opponent via OPPONENT_OF, the optional reveal) have existing shapes.",
-  "author": "ontology-r12",
-  "date": "2026-11-17"
+  "missing": "'you may reveal your hand': REVEAL reveals the top of a library only (verbs._look; its roles name no zone), so no node reveals a hand, and revealing it changes what the opponent knows (the seat lens's revealed cards). The rest has its pieces since rounds R12 and B12: 'that player loses the game' is LOSE_GAME(controller=ability_tree.event_player()) (the damaged opponent, CR 104.3e), 'cards with at least six different mana values' the comparison at_least(6, quantity=QDistinct(<your hand>, MANA_VALUE)), gated on the reveal (MAY_DONE); the activated '{2}{U}, {T}: Draw two cards, then discard a card.' and the damage trigger (DamageDealtEvent to OPPONENT_OF you) have existing shapes.",
+  "author": "ontology-b12",
+  "date": "2026-11-18"
  }
 }

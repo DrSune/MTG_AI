@@ -1635,6 +1635,10 @@ def spell_castable(
     node = next((a for a in record.abilities if isinstance(a, SpellAbility)), None)
     if node is None:
         return f"cast:not_a_spell:{handle}", None, None, None
+    if executor.replacements.prevents_cast(seat, handle):
+        # CR 601.3: a player begins to cast a spell only if no rule or effect prohibits it
+        # (Rule of Law, Grafdigger's Cage: DESIGN_ATOM_ONTOLOGY §19), a permission included
+        return f"prohibited:cast:{handle}", None, None, None
     window = card_window_reason(executor, seat, record, node)
     if window is not None:
         return window, None, None, None

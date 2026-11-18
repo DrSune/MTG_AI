@@ -3092,3 +3092,36 @@ def test_one_reading_of_evaluation_rows_and_one_name_per_player(tmp_path) -> Non
         {**args, "eval_seat": "eval+search", "search_n": 64})
     assert ncurve.comparable({**args, "eval_seat": "eval+search"}) != ncurve.comparable(
         {**args, "eval_seat": "eval+search", "search_worlds": "sim"})
+
+
+def test_the_network_reads_an_opening_hand_action_as_a_may_ask_about_the_card_in_hand() -> None:
+    """Round B12 (DESIGN_ATOM_ONTOLOGY §19): a Leyline's "you may begin the game with it on the
+    battlefield" (CR 103.6a) reaches the network as the may ask every "you may" is, before the
+    first turn: its site names the card (``may:<card>:<digest>``), so the card's row in hand is the
+    ask's source (F_ASK_SOURCE) and its tree tokens show the OpeningHandAbility; the options are
+    fire and skip. Nothing in tools/selfplay changed for it: no new ask kind, column or option."""
+    supply = get_supply("all", "M20")
+    table = FT.CardTable.from_records({oid: r.card for oid, r in supply.pool.results.items()})
+    ley = next(o for o in supply.deckable if supply.metas[o].name == "Leyline of Sanctity")
+    plains = next(o for o in supply.deckable if supply.metas[o].name == "Plains")
+    deck = (ley,) * 20 + (plains,) * 40
+    seen, started = [], []
+
+    class Recorder(HeuristicAgent):
+        def decide(self, ask, obs):
+            started.extend(ask.kind for kind in ("act", "priority") if ask.kind == kind)
+            if ask.kind == "may" and not started:  # before the first turn's first window
+                seen.append((ask, FT.encode_entities(obs.executor, ask.seat, ask, table, obs.ctx)))
+            return super().decide(ask, obs)
+
+    play_game(3, [Recorder(), Recorder()], pool_mode="all", set_code="M20", decks=(deck, deck),
+              turn_cap=1)
+    assert seen, "no pregame may ask"
+    ask, (arrays, handles) = seen[0]
+    source = Handle("card", int(ask.site.split(":")[2]))
+    row = handles.index(source) - 2  # the entities: me, the opponent, then the card rows
+    assert [o.token for o in ask.options] == ["fire", "skip"]
+    assert arrays["cards_f"][row][FT.F_ASK_SOURCE] == 1
+    assert arrays["cards_i"][row][1] == FT.ZONE_INDEX[ZONE_HAND]
+    assert table.row(ley) == arrays["cards_i"][row][0]
+    assert any("OpeningHandAbility" in t for t in FT.card_tokens(supply.pool.results[ley].card))

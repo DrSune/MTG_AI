@@ -1,0 +1,68 @@
+lose        M21  Nine Lives [Enchantment] :: When this enchantment leaves the battlefield, you lose the game.
+lose        ZNR  Angel of Destiny [Creature — Angel Cleric] :: At the beginning of your end step, if you have at least 15 life more than your starting life total, each player this creature attacked this turn loses the game.
+cant-cast   ZNR  Archon of Emeria [Creature — Archon] :: Each player can't cast more than one spell each turn.
+cant-gain   ZNR  Roiling Vortex [Enchantment] :: {R}: Your opponents can't gain life this turn.
+opening     M20  Leyline of Sanctity [Enchantment] :: If this card is in your opening hand, you may begin the game with it on the battlefield.
+cant-cast   M20  Rule of Law [Enchantment] :: Each player can't cast more than one spell each turn.
+lose        M20  Atemsis, All-Seeing [Legendary Creature — Sphinx] :: If cards with at least six different mana values are revealed this way, that player loses the game.
+opening     M20  Leyline of Anticipation [Enchantment] :: If this card is in your opening hand, you may begin the game with it on the battlefield.
+opening     M20  Leyline of the Void [Enchantment] :: If this card is in your opening hand, you may begin the game with it on the battlefield.
+opening     M20  Leyline of Combustion [Enchantment] :: If this card is in your opening hand, you may begin the game with it on the battlefield.
+opening     M20  Leyline of Abundance [Enchantment] :: If this card is in your opening hand, you may begin the game with it on the battlefield.
+cant-enter  M20  Grafdigger's Cage [Artifact] :: Creature cards in graveyards and libraries can't enter the battlefield.
+cant-cast   M20  Grafdigger's Cage [Artifact] :: Players can't cast spells from graveyards or libraries.
+cant-gain   KHM  Quakebringer [Creature — Giant Berserker] :: Your opponents can't gain life.
+lose        KHM  Fynn, the Fangbearer [Legendary Creature — Human Warrior] :: (A player with ten or more poison counters loses the game.)
+cant-enter  KHM  Weathered Runestone [Artifact] :: Nonland permanent cards in graveyards and libraries can't enter the battlefield.
+cant-cast   KHM  Weathered Runestone [Artifact] :: Players can't cast spells from graveyards or libraries.
+cant-cast   10E  Rule of Law [Enchantment] :: Each player can't cast more than one spell each turn.
+win         10E  Mortal Combat [Enchantment] :: At the beginning of your upkeep, if twenty or more creature cards are in your graveyard, you win the game.
+lose        10E  Phage the Untouchable [Legendary Creature — Avatar Minion] :: When Phage enters, if you didn't cast it from your hand, you lose the game.
+lose        10E  Phage the Untouchable [Legendary Creature — Avatar Minion] :: Whenever Phage deals combat damage to a player, that player loses the game.
+lose        10E  Platinum Angel [Artifact Creature — Angel] :: You can't lose the game and your opponents can't win the game.
+win         10E  Platinum Angel [Artifact Creature — Angel] :: You can't lose the game and your opponents can't win the game.
+cant-cast   10E  Steel Golem [Artifact Creature — Golem] :: You can't cast creature spells.
+cant-cast   M10  Silence [Instant] :: Your opponents can't cast spells this turn.
+lose        M10  Platinum Angel [Artifact Creature — Angel] :: You can't lose the game and your opponents can't win the game.
+win         M10  Platinum Angel [Artifact Creature — Angel] :: You can't lose the game and your opponents can't win the game.
+cant-cast   M11  Angelic Arbiter [Creature — Angel] :: Each opponent who attacked with a creature this turn can't cast spells.
+opening     M11  Leyline of Sanctity [Enchantment] :: If this card is in your opening hand, you may begin the game with it on the battlefield.
+cant-cast   M11  Silence [Instant] :: Your opponents can't cast spells this turn.
+opening     M11  Leyline of Anticipation [Enchantment] :: If this card is in your opening hand, you may begin the game with it on the battlefield.
+opening     M11  Leyline of the Void [Enchantment] :: If this card is in your opening hand, you may begin the game with it on the battlefield.
+opening     M11  Leyline of Punishment [Enchantment] :: If this card is in your opening hand, you may begin the game with it on the battlefield.
+cant-gain   M11  Leyline of Punishment [Enchantment] :: Players can't gain life.
+opening     M11  Leyline of Vitality [Enchantment] :: If this card is in your opening hand, you may begin the game with it on the battlefield.
+lose        M11  Platinum Angel [Artifact Creature — Angel] :: You can't lose the game and your opponents can't win the game.
+win         M11  Platinum Angel [Artifact Creature — Angel] :: You can't lose the game and your opponents can't win the game.
+cant-cast   M12  Grand Abolisher [Creature — Human Cleric] :: During your turn, your opponents can't cast spells or activate abilities of artifacts, creatures, or enchantments.
+cant-cast   M13  Serra Avenger [Creature — Angel] :: You can't cast Serra Avenger during your first, second, or third turns of the game.
+win         M13  Battle of Wits [Enchantment] :: At the beginning of your upkeep, if you have 200 or more cards in your library, you win the game.
+lose        M13  Door to Nothingness [Artifact] :: {W}{W}{U}{U}{B}{B}{R}{R}{G}{G}, {T}, Sacrifice this artifact: Target player loses the game.
+cant-cast   M14  Silence [Instant] :: Your opponents can't cast spells this turn.
+cant-play   M15  Aggressive Mining [Enchantment] :: You can't play lands.
+cant-cast   ORI  Alhammarret, High Arbiter [Legendary Creature — Sphinx] :: Your opponents can't cast spells with the chosen name (as long as this creature is on the battlefield).
+lose        ORI  Demonic Pact [Enchantment] :: • You lose the game.
+win         M19  Liliana's Contract [Enchantment] :: At the beginning of your upkeep, if you control four or more Demons with different names, you win the game.
+lose        DOM  Lich's Mastery [Legendary Enchantment] :: You can't lose the game.
+lose        DOM  Lich's Mastery [Legendary Enchantment] :: When Lich's Mastery leaves the battlefield, you lose the game.
+cant-cast   WAR  Single Combat [Sorcery] :: Players can't cast creature or planeswalker spells until the end of your next turn.
+cant-play   WAR  Tomik, Distinguished Advokist [Legendary Creature — Human Advisor] :: Your opponents can't play land cards from graveyards.
+win         WAR  Jace, Wielder of Mysteries [Legendary Planeswalker — Jace] :: If you would draw a card while your library has no cards in it, you win the game instead.
+win         WAR  Jace, Wielder of Mysteries [Legendary Planeswalker — Jace] :: Then if your library has no cards in it, you win the game.
+cant-gain   WAR  Tibalt, Rakish Instigator [Legendary Planeswalker — Tibalt] :: Your opponents can't gain life.
+lose        WAR  Nicol Bolas, Dragon-God [Legendary Planeswalker — Bolas] :: [−8]: Each opponent who doesn't control a legendary creature or planeswalker loses the game.
+lose        FDN  Herald of Eternal Dawn [Creature — Angel] :: You can't lose the game and your opponents can't win the game.
+win         FDN  Herald of Eternal Dawn [Creature — Angel] :: You can't lose the game and your opponents can't win the game.
+opening     FDN  Leyline Axe [Artifact — Equipment] :: If this card is in your opening hand, you may begin the game with it on the battlefield.
+lose        FDN  Demonic Pact [Enchantment] :: • You lose the game.
+cant-gain   FDN  Giant Cindermaw [Creature — Dinosaur Beast] :: Players can't gain life.
+lose        FDN  Fynn, the Fangbearer [Legendary Creature — Human Warrior] :: (A player with ten or more poison counters loses the game.)
+win         FDN  Maze's End [Land] :: If you control ten or more Gates with different names, you win the game.
+cant-cast   ELD  Deafening Silence [Enchantment] :: Each player can't cast more than one noncreature spell each turn.
+win         ELD  Happily Ever After [Enchantment] :: At the beginning of your upkeep, if there are five colors among permanents you control, there are six or more card types among permanents you control and/or cards in your graveyard, and your life total is greater than or equal to your starting life total, you win the game.
+cant-cast   THB  Ashiok's Erasure [Enchantment] :: Your opponents can't cast spells with the same name as the exiled card.
+win         THB  Thassa's Oracle [Creature — Merfolk Wizard] :: If X is greater than or equal to the number of cards in your library, you win the game.
+cant-enter  THB  Kunoros, Hound of Athreos [Legendary Creature — Dog] :: Creature cards in graveyards can't enter the battlefield.
+cant-cast   THB  Kunoros, Hound of Athreos [Legendary Creature — Dog] :: Players can't cast spells from graveyards.
+cant-cast   IKO  Drannith Magistrate [Creature — Human Wizard] :: Your opponents can't cast spells from anywhere other than their hands.

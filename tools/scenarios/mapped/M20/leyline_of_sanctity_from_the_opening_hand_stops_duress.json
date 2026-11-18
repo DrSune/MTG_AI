@@ -1,0 +1,61 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Leyline of Sanctity begun on the battlefield (CR 103.6a) is there from the first turn: seat 1's Duress has no legal target (the player hexproof, CR 702.11c). Red on main eaedfc1b: no opening-hand step, the Leyline stayed in hand.",
+ "cards": [
+  {
+   "key": "sanctity",
+   "real": "Leyline of Sanctity",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "spare",
+   "name": "Spare Instant",
+   "type": "Instant",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "duress",
+   "real": "Duress",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "opening_hand": [
+  "fire"
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "B": 1
+   }
+  },
+  {
+   "op": "cast",
+   "key": "duress",
+   "real": "Duress",
+   "controller": 1,
+   "targets": [
+    "p0"
+   ],
+   "expect_raise": "illegal"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "sanctity": "battlefield",
+   "spare": "hand",
+   "duress": "hand"
+  }
+ }
+}

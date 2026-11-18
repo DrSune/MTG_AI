@@ -1,0 +1,14 @@
+FAIL giant_cindermaw_no_player_gains_life.json | life[0]: expected 20, got 22
+FAIL grafdiggers_cage_gravewaker_returns_nothing.json | zone[dead]: expected graveyard, got battlefield
+FAIL grafdiggers_cage_stops_mystic_forge.json | step {'op': 'act', 'seat': 0, 'words': ['cast:vial'], 'expect_raise': "does not offer 'cast:"}: expected raise "does not offer 'cast:", but it succeeded
+PASS gravewaker_returns_a_creature_card.json | 
+FAIL leyline_of_sanctity_from_the_opening_hand_stops_duress.json | step {'op': 'cast', 'key': 'duress', 'real': 'Duress', 'controller': 1, 'targets': ['p0'], 'expect_raise': 'illegal'}: expected raise 'illegal', got ValueError: executor: choose:card:2:c895b081bd9a ne
+FAIL leyline_of_the_void_exiles_an_opponents_dying_creature.json | zone[theirs]: expected exile, got graveyard
+FAIL leylines_begin_the_game_from_the_opening_hand.json | zone[sanctity]: expected battlefield, got hand
+FAIL rule_of_law_binds_each_player.json | step {'op': 'cast', 'key': 'disfigure', 'real': 'Disfigure', 'controller': 1, 'targets': ['mine'], 'expect_raise': 'prohibited:cast'}: expected raise 'prohibited:cast', but it succeeded
+FAIL rule_of_law_counts_the_spells_cast_before_it.json | step {'op': 'cast', 'key': 'unsummon', 'real': 'Unsummon', 'controller': 0, 'targets': ['bear'], 'expect_raise': 'prohibited:cast'}: expected raise 'prohibited:cast', but it succeeded
+FAIL rule_of_law_second_spell_is_refused.json | step {'op': 'cast', 'key': 'unsummon', 'real': 'Unsummon', 'controller': 0, 'targets': ['bear'], 'expect_raise': 'prohibited:cast'}: expected raise 'prohibited:cast', but it succeeded
+PASS platinum_angel_gone_its_controller_loses.json | 
+FAIL platinum_angel_keeps_its_controller_in_at_zero_life.json | lost[0]: expected False, got True
+FAIL grafdiggers_cage_no_cast_from_a_graveyard.json | step {'op': 'test_permission_cast', 'key': 'shock', 'from': 'graveyard', 'targets': ['p1'], 'expect_raise': 'prohibited:cast'}: expected raise 'prohibited:cast', but it succeeded
+FAIL grafdiggers_cage_keeps_a_library_creature_card_out.json | zone[deep]: expected library, got battlefield

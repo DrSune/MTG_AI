@@ -7,7 +7,7 @@ sections below):
   D) Verb.CAST                       (source zone + optional cost role)
   E) QThisTurn + ThisTurnKind        (turn-scoped quantities)
   F) event scoping + CardDrawn / LifeGained / Sacrifice events
-  G) Verb.LOSE_GAME                  (no roles)
+  G) Verb.LOSE_GAME                  (who loses: `controller`, round B12)
   H) ZonePosition + Zone.position    (top/bottom of a zone)
   I) EachPlayer                      (per-player effect)
   J) EtBState                        (entered state: tapped/counters)
@@ -369,11 +369,13 @@ _NEW_NODES: list[tuple[str, Callable[[], object]]] = [
     # G) Verb.LOSE_GAME
     (
         "lose_game_atom",
-        lambda: at.Atom(at.Verb.LOSE_GAME, at.AtomArgs(pairs=())),
+        lambda: at.Atom(at.Verb.LOSE_GAME, at.AtomArgs(pairs=(("controller", at.ControllerRef.YOU),))),
     ),
     (
         "lose_game_in_optional",
-        lambda: at.OptionalEffect(at.Atom(at.Verb.LOSE_GAME, at.AtomArgs(pairs=()))),
+        lambda: at.OptionalEffect(
+            at.Atom(at.Verb.LOSE_GAME, at.AtomArgs(pairs=(("controller", at.ControllerRef.YOU),)))
+        ),
     ),
     # H) ZonePosition + Zone.position
     (
@@ -891,7 +893,7 @@ def test_new_verb_roles() -> None:
         "source": True, "alternative": False, "additional": False, "replace": False,
     }
     assert at._VERB_ROLES[at.Verb.PAY] == {"cost": True}
-    assert at._VERB_ROLES[at.Verb.LOSE_GAME] == {}
+    assert at._VERB_ROLES[at.Verb.LOSE_GAME] == {"controller": True}
 
 
 def test_new_fatom_rule_rows() -> None:

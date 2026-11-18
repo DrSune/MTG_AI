@@ -1,0 +1,46 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "'Creature cards in graveyards and libraries can't enter the battlefield.' An effect's move of a creature card from the library onto the battlefield does not happen (the card stays); a noncreature card from the library enters (the Cage names creature cards). Red on main eaedfc1b.",
+ "cards": [
+  {
+   "key": "cage",
+   "real": "Grafdigger's Cage",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "deep",
+   "real": "Vampire of the Dire Moon",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "forge",
+   "real": "Mystic Forge",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "move",
+   "key": "deep",
+   "to": "battlefield"
+  },
+  {
+   "op": "move",
+   "key": "forge",
+   "to": "battlefield"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "deep": "library",
+   "forge": "battlefield"
+  }
+ }
+}

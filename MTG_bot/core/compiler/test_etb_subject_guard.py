@@ -78,7 +78,8 @@ class TestEtbSubjectGuard(unittest.TestCase):
                 to_zone=T.Zone(T.ZoneKind.BATTLEFIELD, T.ControllerRef.YOU),
             ),
             condition=None,
-            effect=T.Atom(verb=T.Verb.LOSE_GAME, args=T.AtomArgs()),
+            effect=T.Atom(verb=T.Verb.LOSE_GAME,
+                           args=T.AtomArgs(pairs=(("controller", T.ControllerRef.YOU),))),
         )
         good = T.TriggeredAbility(
             event=T.ZoneChangeEvent(
@@ -87,7 +88,8 @@ class TestEtbSubjectGuard(unittest.TestCase):
                 subject=T.FAtom(pred=T.FAtomPred.IS_SOURCE),
             ),
             condition=None,
-            effect=T.Atom(verb=T.Verb.LOSE_GAME, args=T.AtomArgs()),
+            effect=T.Atom(verb=T.Verb.LOSE_GAME,
+                           args=T.AtomArgs(pairs=(("controller", T.ControllerRef.YOU),))),
         )
         self.assertEqual(len(_iter_etb_violations(bad)), 1)
         self.assertEqual(_iter_etb_violations(good), [])

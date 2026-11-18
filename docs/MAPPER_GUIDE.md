@@ -469,6 +469,29 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
   - **Hexproof on a player** (CR 702.11c): `parse "You have hexproof."` (a static, Runed Halo's
     player grant) and `parse "You and permanents you control gain hexproof from blue and from black
     until end of turn."` (one grant over the battlefield and your player zone).
+  - **The opening hand** (CR 103.6a, round B12): "If this card is in your opening hand, you may
+    begin the game with it on the battlefield." is `OpeningHandAbility(begin_on_battlefield())`,
+    first in printed order (`parse` it). Never a trigger, a static or a keyword; nothing else
+    stands in it.
+  - **"Can't" (CR 101.2)** is a PREVENT_EFFECT over the event it forbids, its `condition` the
+    event's subject (the spell, the moving card; `FAnd(())` for a player's life gain or game
+    outcome, whose `actor` says whose): `parse` "Each player can't cast more than one spell each
+    turn." (CastSpellEvent `ordinal` QAtLeast(2), never 2), "Players can't cast spells from
+    graveyards or libraries." (one PREVENT_EFFECT per zone), "Creature cards in graveyards and
+    libraries can't enter the battlefield.", "Players can't gain life.", "You can't lose the game
+    and your opponents can't win the game.". Who can't cast is the `actor`, never a CONTROLLER_IS
+    in the spell's filter, nor an EachPlayer around it. With a duration it is a resolving spell's
+    effect ("this turn"); without one, a static's, never with a "may" around it
+    (`ability_tree.prohibition_placement_fault`).
+  - **Who loses or wins** (CR 104.3e, 104.2b): LOSE_GAME and WIN_GAME name their player in
+    `controller`: "you" YOU, "target player" TARGET_PLAYER, "that player" of a trigger's event
+    `ability_tree.event_player()` (Atemsis), "each opponent loses the game" ALL_OPPONENTS (the
+    plural role "each opponent loses 2 life" has; an EachPlayer around the lone LOSE_GAME is
+    refused, divergence D21). "Each opponent who ... loses the game" keeps
+    `EachPlayer(ALL_OPPONENTS, Conditional(<who ...>, LOSE_GAME(YOU)))`: its condition reads the
+    rotated "you". WIN_GAME is YOU's only, never under EachPlayer.
+    "You can't lose the game" alone on a card whose drawbacks do not compile (DOM Lich's Mastery)
+    is not mapped: alone it plays stronger than printed.
   - **"Reveal cards from the top of your library until you reveal a creature card. Put that card
     into your hand and the rest on the bottom of your library in a random order."**: `parse` each
     sentence (REVEAL `until`, then the `result` to hand and REST to the bottom, RANDOM). Behind

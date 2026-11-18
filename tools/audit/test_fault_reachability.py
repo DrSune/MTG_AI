@@ -70,7 +70,9 @@ PINNED: dict[str, tuple[fs.Shape, tuple[set[str], set[str], set[str]]]] = {
     "F13": (fs.each(fs.f13_carrier), ({"Enthralling Hold"}, set(), set())),
     "F18b": (fs.each(fs.multi_slot_trigger), (set(), {"Drakuseth, Maw of Flames"}, {"Drakuseth, Maw of Flames"})),
     "F19": (fs.each(fs.f19_carrier), ({"Runed Halo"}, {"Veil of Summer"}, set())),
-    "F23": (fs.each(fs.f23_carrier), ({"Mazemind Tome", "Nine Lives"}, set(), {"Mazemind Tome"})),
+    # M21 Nine Lives left the verified pool in round B12 (its LOSE_GAME names its player now,
+    # DESIGN_ATOM_ONTOLOGY §19): it holds the shape and rejoins when it is re-verified
+    "F23": (fs.each(fs.f23_carrier), ({"Mazemind Tome"}, set(), {"Mazemind Tome"})),
     "F24": (fs.each(lambda c: any(True for _ in fs.atoms(c, at.Verb.TRIGGER_ADDITIONAL))),
             ({"Sanctum of All"}, set(), set())),
     "F27 self-damage": (fs.each(fs.f27_self_damage), (

@@ -1,0 +1,52 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Played on Grafdigger's Cage's record (round B12; it compiles whole). 'Creature cards in graveyards and libraries can't enter the battlefield.' Gravewaker's '{5}{B}{B}: Return target creature card from your graveyard to the battlefield tapped' targets the card and resolves, and the card stays in the graveyard (CR 101.2). Its falsifier is gravewaker_returns_a_creature_card. Red on main eaedfc1b.",
+ "cards": [
+  {
+   "key": "cage",
+   "real": "Grafdigger's Cage",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "waker",
+   "real": "Gravewaker",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "dead",
+   "real": "Vampire of the Dire Moon",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "B": 7
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "waker",
+   "idx": 0,
+   "seat": 0,
+   "targets": [
+    "dead"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "dead": "graveyard"
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

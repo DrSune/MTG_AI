@@ -717,7 +717,7 @@ class TestLoseGame(LibraryCase):
     def test_lose_game_records_player_and_journal_row(self):
         # The loss ends a two-player game at the check after the op (CR 104.2a).
         with self.assertRaises(GameOver):
-            self._do(atom(Verb.LOSE_GAME))
+            self._do(atom(Verb.LOSE_GAME, controller=ControllerRef.YOU))
         self.assertEqual(self.ex.lost_players, [self.p0])
         rows = [e for e in self.ex.events if e[1] == "LOSE_GAME"]
         self.assertEqual(rows, [(rows[0][0], "LOSE_GAME", str(self.p0))])
@@ -1147,7 +1147,7 @@ class TestReplayDeterminism(unittest.TestCase):
             ex.execute(atom(Verb.END_TURN), source=p0, controller=p0)
             ex.advance_turn()
             with self.assertRaises(GameOver):  # the game ends (CR 104.2a)
-                ex.execute(atom(Verb.LOSE_GAME), source=p0, controller=p0)
+                ex.execute(atom(Verb.LOSE_GAME, controller=ControllerRef.YOU), source=p0, controller=p0)
             return ex.state_fingerprint()
 
         self.assertEqual(replay(), replay())
@@ -1158,8 +1158,9 @@ class TestReplayDeterminism(unittest.TestCase):
 
 class TestCapabilitySurface(unittest.TestCase):
     def test_v2_size(self):
-        # + ATTACK_POLICY (2026-11-12), + PERMIT (R13), + COPY (the copy round, §18)
-        self.assertEqual(len(SUPPORTED_VERBS_V2), 48)
+        # + ATTACK_POLICY (2026-11-12), + PERMIT (R13), + COPY (the copy round, §18), + WIN_GAME
+        # (round B12, §19)
+        self.assertEqual(len(SUPPORTED_VERBS_V2), 49)
 
     def test_turn_ledger_fields_in_state_fingerprint(self):
         reset_oracle_ids()
@@ -1168,7 +1169,7 @@ class TestCapabilitySurface(unittest.TestCase):
         a = Executor(world)
         fp0 = a.state_fingerprint()
         with self.assertRaises(GameOver):  # the game ends (CR 104.2a)
-            a.execute(atom(Verb.LOSE_GAME), source=p0, controller=p0)
+            a.execute(atom(Verb.LOSE_GAME, controller=ControllerRef.YOU), source=p0, controller=p0)
         self.assertNotEqual(fp0, a.state_fingerprint())
 
 

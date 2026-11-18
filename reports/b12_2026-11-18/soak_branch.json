@@ -1,0 +1,10 @@
+{
+ "stats": {
+  "games": 150,
+  "pregame_may": 495,
+  "move_prohibited": 1,
+  "gain_prohibited": 0,
+  "outcome:win": 150
+ },
+ "crashes": {}
+}
