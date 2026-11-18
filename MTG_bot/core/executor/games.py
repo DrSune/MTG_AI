@@ -1494,9 +1494,7 @@ def _play_turns(
                     continue  # the turn ended (CR 724.1)
             finally:  # a combat death ends the game inside combat (GameOver)
                 if in_combat:
-                    game.combat_losses += sum(
-                        1 for s, life in lives.items() if life > 0 and world.players[s].life <= 0
-                    )
+                    game.combat_losses += _combat_deaths(executor, lives)
             seat = executor.priority_holder
             assert seat is not None
             if (
@@ -1525,11 +1523,19 @@ def _play_turns(
                     executor.pass_priority()
                 finally:
                     if in_combat:
-                        game.combat_losses += sum(
-                            1 for s, life in lives.items() if life > 0 and world.players[s].life <= 0
-                        )
+                        game.combat_losses += _combat_deaths(executor, lives)
     finally:
         executor.driven = driven
+
+
+def _combat_deaths(executor: Executor, lives: dict[Handle, int]) -> int:
+    """The players whose life crossed 0 since ``lives`` was read, but a player who can't lose
+    the game (Platinum Angel: no death, CR 104.3b's loss prohibited)."""
+    return sum(
+        1 for s, life in lives.items()
+        if life > 0 and executor.world.players[s].life <= 0
+        and not executor.prohibited_outcome(s, won=False)
+    )
 
 
 #: The steps of the combat phase: a life crossing 0 in them is a combat loss (Game.combat_losses).

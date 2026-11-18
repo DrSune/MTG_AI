@@ -380,12 +380,10 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
             # lane, so "Exile target card from a graveyard. If it was a
             # creature card, ..." (Scavenging Ooze) judges the exiled card.
             targets = list(role_handles(ctx, atom, "target"))
-            _move_all(
-                ctx,
-                [(card, ctx.world.controller_of(card), dest_kind) for card in targets],
-                journal_kind,
-            )
-            ctx.bindings["result"] = targets
+            moves = [(card, ctx.world.controller_of(card), dest_kind) for card in targets]
+            stayed = _cant_enter(ctx, moves)  # stays where it is, and is no "it"
+            _move_all(ctx, [move for move in moves if move[0] not in stayed], journal_kind)
+            ctx.bindings["result"] = [card for card in targets if card not in stayed]
             return
         if not isinstance(sel, Selector):
             raise ValueError("executor: MOVE_ZONE cards role has no binding")

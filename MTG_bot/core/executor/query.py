@@ -688,7 +688,14 @@ def optional_offer(
             want = resolve(value.count, ctx)
             if want <= 0:
                 continue
-            if len(enumerate_candidates(value, ctx)) == 0 and not (
+            candidates = enumerate_candidates(value, ctx)
+            destination = node.args.get("destination")
+            if isinstance(destination, Zone) and destination.kind is ZoneKind.BATTLEFIELD:
+                # a card that can't enter the battlefield (CR 101.2) is no candidate for a move
+                # there: an offer whose every card would stay where it is is a phantom (§10)
+                candidates = [c for c in candidates
+                              if not executor.replacements.prevents_entering(c, controller)]
+            if len(candidates) == 0 and not (
                 # "any target" includes players (CR 115.4), which no zone holds: count them the
                 # way the target ask does (_widen_any_target), or a board with no creature or
                 # planeswalker would narrow Goblin Arsonist's may to skip
@@ -867,18 +874,19 @@ def cast_refusal_note(executor: Executor, bad: Sequence[Handle]) -> str:
     """Ledger text naming each refused CAST designee WITH its reason,
     read through the same primitives the gate uses:
     ``not a SpellAbility carrier`` (land / face-shape outside the cast
-    lane) vs ``cannot be paid for right now`` (a carrier whose payment
-    failed the host cost fold — ``ok`` is only False on a carrier when
-    payability fails, so no re-check is needed)."""
+    lane), ``prohibited`` (a rule or effect forbids the cast, CR 601.3) vs
+    ``cannot be paid for right now`` (a carrier whose payment
+    failed the host cost fold)."""
     parts: list[str] = []
     for h in bad:
         card = executor.world.cards.get(h)
         name = card.identity.name if card is not None else str(h)
-        why = (
-            "cannot be paid for right now"
-            if cast_carrier(executor, h) is not None
-            else "not a SpellAbility carrier"
-        )
+        if cast_carrier(executor, h) is None:
+            why = "not a SpellAbility carrier"
+        elif executor.replacements.prevents_cast(executor.world.controller_of(h), h):
+            why = "prohibited (CR 601.3)"
+        else:
+            why = "cannot be paid for right now"
         parts.append(f"{name} ({why})")
     return ", ".join(parts)
 

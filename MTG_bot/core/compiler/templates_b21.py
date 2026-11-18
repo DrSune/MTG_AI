@@ -21,15 +21,18 @@
     zone onto the battlefield, its subject the cards;
   - "<Players|Your opponents> can't gain life [this turn]." (Giant Cindermaw, Leyline of
     Punishment, Quakebringer, Tibalt, Roiling Vortex): a LifeGainedEvent with its actor;
-  - "You can't lose the game[ and your opponents can't win the game]." (Platinum Angel, Herald
-    of Eternal Dawn, Lich's Mastery): a GameOutcomeEvent each.
+  - "You can't lose the game and your opponents can't win the game." (Platinum Angel, Herald of
+    Eternal Dawn): a GameOutcomeEvent each. DOM Lich's Mastery's "You can't lose the game." alone
+    is held back (below).
 * "You lose the game." / "Target player|opponent loses the game." and "You win the game." are
   LOSE_GAME and WIN_GAME with their player (Demonic Pact's mode, Door to Nothingness; the
   frames' "At the beginning of your upkeep, if ..., you win the game."). Nine Lives' "you lose
   the game" is B2b's own sentence, the same atom.
 
 Not read, each waiting for its piece: "That player loses the game." alone (a pronoun: Atemsis's
-is its record's, Phage's names the card); a "can't cast" with a condition or a chosen name (Grand
+is its record's, Phage's names the card); Lich's Mastery's "You can't lose the game." (the first
+of Platinum Angel's two atoms), held back while its three drawbacks do not compile, so the card is
+never dealt stronger than printed; a "can't cast" with a condition or a chosen name (Grand
 Abolisher, Angelic Arbiter, Serra Avenger, Alhammarret, Ashiok's Erasure); "Damage can't be
 prevented." (Leyline of Punishment's other sentence).
 """
@@ -188,11 +191,12 @@ def _build_cant_gain(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_cant_lose(m: re.Match[str]) -> SentenceOutcome:
-    """You can't lose the game[ and your opponents can't win the game]."""
-    atoms = [prohibit(GameOutcomeEvent(won=False, actor=_actor("You")))]
-    if m.group("win"):
-        atoms.append(prohibit(GameOutcomeEvent(won=True, actor=_actor("Your opponents"))))
-    return _carried(atoms, None)
+    """You can't lose the game and your opponents can't win the game: two prohibitions."""
+    return _carried(
+        [prohibit(GameOutcomeEvent(won=False, actor=_actor("You"))),
+         prohibit(GameOutcomeEvent(won=True, actor=_actor("Your opponents")))],
+        None,
+    )
 
 
 def game_result(verb: Verb, who: object) -> Atom:
@@ -239,9 +243,13 @@ TEMPLATES: Final[tuple[Template, ...]] = (
               _build_cant_enter),
     _template("B21-cant-gain-life", "<players|your opponents> can't gain life [this turn]",
               rf"(?P<who>Players|Your opponents) can't gain life{_WHEN}\.", _build_cant_gain),
+    # "You can't lose the game." alone is DOM Lich's Mastery's, whose three drawbacks (draw on
+    # gain, exile on loss, lose when it leaves) do not compile: alone it would deal a card
+    # stronger than printed in the partial pools. Its tree is this template's first atom; a
+    # record maps it with the rest (BACKLOG, "Held back: an upside without its drawbacks").
     _template("B21-cant-lose",
-              "you can't lose the game [and your opponents can't win the game]",
-              r"You can't lose the game(?P<win> and your opponents can't win the game)?\.",
+              "you can't lose the game and your opponents can't win the game",
+              r"You can't lose the game and your opponents can't win the game\.",
               _build_cant_lose),
     _template("B21-lose-game", "you lose the game | target player|opponent loses the game",
               r"(?:You lose|Target (?P<target>player|opponent) loses) the game\.", _build_lose),

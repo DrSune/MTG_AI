@@ -170,6 +170,15 @@ def test_the_prohibitions_round_trip() -> None:
                          controller=ControllerRef.YOU), "mean nothing"),
         # an exact ordinal is a trigger's: "can't cast more than one" is QAtLeast(2), never 2
         (lambda: prevent(CastSpellEvent(filter=FAnd(()), ordinal=2), FAnd(())), "exact event"),
+        # the review's two second encodings: a universal actor is the absent one, and the
+        # spell's controller is its caster ("your opponents can't cast" is the actor's)
+        (lambda: prevent(LifeGainedEvent(actor=FAnd(())), FAnd(())), "universal actor"),
+        (lambda: prevent(GameOutcomeEvent(won=False, actor=FAnd(())), FAnd(())), "universal actor"),
+        (lambda: prevent(CastSpellEvent(filter=FAnd(()), actor=FAnd(())), FAnd(())),
+         "universal actor"),
+        (lambda: prevent(CastSpellEvent(filter=OPPONENT), OPPONENT), "names its caster"),
+        (lambda: prevent(CastSpellEvent(filter=FAnd((CREATURE, YOU))), FAnd((CREATURE, YOU))),
+         "names its caster"),
     ],
 )
 def test_a_prohibition_says_its_restriction_once(make, match) -> None:
@@ -235,6 +244,24 @@ def test_who_loses_or_wins_is_named_once() -> None:
 def test_another_player_form_is_refused(verb, who) -> None:
     with pytest.raises(ValueError, match="controller must be"):
         a(verb, controller=who)
+
+
+def test_a_game_result_is_one_players_and_a_resolving_effects() -> None:
+    """One player wins (CR 104.2b): EachPlayer around WIN_GAME would rotate "you" past the YOU-only
+    rule; and a game result happens as an effect resolves, so a static's never runs ("can't
+    lose" is the PREVENT_EFFECT). "Each opponent loses the game" stays EachPlayer's."""
+    win, lose = (a(verb, controller=ControllerRef.YOU) for verb in (Verb.WIN_GAME, Verb.LOSE_GAME))
+    with pytest.raises(ValueError, match="one player wins"):
+        at.EachPlayer(ControllerRef.ALL_OPPONENTS, win)
+    at.EachPlayer(ControllerRef.ALL_OPPONENTS, lose)
+    for atom in (win, lose):
+        with pytest.raises(ValueError, match="never a static's"):
+            at.StaticAbility(atom)
+    # a static granting a trigger that loses the game is that trigger's own resolving effect
+    dies = at.TriggeredAbility(
+        at.CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)), None, lose)
+    at.StaticAbility(a(Verb.GRANT_ABILITY, ability=dies, target=Selector(
+        QConst(1), SelectorMode.CHOOSE, FAtom(pred=FAtomPred.IS_SOURCE), (BATTLEFIELD,))))
 
 
 def test_a_game_result_names_its_player() -> None:

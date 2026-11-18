@@ -152,12 +152,16 @@ class TestProhibitions(unittest.TestCase):
 
 class TestTheGamesEnd(unittest.TestCase):
     def test_cant_lose_and_cant_win(self) -> None:
-        """Platinum Angel and Herald of Eternal Dawn; Lich's Mastery's first half alone."""
+        """Platinum Angel and Herald of Eternal Dawn. DOM Lich's Mastery's "You can't lose the
+        game." alone stays unparsed while its three drawbacks do not compile (the review of round
+        B12: alone it dealt a card stronger than printed in the partial pools)."""
         lose = prohibit(GameOutcomeEvent(won=False, actor=YOU))
         self.assertEqual(
             _only("You can't lose the game and your opponents can't win the game."),
             _static(lose, prohibit(GameOutcomeEvent(won=True, actor=OPPONENTS))))
-        self.assertEqual(_only("You can't lose the game."), _static(lose))
+        self.assertEqual(_registry().match("You can't lose the game."), ())
+        self.assertIn("You can't lose the game.",
+                      [s for s, _hint in _card("DOM", "Lich's Mastery").unparsed])
 
     def test_who_loses_and_who_wins(self) -> None:
         """Demonic Pact's mode, Door to Nothingness's target; the win of the upkeep cards."""

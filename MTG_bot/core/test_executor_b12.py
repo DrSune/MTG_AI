@@ -23,9 +23,13 @@ from MTG_bot.core.ability_tree import (
     FAnd,
     FAtom,
     FAtomPred,
+    GameOutcomeEvent,
     OpeningHandAbility,
+    Seq,
     QConst,
     QUnbounded,
+    Selector,
+    SelectorMode,
     StaticAbility,
     TriggeredAbility,
     Verb,
@@ -412,15 +416,18 @@ def test_platinum_angel_stops_lose_game_effects_and_an_opponents_win() -> None:
     assert r.ex.lost_players == []
 
 
-def test_lichs_mastery_does_not_stop_an_opponents_win() -> None:
-    """DOM Lich's Mastery: "You can't lose the game." Its ruling: an opponent can still win if an
-    effect says so; the game ends with their win (the GAME_LOST row says WIN_GAME)."""
-    r = _runner("DOM", [_real("mastery", "Lich's Mastery")])
+def test_cant_lose_alone_does_not_stop_an_opponents_win() -> None:
+    """DOM Lich's Mastery's "You can't lose the game." (Platinum Angel's first atom; the card's
+    record maps it once its drawbacks compile). Its ruling: an opponent can still win if an effect
+    says so; the game ends with their win (the GAME_LOST row says WIN_GAME)."""
+    r = _runner("DOM", [])
     p0, p1 = r.seats
-    r.ex.execute(game_result(Verb.LOSE_GAME, YOU), source=r.handles["mastery"], controller=p0)
+    mastery = _ruled(r, 0, StaticAbility(prohibit(GameOutcomeEvent(won=False, actor=FAtom(
+        pred=FAtomPred.CONTROLLER_IS, who=YOU)))))
+    r.ex.execute(game_result(Verb.LOSE_GAME, YOU), source=mastery, controller=p0)
     assert r.ex.lost_players == []
     with pytest.raises(GameOver):
-        r.ex.execute(game_result(Verb.WIN_GAME, YOU), source=r.handles["mastery"], controller=p1)
+        r.ex.execute(game_result(Verb.WIN_GAME, YOU), source=mastery, controller=p1)
     assert r.ex.lost_players == [p0]
     row = next(e for e in r.ex.journal.events if e.kind == KIND_GAME_LOST)
     assert (row.subject, row.data) == (p0, ("WIN_GAME",))
@@ -469,3 +476,96 @@ def test_target_player_loses_the_game() -> None:
         r.ex.execute(game_result(Verb.LOSE_GAME, ControllerRef.TARGET_PLAYER), source=p0,
                      controller=p0, bindings={"target": [p1]})
     assert r.ex.lost_players == [p1]
+
+
+# ------------------------------------------------------------------ the review's lanes
+
+
+CAGE_RULE = StaticAbility(prohibit(ZoneChangeEvent(
+    Zone(ZoneKind.LIBRARY, ControllerRef.ANY), Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+    subject=FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"))))
+CREATURE_IN_LIBRARY = Selector(QConst(1), SelectorMode.CHOOSE,
+                               FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                               (Zone(ZoneKind.LIBRARY, YOU),))
+TO_BATTLEFIELD = Zone(ZoneKind.BATTLEFIELD, YOU)
+
+
+def _library_creature() -> tuple[ScenarioRunner, object]:
+    r = _runner("M20", [_real("deep", "Vampire of the Dire Moon", zone="library")])
+    _ruled(r, 1, CAGE_RULE)
+    return r, r.handles["deep"]
+
+
+def test_every_move_lane_keeps_a_card_that_cant_enter() -> None:
+    """The three lanes that move a card onto the battlefield ask the prohibition: a SEARCH's
+    find ("put it onto the battlefield", Golos), a MOVE_ZONE's `cards` and the library pop
+    (verbs._move_all: "put the top card of your library onto the battlefield"). The card stays in
+    the library each time, and is no "it" of the instruction (the `result` register)."""
+    r, deep = _library_creature()
+    r.ex.execute(Atom(Verb.SEARCH, AtomArgs(pairs=(("cards", CREATURE_IN_LIBRARY),
+                                                   ("destination", TO_BATTLEFIELD)))),
+                 source=r.seats[0], controller=r.seats[0], bindings={"cards": [deep]})
+    assert r.world.zone_of(deep).kind == ZONE_LIBRARY
+    r, deep = _library_creature()
+    r.ex.execute(Atom(Verb.MOVE_ZONE, AtomArgs(pairs=(("cards", CREATURE_IN_LIBRARY),
+                                                      ("destination", TO_BATTLEFIELD)))),
+                 source=r.seats[0], controller=r.seats[0], bindings={"cards": [deep]})
+    assert r.world.zone_of(deep).kind == ZONE_LIBRARY
+    r, deep = _library_creature()
+    library = r.world.players[r.seats[0]].zone(ZONE_LIBRARY).entries
+    library.remove(deep)
+    library.append(deep)  # on top
+    r.ex.execute(Atom(Verb.MOVE_ZONE, AtomArgs(pairs=(
+        ("amount", QConst(1)), ("controller", YOU), ("destination", TO_BATTLEFIELD),
+        ("from", Zone(ZoneKind.LIBRARY, YOU)), ("pop_order", "TOP")))),
+        source=r.seats[0], controller=r.seats[0])
+    assert r.world.zone_of(deep).kind == ZONE_LIBRARY
+    assert sum(1 for e in r.ex.events if e[1] == "MOVE_PROHIBITED") == 1
+
+
+def test_a_may_whose_every_card_cant_enter_is_not_asked() -> None:
+    """"You may put a creature card from your library onto the battlefield" when every such
+    card can't enter: firing and skipping end the same, so the may-offer narrows to skip (CR
+    117.3; a phantom ask otherwise, AGENTS §10)."""
+    from MTG_bot.core.ability_tree import OptionalEffect
+    from MTG_bot.core.executor.query import optional_offer
+
+    r, _deep = _library_creature()
+    may = OptionalEffect(Atom(Verb.MOVE_ZONE, AtomArgs(pairs=(
+        ("cards", CREATURE_IN_LIBRARY), ("destination", TO_BATTLEFIELD)))))
+    assert optional_offer(r.ex, may, source=r.seats[0], controller=r.seats[0]) == ("skip",)
+
+
+def test_a_mandatory_cast_of_a_prohibited_card_casts_nothing() -> None:
+    """CR 601.3 holds for a CAST an effect makes with its designee bound (the bound lane of
+    role_handles skips the may-offer's check): the card stays where it is, no CAST row."""
+    from MTG_bot.core.executor.events import KIND_CAST
+
+    r = _runner("M21", [_real("shock", "Shock", zone="graveyard")], {"0": {"R": 1}})
+    graveyards = Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY)
+    _ruled(r, 1, StaticAbility(prohibit(CastSpellEvent(filter=FAnd(()), from_zone=graveyards))))
+    source = Selector(QConst(1), SelectorMode.TARGET, FAnd(()), (Zone(ZoneKind.GRAVEYARD, YOU),))
+    r.ex.execute(Atom(Verb.CAST, AtomArgs(pairs=(("source", source),))), source=r.seats[0],
+                 controller=r.seats[0], bindings={"source": [r.handles["shock"]]})
+    assert _zone(r, "shock") == ZONE_GRAVEYARD
+    assert not any(e.kind == KIND_CAST for e in r.ex.journal.events)
+
+
+def test_a_card_that_cant_enter_is_no_it_of_its_instruction() -> None:
+    """MOVE_ZONE's `target` lane: an instruction after it that reads "it" (the `result`
+    register) reads only what moved; a card that stayed in the graveyard is not "it"
+    (verbs._cant_enter), so the second instruction's exile finds nothing."""
+    r = _runner("M20", [_real("dead", "Vampire of the Dire Moon", zone="graveyard")])
+    creature = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
+    _ruled(r, 1, StaticAbility(prohibit(ZoneChangeEvent(
+        Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY), Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+        subject=creature))))
+    target = Selector(QConst(1), SelectorMode.TARGET, creature, (Zone(ZoneKind.GRAVEYARD, YOU),))
+    it = Selector(QConst(1), SelectorMode.CHOOSE, FAnd(()),
+                  (Zone(ZoneKind.ANY, ControllerRef.ANY),), referent="result")
+    exile = Zone(ZoneKind.EXILE, ControllerRef.OWNER)
+    r.ex.apply_effect(Seq(steps=(
+        Atom(Verb.MOVE_ZONE, AtomArgs(pairs=(("destination", TO_BATTLEFIELD), ("target", target)))),
+        Atom(Verb.MOVE_ZONE, AtomArgs(pairs=(("cards", it), ("destination", exile)))),
+    )), source=r.seats[0], controller=r.seats[0], bindings={"target": [r.handles["dead"]]})
+    assert _zone(r, "dead") == ZONE_GRAVEYARD

@@ -3655,6 +3655,10 @@ class EachPlayer:
                 "EachPlayer: who gets an emblem is GET_EMBLEM's `controller` (ALL_OPPONENTS for "
                 '"each opponent gets an emblem"), never an EachPlayer around it'
             )
+        # One player wins a game (CR 104.2b): "each <player> wins the game" means nothing, and
+        # would pass WIN_GAME's "you only" rule by rotating "you" (round B12's review).
+        if any(isinstance(n, Atom) and n.verb is Verb.WIN_GAME for n in own_nodes(self.effect)):
+            raise ValueError("EachPlayer: one player wins the game, never each of several")
 
 
 def orders_a_library(atom: Atom) -> bool:
@@ -3818,8 +3822,21 @@ def prohibition_fault(roles: dict[str, object]) -> str | None:
         mirror: object = event.subject
     elif isinstance(event, CastSpellEvent):
         mirror = event.filter
+
+        def names_controller(f: object) -> bool:  # the spell's own, not a target's (TARGETS)
+            if isinstance(f, (FAnd, FOr)):
+                return any(names_controller(child) for child in f.children)
+            if isinstance(f, FNot):
+                return names_controller(f.inner)
+            return isinstance(f, FAtom) and f.pred is FAtomPred.CONTROLLER_IS
+
+        if names_controller(event.filter):
+            # the spell's controller is its caster: "your opponents can't cast" is the actor
+            return "a prohibited cast names its caster in `actor`, never in the spell's filter"
     else:
         mirror = FAnd(())
+    if getattr(event, "actor", None) == FAnd(()):
+        return "a universal actor is the absent one (None: any player)"
     if roles.get("condition") != mirror:
         return (
             f"the condition of a prohibition over {type(event).__name__} is the event's subject "
@@ -4263,6 +4280,11 @@ class StaticAbility:
             raise ValueError(
                 f"StaticAbility: condition must be a Filter, got {type(self.condition).__name__}"
             )
+        if any(isinstance(n, Atom) and n.verb in (Verb.LOSE_GAME, Verb.WIN_GAME)
+               for n in own_nodes(self.effect)):
+            # a game result happens once, as an effect resolves (CR 104.2b, 104.3e); a static's
+            # effect never resolves ("can't lose the game" is a PREVENT_EFFECT)
+            raise ValueError("StaticAbility: a game result is a resolving effect's, never a static's")
 
 
 @dataclass(frozen=True)
@@ -5857,7 +5879,7 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     },
     # PAY: pay a cost as an effect ("you may pay {2}", with "if you do").
     Verb.PAY: {"cost": True},
-    # LOSE_GAME / WIN_GAME: `controller` is who loses or wins (GAME_RESULT_PLAYERS; WIN_GAME:
+    # LOSE_GAME / WIN_GAME: `controller` is who loses or wins (LOSERS and event_player; WIN_GAME:
     # YOU only, what the 19 sets print).
     Verb.LOSE_GAME: {"controller": True},
     Verb.WIN_GAME: {"controller": True},
