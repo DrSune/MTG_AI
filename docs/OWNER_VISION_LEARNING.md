@@ -318,3 +318,10 @@ meaningful work."
   today's network finds. Puzzle answers are therefore proven by exact solving in our engine where
   the puzzle is small enough, and model-verified puzzles are reported apart (PLAN_PLANNING §4).
 - **Order.** Left to the coordinator: P0 first, as the best information.
+- **Scope of "later"** (the owner, third round): "realism-of-play later only counts for mana
+  activation". Every other choice stays the network's now.
+- **Readable plans.** The owner: they are "only possible if we use a large look-up table to match
+  actions together properly, or a LLM to explain what the actions would actually resolve to".
+  Answered in PLAN_PLANNING §5: a readable step is a verb from the network's own option vocabulary
+  plus pointers to cards that exist now. The engine labels it and matching is exact by card
+  handle; steps about objects that do not exist yet stay hidden.

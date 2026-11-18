@@ -27,7 +27,8 @@ The owner, 2026-11-18:
 - **Payment stays the engine's for now; O1 is dropped.** The owner: "making the network
   high-quality and mature is the priority, realism-of-play is a later learning point, and not our
   current bottleneck". The end state is the network paying for itself with no auto-pay option
-  (BACKLOG "Automatic payment").
+  (BACKLOG "Automatic payment"). The deferral covers mana activation only. Every other choice the
+  rules give a player stays the network's now (the owner, same day).
 - **The plan module joins P1** (§5):
   - a carried plan that runs through the opponent's turn;
   - trained by hindsight and by the search's lines;
@@ -39,8 +40,8 @@ The owner, 2026-11-18:
 - **Puzzle answers are proven by exact solving wherever the puzzle is small enough** (§4). The
   owner's point: a ceiling cannot be measured with a model that is not good at the skill.
 - **The order is the coordinator's**, for the best information first: P0 first.
-- **Open:** the plan slots' readable intended-action heads (§5), explained to the owner and waiting
-  for an answer.
+- **Open:** the plan slots' readable intended-action heads (§5). The owner asked whether they need
+  a large lookup table or a language model. They need neither (§5); the owner's answer is pending.
 
 ## Summary for the owner
 
@@ -271,6 +272,22 @@ uses generated variants (§5, P2).
     follow it. A whole line is tried consistently instead of one decision at a time: holding Cancel
     takes the right pass at many priority decisions, which are 42% of the learner's decisions and
     are passed 97% of the time.
+  - **Readable heads (proposed; the owner's answer pending).** Each slot may also state one
+    intended action:
+    - a verb from the closed vocabulary the network already chooses from: cast, activate, attack,
+      block, target, pass or hold;
+    - up to two pointers into the current decision's tokens (the card in hand, the creature on the
+      board), the same pointer mechanism the policy uses for its options.
+
+    No lookup table and no language model is needed:
+    - printing a step is the engine's own label for that verb and those cards ("cast Shock:
+      Grizzly Bears");
+    - matching a planned step against what was executed, or against the search's line, is exact by
+      verb and card handle;
+    - what a step would resolve to is the engine's to compute, not the plan's to explain.
+
+    An intended action on an object that does not exist yet, such as "counter their next big
+    spell", points at what exists (Cancel in hand). The rest stays in the hidden part.
   - **Not in this step: repeated reasoning ("think again") and its game clock** (BACKLOG). The
     capacity probe (194) found a deeper or wider network fits r27's value no better, so more
     passes per decision wait until network size limits quality.
