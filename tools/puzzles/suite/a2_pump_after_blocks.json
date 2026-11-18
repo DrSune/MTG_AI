@@ -1,0 +1,97 @@
+{
+ "name": "a2_pump_after_blocks",
+ "set": "M21",
+ "category": "A",
+ "twin": "a2_bounce_before_blocks",
+ "note": "Pump after blocks. Seat 0 attacks with Walking Corpse and Alpine Watchdog (2/2 each) into one Walking Corpse; seat 1 is at 4; seat 0 holds Sure Strike (+3/+0, first strike) with a Mountain and an Island open. The decision is in the declare-attackers step, before blocks. Pumped now, the pumped creature is blocked and the other deals 2 (0). Held, it goes on whichever creature is not blocked: 5 damage (1). The twin: Unsubstantiate in hand instead of Sure Strike.",
+ "world": {
+  "seed": 7
+ },
+ "life": {
+  "0": 20,
+  "1": 4
+ },
+ "cards": [
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "watchdog",
+   "real": "Alpine Watchdog",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mtn",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "isl",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "trick",
+   "real": "Sure Strike",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "blocker",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "lib0a",
+   "real": "Plains",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib1a",
+   "real": "Swamp",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "decider": 0,
+ "prelude": [
+  "PASS",
+  "PASS",
+  "ATTACK",
+  "ATTACK"
+ ],
+ "world_prior": [
+  {
+   "p": 1.0,
+   "label": "no hidden card in hand",
+   "cards": []
+  }
+ ],
+ "horizon": 1,
+ "objective": "win",
+ "answer": [
+  "PASS"
+ ],
+ "grade": "proven",
+ "solver": {
+  "values": {
+   "PASS": 1.0,
+   "cast:trick": 0.0
+  },
+  "best": [
+   "PASS"
+  ],
+  "runs": 37,
+  "decisions": 14,
+  "seconds": 0.12,
+  "worlds": 1
+ }
+}

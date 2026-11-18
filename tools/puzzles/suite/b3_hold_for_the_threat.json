@@ -1,0 +1,162 @@
+{
+ "name": "b3_hold_for_the_threat",
+ "set": "M20",
+ "category": "B3",
+ "twin": "b3_counter_the_minor_spell",
+ "note": "Save the answer for the real threat. In seat 0's first main phase seat 0 casts Disfigure on seat 1's Walking Corpse; seat 1 (2 life) holds Negate with two Islands, and its Corpse and Goblin Assailant would deal seat 0's last 4 next turn. Seat 0 keeps five Mountains open and one card: Chandra's Flame Wave (2/3), which deals 2 to seat 1 and kills it, or a land (1/3). Negating Disfigure keeps the lethal attack but loses to the Flame Wave (1/3). Letting Disfigure resolve keeps Negate for the Flame Wave: undecided (1/2). With a prior of 1/2 the two are equal; holding is right when the threat is more likely than not. The twin: seat 0's Mountains are tapped, so nothing bigger is possible this turn.",
+ "world": {
+  "seed": 7
+ },
+ "life": {
+  "0": 4,
+  "1": 2
+ },
+ "cards": [
+  {
+   "key": "swp",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mtn1",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mtn2",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mtn3",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mtn4",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mtn5",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "disfigure",
+   "real": "Disfigure",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "assailant",
+   "real": "Goblin Assailant",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "isl1",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "isl2",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "negate",
+   "real": "Negate",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "lib0a",
+   "real": "Mountain",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib0b",
+   "real": "Mountain",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib1a",
+   "real": "Island",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "lib1b",
+   "real": "Island",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "decider": 1,
+ "prelude": [
+  "cast:disfigure",
+  "corpse"
+ ],
+ "world_prior": [
+  {
+   "p": 0.6666666666666666,
+   "label": "they hold Chandra's Flame Wave",
+   "cards": [
+    {
+     "key": "hid",
+     "real": "Chandra's Flame Wave",
+     "zone": "hand",
+     "controller": 0
+    }
+   ]
+  },
+  {
+   "p": 0.33333333333333337,
+   "label": "they hold a land",
+   "cards": [
+    {
+     "key": "hid",
+     "real": "Mountain",
+     "zone": "hand",
+     "controller": 0
+    }
+   ]
+  }
+ ],
+ "horizon": 2,
+ "objective": "result",
+ "answer": [
+  "PASS"
+ ],
+ "grade": "proven",
+ "solver": {
+  "values": {
+   "PASS": 0.5,
+   "cast:negate": 0.333333
+  },
+  "best": [
+   "PASS"
+  ],
+  "runs": 126,
+  "decisions": 34,
+  "seconds": 0.46,
+  "worlds": 2
+ }
+}

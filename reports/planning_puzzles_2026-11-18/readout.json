@@ -1,0 +1,4655 @@
+[
+ {
+  "checkpoint": "/home/sune/Desktop/MTG_AI/runs/r28_looks/r28_v2.pt",
+  "rows": [
+   {
+    "puzzle": "a1_draw_then_pick_the_land",
+    "category": "A",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:anticipate",
+     "land:mtn",
+     "land:isl"
+    ],
+    "probs": [
+     0.1725,
+     0.2049,
+     0.3322,
+     0.2905
+    ],
+    "p_right": 0.2049,
+    "greedy": "land:mtn",
+    "pass": false,
+    "value": 0.9927,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a1_land_to_cast_the_draw",
+    "category": "A",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "land:mtn",
+     "land:isl"
+    ],
+    "probs": [
+     0.2189,
+     0.3827,
+     0.3984
+    ],
+    "p_right": 0.3984,
+    "greedy": "land:isl",
+    "pass": true,
+    "value": 0.9922,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "land:isl",
+     "land:isl",
+     "land:isl",
+     "land:isl",
+     "land:isl",
+     "land:isl",
+     "land:isl",
+     "land:isl"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "a2_bounce_before_blocks",
+    "category": "A",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:trick"
+    ],
+    "probs": [
+     0.68,
+     0.32
+    ],
+    "p_right": 0.32,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.9924,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a2_pump_after_blocks",
+    "category": "A",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:trick"
+    ],
+    "probs": [
+     0.4165,
+     0.5835
+    ],
+    "p_right": 0.4165,
+    "greedy": "cast:trick",
+    "pass": false,
+    "value": 0.9928,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b1_counter_the_answer_lethal",
+    "category": "B1",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:cancel"
+    ],
+    "probs": [
+     0.927,
+     0.073
+    ],
+    "p_right": 0.073,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.9793,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:cancel",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "cast:cancel",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 0.25
+   },
+   {
+    "puzzle": "b1_counter_the_answer_not_lethal",
+    "category": "B1",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:cancel"
+    ],
+    "probs": [
+     0.9998,
+     0.0002
+    ],
+    "p_right": 0.9998,
+    "greedy": "PASS",
+    "pass": true,
+    "value": 0.7096,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b2_cast_into_tapped_out",
+    "category": "B2",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:caller"
+    ],
+    "probs": [
+     0.1683,
+     0.8317
+    ],
+    "p_right": 0.8317,
+    "greedy": "cast:caller",
+    "pass": true,
+    "value": 0.9467,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b2_hold_until_backed",
+    "category": "B2",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:caller"
+    ],
+    "probs": [
+     0.2189,
+     0.7811
+    ],
+    "p_right": 0.2189,
+    "greedy": "cast:caller",
+    "pass": false,
+    "value": 0.9598,
+    "solver_value": 0.875,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b3_counter_the_minor_spell",
+    "category": "B3",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:negate"
+    ],
+    "probs": [
+     0.8647,
+     0.1353
+    ],
+    "p_right": 0.1353,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.8656,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b3_hold_for_the_threat",
+    "category": "B3",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:negate"
+    ],
+    "probs": [
+     0.7932,
+     0.2068
+    ],
+    "p_right": 0.7932,
+    "greedy": "PASS",
+    "pass": true,
+    "value": 0.8722,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "c1_crackback_lethal",
+    "category": "C",
+    "kind": "attack",
+    "options": [
+     "ATTACK",
+     "DECLINE"
+    ],
+    "probs": [
+     0.9999,
+     0.0001
+    ],
+    "p_right": 0.0001,
+    "greedy": "ATTACK",
+    "pass": false,
+    "value": 0.7503,
+    "solver_value": 0.5,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c1_crackback_not_lethal",
+    "category": "C",
+    "kind": "attack",
+    "options": [
+     "ATTACK",
+     "DECLINE"
+    ],
+    "probs": [
+     0.9999,
+     0.0001
+    ],
+    "p_right": 0.9999,
+    "greedy": "ATTACK",
+    "pass": true,
+    "value": 0.8221,
+    "solver_value": 1.0,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c2_chump_to_the_sweeper",
+    "category": "C",
+    "kind": "block",
+    "options": [
+     "halberdier",
+     "enforcer",
+     "NONE"
+    ],
+    "probs": [
+     0.1855,
+     0.1285,
+     0.6859
+    ],
+    "p_right": 0.3141,
+    "greedy": "NONE",
+    "pass": false,
+    "value": 0.9809,
+    "solver_value": 0.5,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c2_take_it_to_the_sweeper",
+    "category": "C",
+    "kind": "block",
+    "options": [
+     "halberdier",
+     "enforcer",
+     "NONE"
+    ],
+    "probs": [
+     0.1627,
+     0.125,
+     0.7123
+    ],
+    "p_right": 0.7123,
+    "greedy": "NONE",
+    "pass": true,
+    "value": 0.9875,
+    "solver_value": 1.0,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "d_do_not_overextend",
+    "category": "D",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:ogre"
+    ],
+    "probs": [
+     0.0003,
+     0.9997
+    ],
+    "p_right": 0.0003,
+    "greedy": "cast:ogre",
+    "pass": false,
+    "value": 0.8298,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "d_overextend",
+    "category": "D",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:ogre"
+    ],
+    "probs": [
+     0.0,
+     1.0
+    ],
+    "p_right": 1.0,
+    "greedy": "cast:ogre",
+    "pass": true,
+    "value": 0.8252,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre"
+    ],
+    "searched_pass": 1.0
+   }
+  ],
+  "summary": {
+   "A": {
+    "pairs": 2,
+    "twin_consistent": 0.0,
+    "single_pass": 0.25,
+    "p_right": 0.3349,
+    "searched_pass": 0.25,
+    "searched_twin_consistent": 0.0,
+    "value_order": 1.0
+   },
+   "B1": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5364,
+    "searched_pass": 0.625,
+    "searched_twin_consistent": 0.0,
+    "value_order": 1.0
+   },
+   "B2": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5253,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "B3": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.4642,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "C": {
+    "pairs": 2,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5066,
+    "searched_pass": null,
+    "searched_twin_consistent": null,
+    "value_order": 1.0
+   },
+   "D": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5001,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "all": {
+    "pairs": 8,
+    "twin_consistent": 0.0,
+    "single_pass": 0.4375,
+    "p_right": 0.4637,
+    "searched_pass": 0.4375,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.5714
+   }
+  },
+  "seconds": 35.9
+ },
+ {
+  "checkpoint": "/home/sune/Desktop/MTG_AI/runs/r29_ab/a70.pt",
+  "rows": [
+   {
+    "puzzle": "a1_draw_then_pick_the_land",
+    "category": "A",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:anticipate",
+     "land:mtn",
+     "land:isl"
+    ],
+    "probs": [
+     0.2361,
+     0.2603,
+     0.2628,
+     0.2408
+    ],
+    "p_right": 0.2603,
+    "greedy": "land:mtn",
+    "pass": false,
+    "value": 0.9987,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a1_land_to_cast_the_draw",
+    "category": "A",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "land:mtn",
+     "land:isl"
+    ],
+    "probs": [
+     0.3254,
+     0.3459,
+     0.3286
+    ],
+    "p_right": 0.3286,
+    "greedy": "land:mtn",
+    "pass": false,
+    "value": 0.9989,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a2_bounce_before_blocks",
+    "category": "A",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:trick"
+    ],
+    "probs": [
+     0.5528,
+     0.4472
+    ],
+    "p_right": 0.4472,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.9988,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a2_pump_after_blocks",
+    "category": "A",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:trick"
+    ],
+    "probs": [
+     0.3816,
+     0.6184
+    ],
+    "p_right": 0.3816,
+    "greedy": "cast:trick",
+    "pass": false,
+    "value": 0.9978,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b1_counter_the_answer_lethal",
+    "category": "B1",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:cancel"
+    ],
+    "probs": [
+     0.9719,
+     0.0281
+    ],
+    "p_right": 0.0281,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.9941,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b1_counter_the_answer_not_lethal",
+    "category": "B1",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:cancel"
+    ],
+    "probs": [
+     1.0,
+     0.0
+    ],
+    "p_right": 1.0,
+    "greedy": "PASS",
+    "pass": true,
+    "value": 0.7976,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b2_cast_into_tapped_out",
+    "category": "B2",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:caller"
+    ],
+    "probs": [
+     0.1724,
+     0.8276
+    ],
+    "p_right": 0.8276,
+    "greedy": "cast:caller",
+    "pass": true,
+    "value": 0.9646,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b2_hold_until_backed",
+    "category": "B2",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:caller"
+    ],
+    "probs": [
+     0.2111,
+     0.7889
+    ],
+    "p_right": 0.2111,
+    "greedy": "cast:caller",
+    "pass": false,
+    "value": 0.976,
+    "solver_value": 0.875,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b3_counter_the_minor_spell",
+    "category": "B3",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:negate"
+    ],
+    "probs": [
+     0.9023,
+     0.0977
+    ],
+    "p_right": 0.0977,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.8901,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b3_hold_for_the_threat",
+    "category": "B3",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:negate"
+    ],
+    "probs": [
+     0.9095,
+     0.0905
+    ],
+    "p_right": 0.9095,
+    "greedy": "PASS",
+    "pass": true,
+    "value": 0.8939,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "c1_crackback_lethal",
+    "category": "C",
+    "kind": "attack",
+    "options": [
+     "ATTACK",
+     "DECLINE"
+    ],
+    "probs": [
+     1.0,
+     0.0
+    ],
+    "p_right": 0.0,
+    "greedy": "ATTACK",
+    "pass": false,
+    "value": 0.7514,
+    "solver_value": 0.5,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c1_crackback_not_lethal",
+    "category": "C",
+    "kind": "attack",
+    "options": [
+     "ATTACK",
+     "DECLINE"
+    ],
+    "probs": [
+     1.0,
+     0.0
+    ],
+    "p_right": 1.0,
+    "greedy": "ATTACK",
+    "pass": true,
+    "value": 0.8329,
+    "solver_value": 1.0,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c2_chump_to_the_sweeper",
+    "category": "C",
+    "kind": "block",
+    "options": [
+     "halberdier",
+     "enforcer",
+     "NONE"
+    ],
+    "probs": [
+     0.0139,
+     0.0058,
+     0.9803
+    ],
+    "p_right": 0.0197,
+    "greedy": "NONE",
+    "pass": false,
+    "value": 0.9457,
+    "solver_value": 0.5,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c2_take_it_to_the_sweeper",
+    "category": "C",
+    "kind": "block",
+    "options": [
+     "halberdier",
+     "enforcer",
+     "NONE"
+    ],
+    "probs": [
+     0.0091,
+     0.0045,
+     0.9864
+    ],
+    "p_right": 0.9864,
+    "greedy": "NONE",
+    "pass": true,
+    "value": 0.9703,
+    "solver_value": 1.0,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "d_do_not_overextend",
+    "category": "D",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:ogre"
+    ],
+    "probs": [
+     0.0014,
+     0.9986
+    ],
+    "p_right": 0.0014,
+    "greedy": "cast:ogre",
+    "pass": false,
+    "value": 0.7282,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "d_overextend",
+    "category": "D",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:ogre"
+    ],
+    "probs": [
+     0.0007,
+     0.9993
+    ],
+    "p_right": 0.9993,
+    "greedy": "cast:ogre",
+    "pass": true,
+    "value": 0.7261,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre"
+    ],
+    "searched_pass": 1.0
+   }
+  ],
+  "summary": {
+   "A": {
+    "pairs": 2,
+    "twin_consistent": 0.0,
+    "single_pass": 0.0,
+    "p_right": 0.3544,
+    "searched_pass": 0.0,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "B1": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5141,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 1.0
+   },
+   "B2": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5193,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "B3": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5036,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "C": {
+    "pairs": 2,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5015,
+    "searched_pass": null,
+    "searched_twin_consistent": null,
+    "value_order": 1.0
+   },
+   "D": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5003,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "all": {
+    "pairs": 8,
+    "twin_consistent": 0.0,
+    "single_pass": 0.375,
+    "p_right": 0.4687,
+    "searched_pass": 0.3333,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.4286
+   }
+  },
+  "seconds": 17.6
+ },
+ {
+  "checkpoint": "/home/sune/Desktop/MTG_AI/runs/r29_ab/a80.pt",
+  "rows": [
+   {
+    "puzzle": "a1_draw_then_pick_the_land",
+    "category": "A",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:anticipate",
+     "land:mtn",
+     "land:isl"
+    ],
+    "probs": [
+     0.2286,
+     0.2335,
+     0.2861,
+     0.2518
+    ],
+    "p_right": 0.2335,
+    "greedy": "land:mtn",
+    "pass": false,
+    "value": 0.994,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a1_land_to_cast_the_draw",
+    "category": "A",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "land:mtn",
+     "land:isl"
+    ],
+    "probs": [
+     0.3099,
+     0.349,
+     0.3411
+    ],
+    "p_right": 0.3411,
+    "greedy": "land:mtn",
+    "pass": false,
+    "value": 0.9955,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a2_bounce_before_blocks",
+    "category": "A",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:trick"
+    ],
+    "probs": [
+     0.6426,
+     0.3574
+    ],
+    "p_right": 0.3574,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.9944,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a2_pump_after_blocks",
+    "category": "A",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:trick"
+    ],
+    "probs": [
+     0.4347,
+     0.5653
+    ],
+    "p_right": 0.4347,
+    "greedy": "cast:trick",
+    "pass": false,
+    "value": 0.9906,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b1_counter_the_answer_lethal",
+    "category": "B1",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:cancel"
+    ],
+    "probs": [
+     0.9642,
+     0.0358
+    ],
+    "p_right": 0.0358,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.987,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:cancel",
+     "PASS",
+     "cast:cancel",
+     "cast:cancel",
+     "PASS",
+     "cast:cancel",
+     "PASS",
+     "cast:cancel"
+    ],
+    "searched_pass": 0.625
+   },
+   {
+    "puzzle": "b1_counter_the_answer_not_lethal",
+    "category": "B1",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:cancel"
+    ],
+    "probs": [
+     0.9993,
+     0.0007
+    ],
+    "p_right": 0.9993,
+    "greedy": "PASS",
+    "pass": true,
+    "value": 0.7751,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b2_cast_into_tapped_out",
+    "category": "B2",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:caller"
+    ],
+    "probs": [
+     0.1826,
+     0.8174
+    ],
+    "p_right": 0.8174,
+    "greedy": "cast:caller",
+    "pass": true,
+    "value": 0.9071,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b2_hold_until_backed",
+    "category": "B2",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:caller"
+    ],
+    "probs": [
+     0.2173,
+     0.7827
+    ],
+    "p_right": 0.2173,
+    "greedy": "cast:caller",
+    "pass": false,
+    "value": 0.9273,
+    "solver_value": 0.875,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b3_counter_the_minor_spell",
+    "category": "B3",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:negate"
+    ],
+    "probs": [
+     0.26,
+     0.74
+    ],
+    "p_right": 0.74,
+    "greedy": "cast:negate",
+    "pass": true,
+    "value": 0.9228,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b3_hold_for_the_threat",
+    "category": "B3",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:negate"
+    ],
+    "probs": [
+     0.2717,
+     0.7283
+    ],
+    "p_right": 0.2717,
+    "greedy": "cast:negate",
+    "pass": false,
+    "value": 0.9212,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "c1_crackback_lethal",
+    "category": "C",
+    "kind": "attack",
+    "options": [
+     "ATTACK",
+     "DECLINE"
+    ],
+    "probs": [
+     1.0,
+     0.0
+    ],
+    "p_right": 0.0,
+    "greedy": "ATTACK",
+    "pass": false,
+    "value": 0.7551,
+    "solver_value": 0.5,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c1_crackback_not_lethal",
+    "category": "C",
+    "kind": "attack",
+    "options": [
+     "ATTACK",
+     "DECLINE"
+    ],
+    "probs": [
+     1.0,
+     0.0
+    ],
+    "p_right": 1.0,
+    "greedy": "ATTACK",
+    "pass": true,
+    "value": 0.8261,
+    "solver_value": 1.0,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c2_chump_to_the_sweeper",
+    "category": "C",
+    "kind": "block",
+    "options": [
+     "halberdier",
+     "enforcer",
+     "NONE"
+    ],
+    "probs": [
+     0.0264,
+     0.0084,
+     0.9652
+    ],
+    "p_right": 0.0348,
+    "greedy": "NONE",
+    "pass": false,
+    "value": 0.9104,
+    "solver_value": 0.5,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c2_take_it_to_the_sweeper",
+    "category": "C",
+    "kind": "block",
+    "options": [
+     "halberdier",
+     "enforcer",
+     "NONE"
+    ],
+    "probs": [
+     0.0136,
+     0.0052,
+     0.9812
+    ],
+    "p_right": 0.9812,
+    "greedy": "NONE",
+    "pass": true,
+    "value": 0.944,
+    "solver_value": 1.0,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "d_do_not_overextend",
+    "category": "D",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:ogre"
+    ],
+    "probs": [
+     0.0048,
+     0.9952
+    ],
+    "p_right": 0.0048,
+    "greedy": "cast:ogre",
+    "pass": false,
+    "value": 0.7073,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "d_overextend",
+    "category": "D",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:ogre"
+    ],
+    "probs": [
+     0.002,
+     0.998
+    ],
+    "p_right": 0.998,
+    "greedy": "cast:ogre",
+    "pass": true,
+    "value": 0.6639,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre"
+    ],
+    "searched_pass": 1.0
+   }
+  ],
+  "summary": {
+   "A": {
+    "pairs": 2,
+    "twin_consistent": 0.0,
+    "single_pass": 0.0,
+    "p_right": 0.3417,
+    "searched_pass": 0.0,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "B1": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5175,
+    "searched_pass": 0.8125,
+    "searched_twin_consistent": 1.0,
+    "value_order": 1.0
+   },
+   "B2": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5173,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "B3": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5059,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 1.0
+   },
+   "C": {
+    "pairs": 2,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.504,
+    "searched_pass": null,
+    "searched_twin_consistent": null,
+    "value_order": 1.0
+   },
+   "D": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5014,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "all": {
+    "pairs": 8,
+    "twin_consistent": 0.0,
+    "single_pass": 0.375,
+    "p_right": 0.4667,
+    "searched_pass": 0.3854,
+    "searched_twin_consistent": 0.1667,
+    "value_order": 0.5714
+   }
+  },
+  "seconds": 22.1
+ },
+ {
+  "checkpoint": "/home/sune/Desktop/MTG_AI/runs/r29_ab/a90.pt",
+  "rows": [
+   {
+    "puzzle": "a1_draw_then_pick_the_land",
+    "category": "A",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:anticipate",
+     "land:mtn",
+     "land:isl"
+    ],
+    "probs": [
+     0.2576,
+     0.2392,
+     0.2677,
+     0.2355
+    ],
+    "p_right": 0.2392,
+    "greedy": "land:mtn",
+    "pass": false,
+    "value": 0.9848,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a1_land_to_cast_the_draw",
+    "category": "A",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "land:mtn",
+     "land:isl"
+    ],
+    "probs": [
+     0.3251,
+     0.3472,
+     0.3278
+    ],
+    "p_right": 0.3278,
+    "greedy": "land:mtn",
+    "pass": false,
+    "value": 0.9889,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a2_bounce_before_blocks",
+    "category": "A",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:trick"
+    ],
+    "probs": [
+     0.6912,
+     0.3088
+    ],
+    "p_right": 0.3088,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.9921,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a2_pump_after_blocks",
+    "category": "A",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:trick"
+    ],
+    "probs": [
+     0.469,
+     0.531
+    ],
+    "p_right": 0.469,
+    "greedy": "cast:trick",
+    "pass": false,
+    "value": 0.9913,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b1_counter_the_answer_lethal",
+    "category": "B1",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:cancel"
+    ],
+    "probs": [
+     0.9794,
+     0.0206
+    ],
+    "p_right": 0.0206,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.9867,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b1_counter_the_answer_not_lethal",
+    "category": "B1",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:cancel"
+    ],
+    "probs": [
+     0.9998,
+     0.0002
+    ],
+    "p_right": 0.9998,
+    "greedy": "PASS",
+    "pass": true,
+    "value": 0.6214,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b2_cast_into_tapped_out",
+    "category": "B2",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:caller"
+    ],
+    "probs": [
+     0.149,
+     0.851
+    ],
+    "p_right": 0.851,
+    "greedy": "cast:caller",
+    "pass": true,
+    "value": 0.8811,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b2_hold_until_backed",
+    "category": "B2",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:caller"
+    ],
+    "probs": [
+     0.174,
+     0.826
+    ],
+    "p_right": 0.174,
+    "greedy": "cast:caller",
+    "pass": false,
+    "value": 0.9066,
+    "solver_value": 0.875,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b3_counter_the_minor_spell",
+    "category": "B3",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:negate"
+    ],
+    "probs": [
+     0.4336,
+     0.5664
+    ],
+    "p_right": 0.5664,
+    "greedy": "cast:negate",
+    "pass": true,
+    "value": 0.8925,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b3_hold_for_the_threat",
+    "category": "B3",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:negate"
+    ],
+    "probs": [
+     0.4581,
+     0.5419
+    ],
+    "p_right": 0.4581,
+    "greedy": "cast:negate",
+    "pass": false,
+    "value": 0.884,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "c1_crackback_lethal",
+    "category": "C",
+    "kind": "attack",
+    "options": [
+     "ATTACK",
+     "DECLINE"
+    ],
+    "probs": [
+     0.9999,
+     0.0001
+    ],
+    "p_right": 0.0001,
+    "greedy": "ATTACK",
+    "pass": false,
+    "value": 0.7278,
+    "solver_value": 0.5,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c1_crackback_not_lethal",
+    "category": "C",
+    "kind": "attack",
+    "options": [
+     "ATTACK",
+     "DECLINE"
+    ],
+    "probs": [
+     1.0,
+     0.0
+    ],
+    "p_right": 1.0,
+    "greedy": "ATTACK",
+    "pass": true,
+    "value": 0.8124,
+    "solver_value": 1.0,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c2_chump_to_the_sweeper",
+    "category": "C",
+    "kind": "block",
+    "options": [
+     "halberdier",
+     "enforcer",
+     "NONE"
+    ],
+    "probs": [
+     0.0083,
+     0.0046,
+     0.9871
+    ],
+    "p_right": 0.0129,
+    "greedy": "NONE",
+    "pass": false,
+    "value": 0.927,
+    "solver_value": 0.5,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c2_take_it_to_the_sweeper",
+    "category": "C",
+    "kind": "block",
+    "options": [
+     "halberdier",
+     "enforcer",
+     "NONE"
+    ],
+    "probs": [
+     0.005,
+     0.0031,
+     0.992
+    ],
+    "p_right": 0.992,
+    "greedy": "NONE",
+    "pass": true,
+    "value": 0.9532,
+    "solver_value": 1.0,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "d_do_not_overextend",
+    "category": "D",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:ogre"
+    ],
+    "probs": [
+     0.0034,
+     0.9966
+    ],
+    "p_right": 0.0034,
+    "greedy": "cast:ogre",
+    "pass": false,
+    "value": 0.637,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "d_overextend",
+    "category": "D",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:ogre"
+    ],
+    "probs": [
+     0.0017,
+     0.9983
+    ],
+    "p_right": 0.9983,
+    "greedy": "cast:ogre",
+    "pass": true,
+    "value": 0.678,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre"
+    ],
+    "searched_pass": 1.0
+   }
+  ],
+  "summary": {
+   "A": {
+    "pairs": 2,
+    "twin_consistent": 0.0,
+    "single_pass": 0.0,
+    "p_right": 0.3362,
+    "searched_pass": 0.0,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "B1": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5102,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 1.0
+   },
+   "B2": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5125,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "B3": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5122,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 1.0
+   },
+   "C": {
+    "pairs": 2,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5012,
+    "searched_pass": null,
+    "searched_twin_consistent": null,
+    "value_order": 1.0
+   },
+   "D": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5009,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 1.0
+   },
+   "all": {
+    "pairs": 8,
+    "twin_consistent": 0.0,
+    "single_pass": 0.375,
+    "p_right": 0.4638,
+    "searched_pass": 0.3333,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.7143
+   }
+  },
+  "seconds": 27.9
+ },
+ {
+  "checkpoint": "/home/sune/Desktop/MTG_AI/runs/r29_ab/a100.pt",
+  "rows": [
+   {
+    "puzzle": "a1_draw_then_pick_the_land",
+    "category": "A",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:anticipate",
+     "land:mtn",
+     "land:isl"
+    ],
+    "probs": [
+     0.2605,
+     0.2692,
+     0.2419,
+     0.2284
+    ],
+    "p_right": 0.2692,
+    "greedy": "cast:anticipate",
+    "pass": true,
+    "value": 0.986,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:anticipate",
+     "cast:anticipate",
+     "cast:anticipate",
+     "cast:anticipate",
+     "cast:anticipate",
+     "cast:anticipate",
+     "cast:anticipate",
+     "cast:anticipate"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "a1_land_to_cast_the_draw",
+    "category": "A",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "land:mtn",
+     "land:isl"
+    ],
+    "probs": [
+     0.3541,
+     0.3467,
+     0.2992
+    ],
+    "p_right": 0.2992,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.9895,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a2_bounce_before_blocks",
+    "category": "A",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:trick"
+    ],
+    "probs": [
+     0.7022,
+     0.2978
+    ],
+    "p_right": 0.2978,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.9909,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a2_pump_after_blocks",
+    "category": "A",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:trick"
+    ],
+    "probs": [
+     0.4343,
+     0.5657
+    ],
+    "p_right": 0.4343,
+    "greedy": "cast:trick",
+    "pass": false,
+    "value": 0.9902,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b1_counter_the_answer_lethal",
+    "category": "B1",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:cancel"
+    ],
+    "probs": [
+     0.8647,
+     0.1353
+    ],
+    "p_right": 0.1353,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.9932,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:cancel",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "cast:cancel",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 0.25
+   },
+   {
+    "puzzle": "b1_counter_the_answer_not_lethal",
+    "category": "B1",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:cancel"
+    ],
+    "probs": [
+     0.9988,
+     0.0012
+    ],
+    "p_right": 0.9988,
+    "greedy": "PASS",
+    "pass": true,
+    "value": 0.8557,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b2_cast_into_tapped_out",
+    "category": "B2",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:caller"
+    ],
+    "probs": [
+     0.2659,
+     0.7341
+    ],
+    "p_right": 0.7341,
+    "greedy": "cast:caller",
+    "pass": true,
+    "value": 0.9008,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b2_hold_until_backed",
+    "category": "B2",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:caller"
+    ],
+    "probs": [
+     0.2992,
+     0.7008
+    ],
+    "p_right": 0.2992,
+    "greedy": "cast:caller",
+    "pass": false,
+    "value": 0.9226,
+    "solver_value": 0.875,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b3_counter_the_minor_spell",
+    "category": "B3",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:negate"
+    ],
+    "probs": [
+     0.5499,
+     0.4501
+    ],
+    "p_right": 0.4501,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.9482,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b3_hold_for_the_threat",
+    "category": "B3",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:negate"
+    ],
+    "probs": [
+     0.5371,
+     0.4629
+    ],
+    "p_right": 0.5371,
+    "greedy": "PASS",
+    "pass": true,
+    "value": 0.9527,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "c1_crackback_lethal",
+    "category": "C",
+    "kind": "attack",
+    "options": [
+     "ATTACK",
+     "DECLINE"
+    ],
+    "probs": [
+     0.9999,
+     0.0001
+    ],
+    "p_right": 0.0001,
+    "greedy": "ATTACK",
+    "pass": false,
+    "value": 0.6212,
+    "solver_value": 0.5,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c1_crackback_not_lethal",
+    "category": "C",
+    "kind": "attack",
+    "options": [
+     "ATTACK",
+     "DECLINE"
+    ],
+    "probs": [
+     1.0,
+     0.0
+    ],
+    "p_right": 1.0,
+    "greedy": "ATTACK",
+    "pass": true,
+    "value": 0.7594,
+    "solver_value": 1.0,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c2_chump_to_the_sweeper",
+    "category": "C",
+    "kind": "block",
+    "options": [
+     "halberdier",
+     "enforcer",
+     "NONE"
+    ],
+    "probs": [
+     0.0043,
+     0.0026,
+     0.9931
+    ],
+    "p_right": 0.0069,
+    "greedy": "NONE",
+    "pass": false,
+    "value": 0.9188,
+    "solver_value": 0.5,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c2_take_it_to_the_sweeper",
+    "category": "C",
+    "kind": "block",
+    "options": [
+     "halberdier",
+     "enforcer",
+     "NONE"
+    ],
+    "probs": [
+     0.002,
+     0.0013,
+     0.9967
+    ],
+    "p_right": 0.9967,
+    "greedy": "NONE",
+    "pass": true,
+    "value": 0.9494,
+    "solver_value": 1.0,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "d_do_not_overextend",
+    "category": "D",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:ogre"
+    ],
+    "probs": [
+     0.0247,
+     0.9753
+    ],
+    "p_right": 0.0247,
+    "greedy": "cast:ogre",
+    "pass": false,
+    "value": 0.8192,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "d_overextend",
+    "category": "D",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:ogre"
+    ],
+    "probs": [
+     0.0136,
+     0.9864
+    ],
+    "p_right": 0.9864,
+    "greedy": "cast:ogre",
+    "pass": true,
+    "value": 0.8303,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre"
+    ],
+    "searched_pass": 1.0
+   }
+  ],
+  "summary": {
+   "A": {
+    "pairs": 2,
+    "twin_consistent": 0.0,
+    "single_pass": 0.25,
+    "p_right": 0.3251,
+    "searched_pass": 0.25,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "B1": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5671,
+    "searched_pass": 0.625,
+    "searched_twin_consistent": 0.0,
+    "value_order": 1.0
+   },
+   "B2": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5167,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "B3": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.4936,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "C": {
+    "pairs": 2,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5009,
+    "searched_pass": null,
+    "searched_twin_consistent": null,
+    "value_order": 1.0
+   },
+   "D": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5056,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 1.0
+   },
+   "all": {
+    "pairs": 8,
+    "twin_consistent": 0.0,
+    "single_pass": 0.4375,
+    "p_right": 0.4669,
+    "searched_pass": 0.4375,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.5714
+   }
+  },
+  "seconds": 37.0
+ },
+ {
+  "checkpoint": "/home/sune/Desktop/MTG_AI/runs/r29_ab/b70.pt",
+  "rows": [
+   {
+    "puzzle": "a1_draw_then_pick_the_land",
+    "category": "A",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:anticipate",
+     "land:mtn",
+     "land:isl"
+    ],
+    "probs": [
+     0.2273,
+     0.2005,
+     0.314,
+     0.2583
+    ],
+    "p_right": 0.2005,
+    "greedy": "land:mtn",
+    "pass": false,
+    "value": 0.9961,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a1_land_to_cast_the_draw",
+    "category": "A",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "land:mtn",
+     "land:isl"
+    ],
+    "probs": [
+     0.2621,
+     0.3758,
+     0.3621
+    ],
+    "p_right": 0.3621,
+    "greedy": "land:mtn",
+    "pass": false,
+    "value": 0.9965,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a2_bounce_before_blocks",
+    "category": "A",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:trick"
+    ],
+    "probs": [
+     0.8277,
+     0.1723
+    ],
+    "p_right": 0.1723,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.9946,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a2_pump_after_blocks",
+    "category": "A",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:trick"
+    ],
+    "probs": [
+     0.4164,
+     0.5836
+    ],
+    "p_right": 0.4164,
+    "greedy": "cast:trick",
+    "pass": false,
+    "value": 0.9939,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b1_counter_the_answer_lethal",
+    "category": "B1",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:cancel"
+    ],
+    "probs": [
+     0.4875,
+     0.5125
+    ],
+    "p_right": 0.5125,
+    "greedy": "cast:cancel",
+    "pass": true,
+    "value": 0.9636,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b1_counter_the_answer_not_lethal",
+    "category": "B1",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:cancel"
+    ],
+    "probs": [
+     0.5746,
+     0.4254
+    ],
+    "p_right": 0.5746,
+    "greedy": "PASS",
+    "pass": true,
+    "value": 0.6167,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:cancel",
+     "cast:cancel",
+     "PASS",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "PASS"
+    ],
+    "searched_pass": 0.25
+   },
+   {
+    "puzzle": "b2_cast_into_tapped_out",
+    "category": "B2",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:caller"
+    ],
+    "probs": [
+     0.0507,
+     0.9493
+    ],
+    "p_right": 0.9493,
+    "greedy": "cast:caller",
+    "pass": true,
+    "value": 0.8681,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b2_hold_until_backed",
+    "category": "B2",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:caller"
+    ],
+    "probs": [
+     0.053,
+     0.947
+    ],
+    "p_right": 0.053,
+    "greedy": "cast:caller",
+    "pass": false,
+    "value": 0.8636,
+    "solver_value": 0.875,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b3_counter_the_minor_spell",
+    "category": "B3",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:negate"
+    ],
+    "probs": [
+     0.5257,
+     0.4743
+    ],
+    "p_right": 0.4743,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.8444,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b3_hold_for_the_threat",
+    "category": "B3",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:negate"
+    ],
+    "probs": [
+     0.5154,
+     0.4846
+    ],
+    "p_right": 0.5154,
+    "greedy": "PASS",
+    "pass": true,
+    "value": 0.8244,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "c1_crackback_lethal",
+    "category": "C",
+    "kind": "attack",
+    "options": [
+     "ATTACK",
+     "DECLINE"
+    ],
+    "probs": [
+     1.0,
+     0.0
+    ],
+    "p_right": 0.0,
+    "greedy": "ATTACK",
+    "pass": false,
+    "value": 0.6678,
+    "solver_value": 0.5,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c1_crackback_not_lethal",
+    "category": "C",
+    "kind": "attack",
+    "options": [
+     "ATTACK",
+     "DECLINE"
+    ],
+    "probs": [
+     1.0,
+     0.0
+    ],
+    "p_right": 1.0,
+    "greedy": "ATTACK",
+    "pass": true,
+    "value": 0.7618,
+    "solver_value": 1.0,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c2_chump_to_the_sweeper",
+    "category": "C",
+    "kind": "block",
+    "options": [
+     "halberdier",
+     "enforcer",
+     "NONE"
+    ],
+    "probs": [
+     0.0011,
+     0.0004,
+     0.9985
+    ],
+    "p_right": 0.0015,
+    "greedy": "NONE",
+    "pass": false,
+    "value": 0.9592,
+    "solver_value": 0.5,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c2_take_it_to_the_sweeper",
+    "category": "C",
+    "kind": "block",
+    "options": [
+     "halberdier",
+     "enforcer",
+     "NONE"
+    ],
+    "probs": [
+     0.0017,
+     0.0008,
+     0.9975
+    ],
+    "p_right": 0.9975,
+    "greedy": "NONE",
+    "pass": true,
+    "value": 0.9767,
+    "solver_value": 1.0,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "d_do_not_overextend",
+    "category": "D",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:ogre"
+    ],
+    "probs": [
+     0.0001,
+     0.9999
+    ],
+    "p_right": 0.0001,
+    "greedy": "cast:ogre",
+    "pass": false,
+    "value": 0.6801,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "d_overextend",
+    "category": "D",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:ogre"
+    ],
+    "probs": [
+     0.0,
+     1.0
+    ],
+    "p_right": 1.0,
+    "greedy": "cast:ogre",
+    "pass": true,
+    "value": 0.5689,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre"
+    ],
+    "searched_pass": 1.0
+   }
+  ],
+  "summary": {
+   "A": {
+    "pairs": 2,
+    "twin_consistent": 0.0,
+    "single_pass": 0.0,
+    "p_right": 0.2878,
+    "searched_pass": 0.0,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "B1": {
+    "pairs": 1,
+    "twin_consistent": 1.0,
+    "single_pass": 1.0,
+    "p_right": 0.5435,
+    "searched_pass": 0.625,
+    "searched_twin_consistent": 0.0,
+    "value_order": 1.0
+   },
+   "B2": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5011,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 1.0
+   },
+   "B3": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.4949,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 1.0
+   },
+   "C": {
+    "pairs": 2,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.4998,
+    "searched_pass": null,
+    "searched_twin_consistent": null,
+    "value_order": 1.0
+   },
+   "D": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "all": {
+    "pairs": 8,
+    "twin_consistent": 0.125,
+    "single_pass": 0.4375,
+    "p_right": 0.4518,
+    "searched_pass": 0.3542,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.7143
+   }
+  },
+  "seconds": 60.3
+ },
+ {
+  "checkpoint": "/home/sune/Desktop/MTG_AI/runs/r29_ab/b80.pt",
+  "rows": [
+   {
+    "puzzle": "a1_draw_then_pick_the_land",
+    "category": "A",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:anticipate",
+     "land:mtn",
+     "land:isl"
+    ],
+    "probs": [
+     0.2581,
+     0.2347,
+     0.2915,
+     0.2157
+    ],
+    "p_right": 0.2347,
+    "greedy": "land:mtn",
+    "pass": false,
+    "value": 0.9932,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a1_land_to_cast_the_draw",
+    "category": "A",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "land:mtn",
+     "land:isl"
+    ],
+    "probs": [
+     0.3154,
+     0.3624,
+     0.3221
+    ],
+    "p_right": 0.3221,
+    "greedy": "land:mtn",
+    "pass": false,
+    "value": 0.9938,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn",
+     "land:mtn"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a2_bounce_before_blocks",
+    "category": "A",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:trick"
+    ],
+    "probs": [
+     0.7908,
+     0.2092
+    ],
+    "p_right": 0.2092,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.9911,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a2_pump_after_blocks",
+    "category": "A",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:trick"
+    ],
+    "probs": [
+     0.5236,
+     0.4764
+    ],
+    "p_right": 0.5236,
+    "greedy": "PASS",
+    "pass": true,
+    "value": 0.9831,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b1_counter_the_answer_lethal",
+    "category": "B1",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:cancel"
+    ],
+    "probs": [
+     0.5799,
+     0.4201
+    ],
+    "p_right": 0.4201,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.9822,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b1_counter_the_answer_not_lethal",
+    "category": "B1",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:cancel"
+    ],
+    "probs": [
+     0.5739,
+     0.4261
+    ],
+    "p_right": 0.5739,
+    "greedy": "PASS",
+    "pass": true,
+    "value": 0.6605,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:cancel",
+     "cast:cancel",
+     "PASS",
+     "cast:cancel",
+     "cast:cancel",
+     "PASS",
+     "cast:cancel",
+     "cast:cancel"
+    ],
+    "searched_pass": 0.25
+   },
+   {
+    "puzzle": "b2_cast_into_tapped_out",
+    "category": "B2",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:caller"
+    ],
+    "probs": [
+     0.0984,
+     0.9016
+    ],
+    "p_right": 0.9016,
+    "greedy": "cast:caller",
+    "pass": true,
+    "value": 0.9135,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b2_hold_until_backed",
+    "category": "B2",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:caller"
+    ],
+    "probs": [
+     0.0975,
+     0.9025
+    ],
+    "p_right": 0.0975,
+    "greedy": "cast:caller",
+    "pass": false,
+    "value": 0.9213,
+    "solver_value": 0.875,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b3_counter_the_minor_spell",
+    "category": "B3",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:negate"
+    ],
+    "probs": [
+     0.3565,
+     0.6435
+    ],
+    "p_right": 0.6435,
+    "greedy": "cast:negate",
+    "pass": true,
+    "value": 0.8067,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b3_hold_for_the_threat",
+    "category": "B3",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:negate"
+    ],
+    "probs": [
+     0.3937,
+     0.6063
+    ],
+    "p_right": 0.3937,
+    "greedy": "cast:negate",
+    "pass": false,
+    "value": 0.7895,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "c1_crackback_lethal",
+    "category": "C",
+    "kind": "attack",
+    "options": [
+     "ATTACK",
+     "DECLINE"
+    ],
+    "probs": [
+     1.0,
+     0.0
+    ],
+    "p_right": 0.0,
+    "greedy": "ATTACK",
+    "pass": false,
+    "value": 0.633,
+    "solver_value": 0.5,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c1_crackback_not_lethal",
+    "category": "C",
+    "kind": "attack",
+    "options": [
+     "ATTACK",
+     "DECLINE"
+    ],
+    "probs": [
+     1.0,
+     0.0
+    ],
+    "p_right": 1.0,
+    "greedy": "ATTACK",
+    "pass": true,
+    "value": 0.7269,
+    "solver_value": 1.0,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c2_chump_to_the_sweeper",
+    "category": "C",
+    "kind": "block",
+    "options": [
+     "halberdier",
+     "enforcer",
+     "NONE"
+    ],
+    "probs": [
+     0.0013,
+     0.0006,
+     0.9982
+    ],
+    "p_right": 0.0018,
+    "greedy": "NONE",
+    "pass": false,
+    "value": 0.9426,
+    "solver_value": 0.5,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c2_take_it_to_the_sweeper",
+    "category": "C",
+    "kind": "block",
+    "options": [
+     "halberdier",
+     "enforcer",
+     "NONE"
+    ],
+    "probs": [
+     0.0012,
+     0.0006,
+     0.9982
+    ],
+    "p_right": 0.9982,
+    "greedy": "NONE",
+    "pass": true,
+    "value": 0.9637,
+    "solver_value": 1.0,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "d_do_not_overextend",
+    "category": "D",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:ogre"
+    ],
+    "probs": [
+     0.0004,
+     0.9996
+    ],
+    "p_right": 0.0004,
+    "greedy": "cast:ogre",
+    "pass": false,
+    "value": 0.6822,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "d_overextend",
+    "category": "D",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:ogre"
+    ],
+    "probs": [
+     0.0001,
+     0.9999
+    ],
+    "p_right": 0.9999,
+    "greedy": "cast:ogre",
+    "pass": true,
+    "value": 0.6415,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre"
+    ],
+    "searched_pass": 1.0
+   }
+  ],
+  "summary": {
+   "A": {
+    "pairs": 2,
+    "twin_consistent": 0.0,
+    "single_pass": 0.25,
+    "p_right": 0.3224,
+    "searched_pass": 0.0,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "B1": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.497,
+    "searched_pass": 0.625,
+    "searched_twin_consistent": 0.0,
+    "value_order": 1.0
+   },
+   "B2": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.4995,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "B3": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5186,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 1.0
+   },
+   "C": {
+    "pairs": 2,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5,
+    "searched_pass": null,
+    "searched_twin_consistent": null,
+    "value_order": 1.0
+   },
+   "D": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5001,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "all": {
+    "pairs": 8,
+    "twin_consistent": 0.0,
+    "single_pass": 0.4375,
+    "p_right": 0.4575,
+    "searched_pass": 0.3542,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.5714
+   }
+  },
+  "seconds": 31.3
+ },
+ {
+  "checkpoint": "/home/sune/Desktop/MTG_AI/runs/r29_ab/b90.pt",
+  "rows": [
+   {
+    "puzzle": "a1_draw_then_pick_the_land",
+    "category": "A",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:anticipate",
+     "land:mtn",
+     "land:isl"
+    ],
+    "probs": [
+     0.314,
+     0.2253,
+     0.2802,
+     0.1805
+    ],
+    "p_right": 0.2253,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.9916,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a1_land_to_cast_the_draw",
+    "category": "A",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "land:mtn",
+     "land:isl"
+    ],
+    "probs": [
+     0.3584,
+     0.3389,
+     0.3028
+    ],
+    "p_right": 0.3028,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.9931,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a2_bounce_before_blocks",
+    "category": "A",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:trick"
+    ],
+    "probs": [
+     0.8168,
+     0.1832
+    ],
+    "p_right": 0.1832,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.9879,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a2_pump_after_blocks",
+    "category": "A",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:trick"
+    ],
+    "probs": [
+     0.5253,
+     0.4747
+    ],
+    "p_right": 0.5253,
+    "greedy": "PASS",
+    "pass": true,
+    "value": 0.9842,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b1_counter_the_answer_lethal",
+    "category": "B1",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:cancel"
+    ],
+    "probs": [
+     0.2674,
+     0.7326
+    ],
+    "p_right": 0.7326,
+    "greedy": "cast:cancel",
+    "pass": true,
+    "value": 0.9452,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b1_counter_the_answer_not_lethal",
+    "category": "B1",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:cancel"
+    ],
+    "probs": [
+     0.1917,
+     0.8083
+    ],
+    "p_right": 0.1917,
+    "greedy": "cast:cancel",
+    "pass": false,
+    "value": 0.6339,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:cancel",
+     "cast:cancel",
+     "PASS",
+     "cast:cancel",
+     "cast:cancel",
+     "PASS",
+     "cast:cancel",
+     "cast:cancel"
+    ],
+    "searched_pass": 0.25
+   },
+   {
+    "puzzle": "b2_cast_into_tapped_out",
+    "category": "B2",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:caller"
+    ],
+    "probs": [
+     0.1046,
+     0.8954
+    ],
+    "p_right": 0.8954,
+    "greedy": "cast:caller",
+    "pass": true,
+    "value": 0.9172,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b2_hold_until_backed",
+    "category": "B2",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:caller"
+    ],
+    "probs": [
+     0.11,
+     0.89
+    ],
+    "p_right": 0.11,
+    "greedy": "cast:caller",
+    "pass": false,
+    "value": 0.9139,
+    "solver_value": 0.875,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b3_counter_the_minor_spell",
+    "category": "B3",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:negate"
+    ],
+    "probs": [
+     0.5884,
+     0.4116
+    ],
+    "p_right": 0.4116,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.8365,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b3_hold_for_the_threat",
+    "category": "B3",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:negate"
+    ],
+    "probs": [
+     0.5823,
+     0.4177
+    ],
+    "p_right": 0.5823,
+    "greedy": "PASS",
+    "pass": true,
+    "value": 0.8292,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "c1_crackback_lethal",
+    "category": "C",
+    "kind": "attack",
+    "options": [
+     "ATTACK",
+     "DECLINE"
+    ],
+    "probs": [
+     1.0,
+     0.0
+    ],
+    "p_right": 0.0,
+    "greedy": "ATTACK",
+    "pass": false,
+    "value": 0.7673,
+    "solver_value": 0.5,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c1_crackback_not_lethal",
+    "category": "C",
+    "kind": "attack",
+    "options": [
+     "ATTACK",
+     "DECLINE"
+    ],
+    "probs": [
+     1.0,
+     0.0
+    ],
+    "p_right": 1.0,
+    "greedy": "ATTACK",
+    "pass": true,
+    "value": 0.8245,
+    "solver_value": 1.0,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c2_chump_to_the_sweeper",
+    "category": "C",
+    "kind": "block",
+    "options": [
+     "halberdier",
+     "enforcer",
+     "NONE"
+    ],
+    "probs": [
+     0.0374,
+     0.0293,
+     0.9333
+    ],
+    "p_right": 0.0667,
+    "greedy": "NONE",
+    "pass": false,
+    "value": 0.9832,
+    "solver_value": 0.5,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c2_take_it_to_the_sweeper",
+    "category": "C",
+    "kind": "block",
+    "options": [
+     "halberdier",
+     "enforcer",
+     "NONE"
+    ],
+    "probs": [
+     0.0307,
+     0.0248,
+     0.9445
+    ],
+    "p_right": 0.9445,
+    "greedy": "NONE",
+    "pass": true,
+    "value": 0.9883,
+    "solver_value": 1.0,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "d_do_not_overextend",
+    "category": "D",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:ogre"
+    ],
+    "probs": [
+     0.0003,
+     0.9997
+    ],
+    "p_right": 0.0003,
+    "greedy": "cast:ogre",
+    "pass": false,
+    "value": 0.7166,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "d_overextend",
+    "category": "D",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:ogre"
+    ],
+    "probs": [
+     0.0001,
+     0.9999
+    ],
+    "p_right": 0.9999,
+    "greedy": "cast:ogre",
+    "pass": true,
+    "value": 0.7081,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre"
+    ],
+    "searched_pass": 1.0
+   }
+  ],
+  "summary": {
+   "A": {
+    "pairs": 2,
+    "twin_consistent": 0.0,
+    "single_pass": 0.25,
+    "p_right": 0.3091,
+    "searched_pass": 0.0,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "B1": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.4622,
+    "searched_pass": 0.625,
+    "searched_twin_consistent": 0.0,
+    "value_order": 1.0
+   },
+   "B2": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5027,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 1.0
+   },
+   "B3": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.497,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 1.0
+   },
+   "C": {
+    "pairs": 2,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5028,
+    "searched_pass": null,
+    "searched_twin_consistent": null,
+    "value_order": 1.0
+   },
+   "D": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5001,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "all": {
+    "pairs": 8,
+    "twin_consistent": 0.0,
+    "single_pass": 0.4375,
+    "p_right": 0.4482,
+    "searched_pass": 0.3542,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.7143
+   }
+  },
+  "seconds": 28.3
+ },
+ {
+  "checkpoint": "/home/sune/Desktop/MTG_AI/runs/r29_ab/b100.pt",
+  "rows": [
+   {
+    "puzzle": "a1_draw_then_pick_the_land",
+    "category": "A",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:anticipate",
+     "land:mtn",
+     "land:isl"
+    ],
+    "probs": [
+     0.2946,
+     0.248,
+     0.2932,
+     0.1643
+    ],
+    "p_right": 0.248,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.9926,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a1_land_to_cast_the_draw",
+    "category": "A",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "land:mtn",
+     "land:isl"
+    ],
+    "probs": [
+     0.3934,
+     0.3435,
+     0.2632
+    ],
+    "p_right": 0.2632,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.9934,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a2_bounce_before_blocks",
+    "category": "A",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:trick"
+    ],
+    "probs": [
+     0.8483,
+     0.1517
+    ],
+    "p_right": 0.1517,
+    "greedy": "PASS",
+    "pass": false,
+    "value": 0.991,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS",
+     "PASS"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "a2_pump_after_blocks",
+    "category": "A",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:trick"
+    ],
+    "probs": [
+     0.5386,
+     0.4614
+    ],
+    "p_right": 0.5386,
+    "greedy": "PASS",
+    "pass": true,
+    "value": 0.9893,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick",
+     "cast:trick"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b1_counter_the_answer_lethal",
+    "category": "B1",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:cancel"
+    ],
+    "probs": [
+     0.2188,
+     0.7812
+    ],
+    "p_right": 0.7812,
+    "greedy": "cast:cancel",
+    "pass": true,
+    "value": 0.9678,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel",
+     "cast:cancel"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b1_counter_the_answer_not_lethal",
+    "category": "B1",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:cancel"
+    ],
+    "probs": [
+     0.1682,
+     0.8318
+    ],
+    "p_right": 0.1682,
+    "greedy": "cast:cancel",
+    "pass": false,
+    "value": 0.6534,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:cancel",
+     "cast:cancel",
+     "PASS",
+     "cast:cancel",
+     "cast:cancel",
+     "PASS",
+     "cast:cancel",
+     "cast:cancel"
+    ],
+    "searched_pass": 0.25
+   },
+   {
+    "puzzle": "b2_cast_into_tapped_out",
+    "category": "B2",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:caller"
+    ],
+    "probs": [
+     0.08,
+     0.92
+    ],
+    "p_right": 0.92,
+    "greedy": "cast:caller",
+    "pass": true,
+    "value": 0.8978,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b2_hold_until_backed",
+    "category": "B2",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:caller"
+    ],
+    "probs": [
+     0.1015,
+     0.8985
+    ],
+    "p_right": 0.1015,
+    "greedy": "cast:caller",
+    "pass": false,
+    "value": 0.9156,
+    "solver_value": 0.875,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller",
+     "cast:caller"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "b3_counter_the_minor_spell",
+    "category": "B3",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:negate"
+    ],
+    "probs": [
+     0.2466,
+     0.7534
+    ],
+    "p_right": 0.7534,
+    "greedy": "cast:negate",
+    "pass": true,
+    "value": 0.8716,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate"
+    ],
+    "searched_pass": 1.0
+   },
+   {
+    "puzzle": "b3_hold_for_the_threat",
+    "category": "B3",
+    "kind": "priority",
+    "options": [
+     "PASS",
+     "cast:negate"
+    ],
+    "probs": [
+     0.2555,
+     0.7445
+    ],
+    "p_right": 0.2555,
+    "greedy": "cast:negate",
+    "pass": false,
+    "value": 0.8619,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate",
+     "cast:negate"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "c1_crackback_lethal",
+    "category": "C",
+    "kind": "attack",
+    "options": [
+     "ATTACK",
+     "DECLINE"
+    ],
+    "probs": [
+     1.0,
+     0.0
+    ],
+    "p_right": 0.0,
+    "greedy": "ATTACK",
+    "pass": false,
+    "value": 0.4704,
+    "solver_value": 0.5,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c1_crackback_not_lethal",
+    "category": "C",
+    "kind": "attack",
+    "options": [
+     "ATTACK",
+     "DECLINE"
+    ],
+    "probs": [
+     1.0,
+     0.0
+    ],
+    "p_right": 1.0,
+    "greedy": "ATTACK",
+    "pass": true,
+    "value": 0.5596,
+    "solver_value": 1.0,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c2_chump_to_the_sweeper",
+    "category": "C",
+    "kind": "block",
+    "options": [
+     "halberdier",
+     "enforcer",
+     "NONE"
+    ],
+    "probs": [
+     0.0025,
+     0.0034,
+     0.9941
+    ],
+    "p_right": 0.0059,
+    "greedy": "NONE",
+    "pass": false,
+    "value": 0.88,
+    "solver_value": 0.5,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "c2_take_it_to_the_sweeper",
+    "category": "C",
+    "kind": "block",
+    "options": [
+     "halberdier",
+     "enforcer",
+     "NONE"
+    ],
+    "probs": [
+     0.0007,
+     0.0008,
+     0.9985
+    ],
+    "p_right": 0.9985,
+    "greedy": "NONE",
+    "pass": true,
+    "value": 0.9119,
+    "solver_value": 1.0,
+    "unknown_cards": 0
+   },
+   {
+    "puzzle": "d_do_not_overextend",
+    "category": "D",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:ogre"
+    ],
+    "probs": [
+     0.0003,
+     0.9997
+    ],
+    "p_right": 0.0003,
+    "greedy": "cast:ogre",
+    "pass": false,
+    "value": 0.7566,
+    "solver_value": 0.5,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre"
+    ],
+    "searched_pass": 0.0
+   },
+   {
+    "puzzle": "d_overextend",
+    "category": "D",
+    "kind": "act",
+    "options": [
+     "PASS",
+     "cast:ogre"
+    ],
+    "probs": [
+     0.0001,
+     0.9999
+    ],
+    "p_right": 0.9999,
+    "greedy": "cast:ogre",
+    "pass": true,
+    "value": 0.7413,
+    "solver_value": 1.0,
+    "unknown_cards": 0,
+    "searched": [
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre",
+     "cast:ogre"
+    ],
+    "searched_pass": 1.0
+   }
+  ],
+  "summary": {
+   "A": {
+    "pairs": 2,
+    "twin_consistent": 0.0,
+    "single_pass": 0.25,
+    "p_right": 0.3004,
+    "searched_pass": 0.0,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "B1": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.4747,
+    "searched_pass": 0.625,
+    "searched_twin_consistent": 0.0,
+    "value_order": 1.0
+   },
+   "B2": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5108,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "B3": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5044,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 1.0
+   },
+   "C": {
+    "pairs": 2,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5011,
+    "searched_pass": null,
+    "searched_twin_consistent": null,
+    "value_order": 1.0
+   },
+   "D": {
+    "pairs": 1,
+    "twin_consistent": 0.0,
+    "single_pass": 0.5,
+    "p_right": 0.5001,
+    "searched_pass": 0.5,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.0
+   },
+   "all": {
+    "pairs": 8,
+    "twin_consistent": 0.0,
+    "single_pass": 0.4375,
+    "p_right": 0.4491,
+    "searched_pass": 0.3542,
+    "searched_twin_consistent": 0.0,
+    "value_order": 0.5714
+   }
+  },
+  "seconds": 48.4
+ }
+]
