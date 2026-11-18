@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "name": "A01_5_only_your_other_fliers_entering_buff_the_watcher",
+ "notes": "Printed: 'Whenever another creature you control with flying enters, this creature gets +1/+1 until end of turn.' Three creatures enter in turn, none through a cast: your Mistral Singer (printed flying: the Watcher becomes 3/3), your Mystic Skyfish (no flying: nothing) and the OPPONENT's Mistral Singer (flying but not under your control: nothing). The Watcher ends 3/3, not 4/4 or 5/5.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "w", "real": "Watcher of the Spheres", "zone": "battlefield", "controller": 0},
+  {"key": "mine", "real": "Mistral Singer", "zone": "hand", "controller": 0},
+  {"key": "sky", "real": "Mystic Skyfish", "zone": "hand", "controller": 0},
+  {"key": "theirs", "real": "Mistral Singer", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "mine"},
+  {"op": "enter", "key": "sky"},
+  {"op": "enter", "key": "theirs"}
+ ],
+ "expect": {
+  "zone": {"mine": "battlefield", "sky": "battlefield", "theirs": "battlefield"},
+  "power": {"w": 3},
+  "toughness": {"w": 3}
+ }
+}

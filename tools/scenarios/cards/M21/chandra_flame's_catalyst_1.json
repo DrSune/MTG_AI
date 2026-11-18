@@ -1,0 +1,16 @@
+{
+ "set": "M21",
+ "name": "A00_1_plus_one_hits_each_opponent_and_not_its_controller",
+ "notes": "Printed: '[+1]: Chandra deals 3 damage to each opponent.' Three players, so 'each opponent' is told from 'target opponent' and from 'each player': through the menu the +1 deals 3 damage to each of the two opponents (20 -> 17), none to its controller (20), and the loyalty cost is paid (5 -> 6).",
+ "world": {"life": 20, "seed": 7, "players": 3},
+ "cards": [
+  {"key": "cf", "real": "Chandra, Flame's Catalyst", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "act", "seat": 0, "words": ["act:cf:0"]}
+ ],
+ "expect": {
+  "life": {"0": 20, "1": 17, "2": 17},
+  "counters": {"cf": {"LOYALTY": 6}}
+ }
+}

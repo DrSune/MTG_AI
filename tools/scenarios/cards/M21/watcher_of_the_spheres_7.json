@@ -1,0 +1,77 @@
+{
+ "set": "M21",
+ "name": "A01_4_the_opponents_flying_creature_spells_are_not_reduced",
+ "notes": "Printed: 'Creature spells with flying YOU cast cost {1} less to cast.' The opponent (seat 1) has three Islands and Mistral Singer ({2}{U}, printed flying) in hand. On its own turn it casts the Singer with the game's own payment and pays the FULL {2}{U}: all three Islands are tapped (a reduction would have left one untapped). Seat 0's Watcher does not buff itself for the opponent's flier either: it stays 2/2.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Watcher of the Spheres",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "omist",
+   "real": "Mistral Singer",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "i1",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "i2",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "i3",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "cast",
+   "key": "omist",
+   "real": "Mistral Singer",
+   "controller": 1,
+   "tap": true
+  }
+ ],
+ "expect": {
+  "zone": {
+   "omist": "battlefield"
+  },
+  "tapped": {
+   "i1": true,
+   "i2": true,
+   "i3": true
+  },
+  "turn_seats": [
+   0,
+   1
+  ],
+  "power": {
+   "w": 2
+  },
+  "toughness": {
+   "w": 2
+  },
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ }
+}

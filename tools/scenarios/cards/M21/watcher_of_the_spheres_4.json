@@ -1,0 +1,22 @@
+{
+ "set": "M21",
+ "name": "A01_1_a_flying_creature_spell_you_cast_costs_one_less_and_buffs_the_watcher",
+ "notes": "Printed: 'Creature spells with flying you cast cost {1} less to cast.' and 'Whenever another creature you control with flying enters, this creature gets +1/+1 until end of turn.' Mistral Singer ({2}{U}, printed flying) is cast from the hand with the game's own payment (tapping lands): its {2}{U} costs {1}{U}, so exactly two Islands pay it and both are tapped. It enters, and the Watcher (2/2) becomes 3/3.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "w", "real": "Watcher of the Spheres", "zone": "battlefield", "controller": 0},
+  {"key": "mist", "real": "Mistral Singer", "zone": "hand", "controller": 0},
+  {"key": "i1", "real": "Island", "zone": "battlefield", "controller": 0},
+  {"key": "i2", "real": "Island", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "cast", "key": "mist", "real": "Mistral Singer", "tap": true}
+ ],
+ "expect": {
+  "zone": {"mist": "battlefield", "w": "battlefield"},
+  "tapped": {"i1": true, "i2": true},
+  "power": {"w": 3, "mist": 2},
+  "toughness": {"w": 3, "mist": 2},
+  "mana_pool": {"0": {}}
+ }
+}

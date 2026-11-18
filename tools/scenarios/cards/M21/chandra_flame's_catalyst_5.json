@@ -1,0 +1,24 @@
+{
+ "set": "M21",
+ "name": "A00_5_the_exile_rider_covers_only_that_spell",
+ "notes": "Printed: '[-2]: You may cast target red instant or sorcery card from your graveyard. If that spell would be put into your graveyard, exile it instead.' Step 1: the -2 casts the graveyard Shock at the opponent (2 damage, paid by tapping a Mountain); it is exiled instead of going to the graveyard. Step 2: a second Shock, cast from the hand the usual way (the other Mountain), is a different spell and goes to the graveyard as any spell does. Opponent 20 -> 18 -> 16. Loyalty 5 -> 3.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "cf", "real": "Chandra, Flame's Catalyst", "zone": "battlefield", "controller": 0},
+  {"key": "shock1", "real": "Shock", "zone": "graveyard", "controller": 0},
+  {"key": "shock2", "real": "Shock", "zone": "hand", "controller": 0},
+  {"key": "m1", "real": "Mountain", "zone": "battlefield", "controller": 0},
+  {"key": "m2", "real": "Mountain", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "act", "seat": 0, "words": ["act:cf:1", "fire", "p1"]},
+  {"op": "cast", "real": "Shock", "key": "shock2", "targets": ["p1"], "tap": true}
+ ],
+ "expect": {
+  "zone": {"shock1": "exile", "shock2": "graveyard", "cf": "battlefield"},
+  "tapped": {"m1": true, "m2": true},
+  "life": {"0": 20, "1": 16},
+  "counters": {"cf": {"LOYALTY": 3}},
+  "graveyard": {"0": ["Shock"]}
+ }
+}

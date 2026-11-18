@@ -1,0 +1,73 @@
+{
+ "set": "M21",
+ "name": "A01_10_your_flier_entering_under_the_opponents_control_does_not_trigger_the_watcher",
+ "notes": "Printed: 'Whenever another creature you control with flying enters, this creature gets +1/+1 until end of turn.' The other side of the owner/controller line (CR 110.2, 603.6a): on seat 1's turn, ITS Liliana's -7 emblem puts seat 0's Mistral Singer (printed flying, OWNED by seat 0) from seat 0's graveyard onto the battlefield under seat 1's control at its beginning of combat. The Singer is seat 1's creature (controller lane 1), not one 'you control', so the Watcher stays 2/2.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "w",
+   "real": "Watcher of the Spheres",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "lil",
+   "real": "Liliana, Waker of the Dead",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "msing",
+   "real": "Mistral Singer",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "loyalty",
+   "key": "lil",
+   "set": 7
+  },
+  {
+   "op": "activate",
+   "key": "lil",
+   "idx": 2,
+   "seat": 1
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {}
+  }
+ ],
+ "expect": {
+  "zone": {
+   "msing": "battlefield",
+   "lil": "graveyard"
+  },
+  "controller": {
+   "msing": 1
+  },
+  "power": {
+   "w": 2
+  },
+  "toughness": {
+   "w": 2
+  },
+  "turn_seats": [
+   0,
+   1
+  ],
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ }
+}

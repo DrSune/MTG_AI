@@ -1530,6 +1530,21 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### Gates, probe, soak and the pack runner
 
+- **G3's draw-idiom rule is coarser than the executor's draw lane** (2026-11-18, verification
+  wave 6).
+  - `gates._draw_idiom` (`gates.py` ~646, used by the dead-role rule ~765) treats every
+    MOVE_ZONE from a library top into a hand as the draw idiom. But an ALL over a library's top is
+    a partition (`verbs.py` ~378-381) and skips the draw lane (~389-399), the only reader of
+    `destination.controller`. `selectors.move_destination` returns the owner for any
+    non-battlefield destination.
+  - So See the Truth keeps a critical survivor that plays byte-identically (`controller
+    YOU->OPPONENT` at `1/0/effect/steps/1/then_effect/args/destination/controller`). It is judged
+    OK by wave 6's blind verifier (`runs/verify_wave6_2026-11-18/verdicts/A/A04.json`), and it
+    stamps once the rule matches the executor's lane.
+- **A cast step with `"tap": true` reports "cannot pay" for any refusal** (2026-11-18, wave 6). A
+  window or timing refusal says the same, because `menu.cast_taps` returns None whenever
+  `spell_castable` fails. An `expect_raise: "cannot pay"` can therefore pass for the wrong reason:
+  pair each refusal with a positive control.
 - **Pack-runner traps found by mapper wave 5** (2026-11-18):
   - In a two-player pack, a player's loss (an empty library) silently skips the remaining steps,
     so the pack can pass vacuously. Pin `"lost"` in multi-turn packs until the runner fails a
@@ -1825,6 +1840,11 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### What the network sees
 
+- **A decision of nothing: ordering identical triggers** (2026-11-18, wave 6). Two triggers of
+  the same ability of one source from one event (two fliers entering at once under Watcher of the
+  Spheres: `card:0`, `card:0:2`) ask their controller for an order (CR 603.3b), though the outcome
+  is the same either way. Each such ask costs the policy a decision that carries no information.
+  Skip the ask when the waiting triggers are copies of one ability with the same source and event.
 - **A permission shows only as the rows it offers** (2026-11-17, ontology round R13). A card a
   permission lets the seat play is an option of the act ask (its entity carries its zone; a
   `:via:` row points at the permission's source), but no card column says "playable from here"

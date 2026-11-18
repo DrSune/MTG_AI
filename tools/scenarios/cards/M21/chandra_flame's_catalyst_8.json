@@ -1,0 +1,24 @@
+{
+ "set": "M21",
+ "name": "A00_8_minus_eight_lets_you_cast_spells_from_hand_for_free_this_turn",
+ "notes": "Printed: '[-8]: ... Until end of turn, you may cast spells from your hand without paying their mana costs.' Chandra at 9 loyalty, no land, an empty pool. The -8 draws Gnarled Sage ({3}{G}{G}), Shock ({R}) and Walking Corpse ({1}{B}) among its seven; each is cast from the hand through the permission (cast:<card>:via:<Chandra>, CR 118.9): MORE THAN ONE spell, a creature and an instant, nothing paid. Shock hits the opponent (20 -> 18). The opponent's own Shock, in its hand with no mana, is not made free by Chandra's -8 (illegal cast). Loyalty 9 -> 1.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "cf", "real": "Chandra, Flame's Catalyst", "zone": "battlefield", "controller": 0, "counters": {"LOYALTY": 9}},
+  {"key": "gs", "real": "Gnarled Sage", "zone": "library", "controller": 0},
+  {"key": "sh", "real": "Shock", "zone": "library", "controller": 0},
+  {"key": "wc", "real": "Walking Corpse", "zone": "library", "controller": 0},
+  {"key": "oh", "real": "Shock", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "act", "seat": 0, "words": ["act:cf:2", "cast:wc:via:cf", "cast:gs:via:cf", "cast:sh:via:cf", "p1"]},
+  {"op": "cast", "key": "oh", "real": "Shock", "controller": 1, "targets": ["p0"], "expect_raise": "illegal cast"}
+ ],
+ "expect": {
+  "zone": {"wc": "battlefield", "gs": "battlefield", "sh": "graveyard", "oh": "hand", "cf": "battlefield"},
+  "life": {"0": 20, "1": 18},
+  "mana_pool": {"0": {}, "1": {}},
+  "counters": {"cf": {"LOYALTY": 1}},
+  "hand": {"0": 4, "1": 1}
+ }
+}

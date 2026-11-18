@@ -1,0 +1,21 @@
+{
+ "set": "M21",
+ "name": "A01_2_only_creature_spells_with_flying_cost_less",
+ "notes": "Printed: 'Creature spells with flying you cast cost {1} less to cast.' Two Islands are all seat 0 has. Mystic Skyfish ({2}{U}, a 3/1 with no flying) is not reduced: it costs its full three mana and the two Islands cannot pay it (the cast is refused, nothing is tapped). Mistral Singer ({2}{U}, printed flying), cast next in the same window, costs {1}{U} and is paid by the same two Islands. The refusal is no timing fault: the Singer is cast in the same main phase.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "w", "real": "Watcher of the Spheres", "zone": "battlefield", "controller": 0},
+  {"key": "sky", "real": "Mystic Skyfish", "zone": "hand", "controller": 0},
+  {"key": "mist", "real": "Mistral Singer", "zone": "hand", "controller": 0},
+  {"key": "i1", "real": "Island", "zone": "battlefield", "controller": 0},
+  {"key": "i2", "real": "Island", "zone": "battlefield", "controller": 0}
+ ],
+ "steps": [
+  {"op": "cast", "key": "sky", "real": "Mystic Skyfish", "tap": true, "expect_raise": "cannot pay"},
+  {"op": "cast", "key": "mist", "real": "Mistral Singer", "tap": true}
+ ],
+ "expect": {
+  "zone": {"sky": "hand", "mist": "battlefield"},
+  "tapped": {"i1": true, "i2": true}
+ }
+}
