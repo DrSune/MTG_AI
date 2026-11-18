@@ -1,0 +1,131 @@
+supply[FDN]: shape-gap exclusion 'Banner of Kinship': StateCorruptionError: compile_card: a CHOOSE_NAME of a CREATURE_TYPE that nothing on its object reads: a choice with no consequence (a phantom ask, AGENTS §10) 
+supply[FDN]: shape-gap exclusion "Cultivator's Caravan": StateCorruptionError: compile_card: printed P/T on a non-creature (a Vehicle needs crew, not implemented) [card="Cultivator's Caravan", type_line='Artifact — Ve
+supply[FDN]: shape-gap exclusion 'Ravenous Amulet': StateCorruptionError: compile_card: activation-gate sentence matched but no preceding ActivatedAbility with the gate's target slot(s) free exists to attach it t
+supply[FDN]: shape-gap exclusion 'Secluded Courtyard': StateCorruptionError: compile_card: a CHOOSE_NAME of a CREATURE_TYPE that nothing on its object reads: a choice with no consequence (a phantom ask, AGENTS §10) 
+supply[FDN]: shape-gap exclusion 'Tinybones, Bauble Burglar': StateCorruptionError: compile_card: activation-gate sentence matched but no preceding ActivatedAbility with the gate's target slot(s) free exists to attach it t
+
+===== M21: 280 verified cards (deckable 280)
+player_kw (a player's keyword (hexproof, protection, shroud)): 4
+    Feline Sovereign; Heroic Intervention; Ranger's Guile; Runed Halo
+permit (a card playable from outside the hand (a standing permission)): 5
+    Chandra, Flame's Catalyst; Chandra, Heart of Fire; Demonic Embrace; Idol of Endurance; Radha, Heart of Keld
+num6 (a threshold above 5 (bucketed as num:6+)): 2
+    Fierce Empath; Speaker of the Heavens
+x_target (an X spell or ability that targets (the target ask does not show X)): 2
+    Primal Might; Volcanic Geyser
+delayed (a delayed or reflexive trigger (ability index -1 on the stack)): 4
+    Basri Ket; Basri, Devoted Paladin; Subira, Tulzidi Caravanner; Tolarian Kraken
+token_ability (an ability whose source can cease before it resolves (a token's sacrifice cost or dies trigger; a dies trigger granted to creatures)): 12
+    Fabled Passage; Gadrak, the Crown-Scourge; Heartfire Immolator; Infernal Scarring; Liliana's Steward; Obsessive Stitcher; Pursued Whale; Selfless Savior; Silent Dart; Silversmote Ghoul; Thrashing Brontodon; Tormod's Crypt
+emblem (an emblem): 3
+    Basri Ket; Garruk, Unleashed; Liliana, Waker of the Dead
+phasing (phasing): 2
+    Teferi, Master of Time; Teferi, Timeless Voyager
+returns (a move until an event (a return row)): 2
+    Idol of Endurance; Kitesail Freebooter
+event_number (a trigger whose effect counts its event (that many, that much)): 16
+    Alchemist's Gift; Anointed Chorister; Archfiend's Vessel; Basri Ket; Basri's Acolyte; Blood Glutton; Brash Taunter; Chandra's Incinerator; Conclave Mentor; Garruk's Harbinger; Indulging Patrician; Kinetic Augur; Light of Promise; Sigiled Contender; Speaker of the Heavens; Vito, Thorn of the Dusk Rose
+live_type (a live type, colour or name change): 3
+    Demonic Embrace; Dub; Riddleform
+planeswalker (a planeswalker (an attack may choose it)): 11
+    Basri Ket; Basri, Devoted Paladin; Chandra, Flame's Catalyst; Chandra, Heart of Fire; Garruk, Savage Herald; Garruk, Unleashed; Liliana, Death Mage; Liliana, Waker of the Dead; Teferi, Master of Time; Teferi, Timeless Voyager; Ugin, the Spirit Dragon
+multi_target (two or more targets (the stack shows the first only)): 7
+    Basri's Aegis; Frost Breath; Garruk, Savage Herald; Read the Tides; Rookie Mistake; Sanguine Indulgence; Volcanic Salvo
+choose_twice (a 'you choose ... from it' ask (index tokens plus handle aliases)): 2
+    Duress; Kitesail Freebooter
+hand_reveal (a hand revealed or looked at): 2
+    Duress; Kitesail Freebooter
+public_to_hand (a card returned to a hand from a public zone): 21
+    Alpine Houndmaster; Barrin, Tolarian Archmage; Basri's Aegis; Chandra's Firemaw; Cultivate; Experimental Overload; Fierce Empath; Fungal Rebirth; Garruk's Harbinger; Garruk's Warsteed; Garruk, Savage Herald; Grim Tutor; Liliana's Scorn; Liliana, Death Mage; Niambi, Esteemed Speaker; Roaming Ghostlight; Sanguine Indulgence; Shipwreck Dowser; Teferi's Wavecaster; Unsubstantiate; Waker of Waves
+public_to_library (a card put at a known place in a library from a public zone): 1
+    Teferi, Timeless Voyager
+look_top (the top of a library looked at or scried (the looker knows)): 14
+    Mazemind Tome; Opt; Radha, Heart of Keld; Riddleform; Spined Megalodon; Stormwing Entity; Temple of Epiphany; Temple of Malady; Temple of Mystery; Temple of Silence; Temple of Triumph; Track Down; Waker of Waves; Wall of Runes
+reveal_top (the top of a library revealed (every player knows)): 2
+    Garruk, Savage Herald; Track Down
+tutor_reveal (a searched card revealed, put into a hand): 3
+    Alpine Houndmaster; Cultivate; Fierce Empath
+shuffle (a shuffle (erases library knowledge)): 16
+    Alpine Houndmaster; Basri's Aegis; Chandra's Firemaw; Chandra, Heart of Fire; Cultivate; Fabled Passage; Fierce Empath; Garruk's Warsteed; Garruk, Unleashed; Grim Tutor; Liliana's Scorn; Necromentia; Sanctum of All; Solemn Simulacrum; Teferi's Wavecaster; Transmogrify
+
+===== M20: 286 verified cards (deckable 286)
+player_kw (a player's keyword (hexproof, protection, shroud)): 2
+    Gods Willing; Veil of Summer
+permit (a card playable from outside the hand (a standing permission)): 2
+    Golos, Tireless Pilgrim; Mystic Forge
+num6 (a threshold above 5 (bucketed as num:6+)): 3
+    Ajani, Strength of the Pride; Angel of Vitality; Twinblade Paladin
+x_target (an X spell or ability that targets (the target ask does not show X)): 1
+    Voracious Hydra
+delayed (a delayed or reflexive trigger (ability index -1 on the stack)): 2
+    Cavalier of Night; Sorin, Imperious Bloodlord
+token_ability (an ability whose source can cease before it resolves (a token's sacrifice cost or dies trigger; a dies trigger granted to creatures)): 10
+    Ajani, Strength of the Pride; Bag of Holding; Cryptic Caves; Ember Hauler; Evolving Wilds; Mask of Immolation; Rapacious Dragon; Salvager of Ruin; Thrashing Brontodon; Vial of Dragonfire
+emblem (an emblem): 1
+    Mu Yanling, Sky Dancer
+phasing (phasing): 0
+returns (a move until an event (a return row)): 0
+event_number (a trigger whose effect counts its event (that many, that much)): 9
+    Angel of Vitality; Blood Burglar; Cavalier of Flame; Daybreak Chaplain; Moment of Heroism; Tomebound Lich; Vampire of the Dire Moon; Vilis, Broker of Blood; Woodland Champion
+live_type (a live type, colour or name change): 1
+    Wakeroot Elemental
+planeswalker (a planeswalker (an attack may choose it)): 9
+    Ajani, Inspiring Leader; Ajani, Strength of the Pride; Chandra, Flame's Fury; Chandra, Novice Pyromancer; Mu Yanling, Celestial Wind; Mu Yanling, Sky Dancer; Sorin, Imperious Bloodlord; Sorin, Vampire Lord; Vivien, Nature's Avenger
+multi_target (two or more targets (the stack shows the first only)): 6
+    Brought Back; Captivating Gyre; Mu Yanling, Celestial Wind; Rabid Bite; Scholar of the Ages; Soul Salvage
+choose_twice (a 'you choose ... from it' ask (index tokens plus handle aliases)): 1
+    Duress
+hand_reveal (a hand revealed or looked at): 2
+    Duress; Thought Distortion
+public_to_hand (a card returned to a hand from a public zone): 27
+    Anticipate; Bag of Holding; Battalion Foot Soldier; Blood for Bones; Brightwood Tracker; Cavalier of Dawn; Chandra's Flame Wave; Disentomb; Drawn from Dreams; Ethereal Elk; Goblin Ringleader; Goldmane Griffin; Gravedigger; Icon of Ancestry; Immortal Phoenix; Pulse of Murasa; Riddlemaster Sphinx; Risen Reef; Salvager of Ruin; Sanitarium Skeleton; Scholar of the Ages; Sorin's Guide; Soul Salvage; Unsummon; Vivien, Nature's Avenger; Yanling's Harbinger; Yarok's Wavecrasher
+public_to_library (a card put at a known place in a library from a public zone): 1
+    Eternal Isolation
+look_top (the top of a library looked at or scried (the looker knows)): 16
+    Anticipate; Brightwood Tracker; Cavalier of Gales; Devout Decree; Drawn from Dreams; Gods Willing; Icon of Ancestry; Mystic Forge; Octoprophet; Risen Reef; Season of Growth; Temple of Epiphany; Temple of Malady; Temple of Mystery; Temple of Silence; Temple of Triumph
+reveal_top (the top of a library revealed (every player knows)): 4
+    Cavalier of Thorns; Diviner's Lockbox; Goblin Ringleader; Vivien, Nature's Avenger
+tutor_reveal (a searched card revealed, put into a hand): 1
+    Battalion Foot Soldier
+shuffle (a shuffle (erases library knowledge)): 10
+    Battalion Foot Soldier; Cavalier of Gales; Chandra's Flame Wave; Elvish Reclaimer; Ethereal Elk; Evolving Wilds; Goldmane Griffin; Golos, Tireless Pilgrim; Sorin's Guide; Yanling's Harbinger
+
+===== FDN: 261 verified cards (deckable 261)
+player_kw (a player's keyword (hexproof, protection, shroud)): 1
+    Dive Down
+permit (a card playable from outside the hand (a standing permission)): 0
+num6 (a threshold above 5 (bucketed as num:6+)): 3
+    Angel of Vitality; Fierce Empath; Twinblade Paladin
+x_target (an X spell or ability that targets (the target ask does not show X)): 1
+    Primal Might
+delayed (a delayed or reflexive trigger (ability index -1 on the stack)): 1
+    Faebloom Trick
+token_ability (an ability whose source can cease before it resolves (a token's sacrifice cost or dies trigger; a dies trigger granted to creatures)): 14
+    An Offer You Can't Refuse; Brass's Bounty; Cathar Commando; Corsair Captain; Evolving Wilds; Fake Your Own Death; Gleaming Barrier; Goblin Firebomb; Goldvein Pick; Heartfire Immolator; Involuntary Employment; Rapacious Dragon; Seize the Spoils; Thrashing Brontodon
+emblem (an emblem): 1
+    Vivien Reid
+phasing (phasing): 0
+returns (a move until an event (a return row)): 2
+    Banishing Light; Stasis Snare
+event_number (a trigger whose effect counts its event (that many, that much)): 10
+    Angel of Vitality; Bishop's Soldier; Crossway Troublemakers; Drogskol Reaver; Felidar Savior; Guarded Heir; Healer's Hawk; Regal Caracal; Unflinching Courage; Vampire Nighthawk
+live_type (a live type, colour or name change): 0
+planeswalker (a planeswalker (an attack may choose it)): 1
+    Vivien Reid
+multi_target (two or more targets (the stack shows the first only)): 3
+    Bite Down; Macabre Waltz; Sanguine Indulgence
+choose_twice (a 'you choose ... from it' ask (index tokens plus handle aliases)): 2
+    Duress; Pilfer
+hand_reveal (a hand revealed or looked at): 2
+    Duress; Pilfer
+public_to_hand (a card returned to a hand from a public zone): 14
+    Aetherize; Bigfin Bouncer; Cemetery Recruitment; Elvish Regrower; Exclusion Mage; Fierce Empath; Into the Roil; Macabre Waltz; River's Rebuke; Sanguine Indulgence; Shipwreck Dowser; Spinner of Souls; Unsummon; Vivien Reid
+public_to_library (a card put at a known place in a library from a public zone): 0
+look_top (the top of a library looked at or scried (the looker knows)): 14
+    Devout Decree; Mazemind Tome; Opt; Temple of Abandon; Temple of Deceit; Temple of Enlightenment; Temple of Epiphany; Temple of Malady; Temple of Malice; Temple of Mystery; Temple of Plenty; Temple of Silence; Temple of Triumph; Vivien Reid
+reveal_top (the top of a library revealed (every player knows)): 1
+    Spinner of Souls
+tutor_reveal (a searched card revealed, put into a hand): 1
+    Fierce Empath
+shuffle (a shuffle (erases library knowledge)): 5
+    Circuitous Route; Evolving Wilds; Fierce Empath; Grow from the Ashes; Solemn Simulacrum
