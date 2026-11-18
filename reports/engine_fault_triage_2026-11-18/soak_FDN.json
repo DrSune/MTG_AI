@@ -1,0 +1,54 @@
+{
+ "games": 300,
+ "crashed": 0,
+ "crashes": [],
+ "detector_hits": [
+  {
+   "detector": "d6_lifecycle",
+   "detail": "live layer #20 kind=mandate_block tag=Eot bound to card:14 ended in 'graveyard'",
+   "games": 1
+  },
+  {
+   "detector": "d6_lifecycle",
+   "detail": "live layer #56 kind=mandate_block tag=Eot bound to card:119 ended in 'graveyard'",
+   "games": 1
+  },
+  {
+   "detector": "d5_pt_recompute",
+   "detail": "counter-invariant assert: card:0 died asserted 3/4 with pt-delta (1, 1) while a same-ident",
+   "games": 1
+  },
+  {
+   "detector": "d5_pt_recompute",
+   "detail": "counter-invariant assert: card:0 died asserted 3/4 with pt-delta (2, 2) while a same-ident",
+   "games": 1
+  },
+  {
+   "detector": "d5_pt_recompute",
+   "detail": "recompute mismatch on card:47 (Mold Adder): assert 0/0 vs fold 2/2 (anchor base 1/1 + coun",
+   "games": 1
+  },
+  {
+   "detector": "d5_pt_recompute",
+   "detail": "counter-invariant assert: card:38 died asserted 3/2 with pt-delta (1, 1) while a same-iden",
+   "games": 1
+  },
+  {
+   "detector": "d5_pt_recompute",
+   "detail": "counter-invariant assert: card:38 died asserted 3/2 with pt-delta (2, 2) while a same-iden",
+   "games": 1
+  }
+ ],
+ "outliers": [],
+ "repeatable_activations": [],
+ "trigger_loops": [],
+ "cards_cast": 225,
+ "set": "FDN",
+ "mode": "verified",
+ "unverified_records": false,
+ "deck_mode": "stress",
+ "seeds": [
+  1,
+  300
+ ]
+}

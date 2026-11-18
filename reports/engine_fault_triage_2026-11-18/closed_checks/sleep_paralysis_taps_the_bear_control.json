@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "notes": "The control of act_of_treason_untaps_a_creature_sleep_paralysis_holds.json: the same setup without Act of Treason leaves the Bear tapped, so the check's untapped Bear comes from Act of Treason's untap, not from a Bear that was never tapped.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sp", "real": "Sleep Paralysis", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enchant", "aura": "sp", "host": "bear"}
+ ],
+ "expect": {
+  "zone": {"sp": "battlefield"},
+  "tapped": {"bear": true},
+  "controller": {"bear": 1}
+ }
+}

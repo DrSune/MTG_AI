@@ -1,0 +1,24 @@
+{
+ "set": "M21",
+ "notes": "KNOWN BUG (KNOWLEDGE/2026-11-18/215, fault F13; BACKLOG 'Target recheck gap'). Fails on main 8d85e0a7; passes once a spell's own 'as you cast it' restriction on its targets is read when the targets are chosen (CR 601.2c) and not again at resolution (CR 608.2b). Enthralling Hold (verified, M21): 'Enchant creature. You can't choose an untapped creature as this spell's target as you cast it. You control enchanted creature.' Its ruling of 2020-06-23: 'If the creature becomes untapped before the spell resolves, it still resolves.' Seat 0 casts it on seat 1's tapped Ox. In response seat 1 casts Revitalize; its draw triggers seat 1's Tolarian Kraken (verified, M21), which pays {1} ('fire') and untaps the Ox ('ox', 'fire', '1'). The Hold still resolves: seat 0 controls the Ox. On main the resolution re-reads the restriction, finds the Ox untapped, and the Hold does not resolve: WEAKER than printed, reachable in the M21 deal pool with three verified cards.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "eh", "real": "Enthralling Hold", "zone": "hand", "controller": 0},
+  {"key": "ox", "name": "Ox", "type": "Creature — Ox", "power": "2", "toughness": "4", "zone": "battlefield", "controller": 1, "tapped": true},
+  {"key": "kr", "real": "Tolarian Kraken", "zone": "battlefield", "controller": 1},
+  {"key": "rv", "real": "Revitalize", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"U": 5}, "1": {"W": 3}},
+ "steps": [
+  {"op": "cast", "key": "eh", "targets": ["ox"], "hold": true},
+  {"op": "cast", "key": "rv", "controller": 1, "hold": true},
+  {"op": "pass", "decisions": ["fire", "ox", "fire", "1"]}
+ ],
+ "expect": {
+  "zone": {"eh": "battlefield", "rv": "graveyard", "ox": "battlefield"},
+  "attached": {"eh": "ox"},
+  "controller": {"ox": 0},
+  "tapped": {"ox": false},
+  "life": {"1": 23}
+ }
+}

@@ -1,0 +1,24 @@
+{
+ "set": "M20",
+ "notes": "KNOWN BUG (KNOWLEDGE/2026-11-18/215, fault F14). Fails on main 8d85e0a7; passes once every verb skips a source that changed zones since its ability was activated. Printed: Colossus Hammer, 'Equipped creature gets +10/+10 and loses flying. Equip {8}' (Attach to target creature you control). Seat 0 activates equip targeting its Bear; while the ability waits, the Hammer is destroyed (a move by another effect) and Brought Back (verified, M20) returns it. The Hammer on the battlefield is a new object (CR 400.7) that the equip ability does not name (CR 113.7a, 701.3a): it stays unattached and the Bear stays a 2/2. On main the ability attaches the new Hammer, a 12/12 Bear: STRONGER than printed. The same holds for every Equip in the deal pools (M20: Ancestral Blade, Heart-Piercer Bow, Marauder's Axe, Mask of Immolation, Wolfrider's Saddle; M21: Short Sword, Malefic Scythe; FDN: Adventuring Gear, Fireshrieker, Goldvein Pick, Pirate's Cutlass), wherever the pool can return an artifact while the ability waits (M20: Brought Back).",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "hammer", "real": "Colossus Hammer", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "bb", "real": "Brought Back", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"C": 8, "W": 2}},
+ "steps": [
+  {"op": "activate", "key": "hammer", "idx": 1, "seat": 0, "targets": ["bear"], "hold": true},
+  {"op": "move", "key": "hammer", "to": "graveyard", "hold": true},
+  {"op": "cast", "key": "bb", "targets": ["hammer"], "hold": true},
+  {"op": "resolve"},
+  {"op": "pass"}
+ ],
+ "expect": {
+  "zone": {"hammer": "battlefield", "bb": "graveyard"},
+  "attached": {"hammer": null},
+  "power": {"bear": 2},
+  "toughness": {"bear": 2}
+ }
+}
