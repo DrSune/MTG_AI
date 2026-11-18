@@ -56,32 +56,6 @@
           "tag": "Atom",
           "verb": {
            "tag": "Verb",
-           "name": "REVEAL"
-          },
-          "args": {
-           "tag": "AtomArgs",
-           "pairs": [
-            [
-             "controller",
-             {
-              "tag": "ControllerRef",
-              "name": "YOU"
-             }
-            ],
-            [
-             "count",
-             {
-              "tag": "QConst",
-              "value": 1
-             }
-            ]
-           ]
-          }
-         },
-         {
-          "tag": "Atom",
-          "verb": {
-           "tag": "Verb",
            "name": "MOVE_ZONE"
           },
           "args": {
@@ -165,6 +139,50 @@
                "tag": "ControllerRef",
                "name": "YOU"
               }
+             }
+            ]
+           ]
+          }
+         },
+         {
+          "tag": "Atom",
+          "verb": {
+           "tag": "Verb",
+           "name": "REVEAL"
+          },
+          "args": {
+           "tag": "AtomArgs",
+           "pairs": [
+            [
+             "cards",
+             {
+              "tag": "Selector",
+              "count": {
+               "tag": "QConst",
+               "value": 1
+              },
+              "mode": {
+               "tag": "SelectorMode",
+               "name": "CHOOSE"
+              },
+              "filter": {
+               "tag": "FAnd",
+               "children": []
+              },
+              "zones": [
+               {
+                "tag": "Zone",
+                "kind": {
+                 "tag": "ZoneKind",
+                 "name": "ANY"
+                },
+                "controller": {
+                 "tag": "ControllerRef",
+                 "name": "ANY"
+                }
+               }
+              ],
+              "referent": "result"
              }
             ]
            ]
@@ -794,9 +812,9 @@
   ]
  },
  "mapping": {
-  "author": "claude-wave2-m20-faults",
-  "date": "2026-11-13",
-  "draft_py": "# Vivien Reid (FDN). Mapped 2026-11-13 for the emblem encoding: the [-8]'s emblem rides its\n# GET_EMBLEM (EmblemSpec, controller YOU). Its abilities are the ones mapper A wrote for the FDN\n# \"Vivien Reid Emblem\" entry (2026-10-29), which the pool used to attach by name; that record is\n# retired with this one.\n# \"[+1]: Look at the top four cards of your library. You may reveal a creature or land card from\n# among them and put it into your hand. Put the rest on the bottom of your library in a random\n# order.\": See the Truth's LOOK_AT (count 4), Garruk's Harbinger's \"you may reveal ... from among\n# them and put it into your hand\" (B4-reveal-one-from-among, a creature-or-land FOr) and its\n# B5b-rest-bottom-random REST with arrange RANDOM (Brightwood Tracker's record has the same three\n# steps). The [-3] and the cast carrier are the compiler's.\n_top_of_library = (Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU, position=ZonePosition.TOP),)\nplus_one = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=1),)),\n    effect=Seq(\n        steps=(\n            A(Verb.LOOK_AT, {'controller': ControllerRef.YOU, 'count': QConst(value=4)}),\n            OptionalEffect(\n                inner=Seq(\n                    steps=(\n                        A(Verb.REVEAL, {'controller': ControllerRef.YOU, 'count': QConst(value=1)}),\n                        A(Verb.MOVE_ZONE, {\n                            'cards': Selector(\n                                count=QConst(value=1),\n                                mode=SelectorMode.ONE_OF,\n                                filter=FOr(\n                                    children=(\n                                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                                    ),\n                                ),\n                                zones=_top_of_library,\n                            ),\n                            'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n                        }),\n                    ),\n                ),\n            ),\n            A(Verb.MOVE_ZONE, {\n                'arrange': 'RANDOM',\n                'cards': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.REST,\n                    filter=FAnd(children=()),\n                    zones=_top_of_library,\n                ),\n                'destination': Zone(\n                    kind=ZoneKind.LIBRARY,\n                    controller=ControllerRef.YOU,\n                    position=ZonePosition.BOTTOM,\n                ),\n            }),\n        ),\n    ),\n)\n_yours = Selector(\n    count=QUnbounded(),\n    mode=SelectorMode.ALL,\n    filter=FAnd(children=(\n        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n    )),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\nemblem_static = StaticAbility(\n    effect=Seq(steps=(\n        A(Verb.MODIFY_PT, {\n            'power': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n            'target': _yours,\n            'toughness': PtDelta(direction=PtDirection.INCREASE, magnitude=QConst(value=2)),\n        }),\n        A(Verb.GRANT_ABILITY, {'ability': KeywordAbility(keyword=Keyword.VIGILANCE), 'target': _yours}),\n        A(Verb.GRANT_ABILITY, {'ability': KeywordAbility(keyword=Keyword.TRAMPLE), 'target': _yours}),\n        A(Verb.GRANT_ABILITY, {'ability': KeywordAbility(keyword=Keyword.INDESTRUCTIBLE), 'target': _yours}),\n    )),\n)\nminus_eight = ActivatedAbility(\n    cost=Cost(parts=(CostLoyalty(delta=-8),)),\n    effect=A(Verb.GET_EMBLEM, {'controller': ControllerRef.YOU, 'emblem': EmblemSpec(abilities=(emblem_static,))}),\n)\nminus_three, carrier = compiled\nabilities = [plus_one, minus_three, minus_eight, carrier]\n",
+  "author": "claude-ontology-w3",
+  "date": "2026-11-18",
+  "draft_py": "# Patched by gate round W3 (DESIGN_ATOM_ONTOLOGY §19): REVEAL names the cards it shows.\n# FDN Vivien Reid: the record's stored tree (rendered by render_records.py)\nkeywords = [\n]\nabilities = [\n    # [0]\n    ActivatedAbility(\n        cost=Cost(parts=(CostLoyalty(delta=1),)),\n        effect=Seq(\n            steps=(\n                A(Verb.LOOK_AT, {'controller': ControllerRef.YOU, 'count': QConst(value=4)}),\n                OptionalEffect(\n                    inner=Seq(\n                        steps=(\n                            A(Verb.MOVE_ZONE, {\n                                'cards': Selector(\n                                    count=QConst(value=1),\n                                    mode=SelectorMode.ONE_OF,\n                                    filter=FOr(\n                                        children=(\n                                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                                            FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                                        ),\n                                    ),\n                                    zones=(\n                                        Zone(\n                                            kind=ZoneKind.LIBRARY,\n                                            controller=ControllerRef.YOU,\n                                            position=ZonePosition.TOP,\n                                        ),\n                                    ),\n                                ),\n                                'destination': Zone(\n                                    kind=ZoneKind.HAND,\n                                    controller=ControllerRef.YOU,\n                                ),\n                            }),\n                            reveal_result(),\n                        ),\n                    ),\n                ),\n                A(Verb.MOVE_ZONE, {\n                    'arrange': 'RANDOM',\n                    'cards': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.REST,\n                        filter=FAnd(children=()),\n                        zones=(\n                            Zone(\n                                kind=ZoneKind.LIBRARY,\n                                controller=ControllerRef.YOU,\n                                position=ZonePosition.TOP,\n                            ),\n                        ),\n                    ),\n                    'destination': Zone(\n                        kind=ZoneKind.LIBRARY,\n                        controller=ControllerRef.YOU,\n                        position=ZonePosition.BOTTOM,\n                    ),\n                }),\n            ),\n        ),\n    ),\n    # [1]\n    ActivatedAbility(\n        cost=Cost(parts=(CostLoyalty(delta=-3),)),\n        effect=A(Verb.DESTROY, {\n            'target': Selector(\n                count=QConst(value=1),\n                mode=SelectorMode.TARGET,\n                filter=FOr(\n                    children=(\n                        FAnd(\n                            children=(\n                                FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature'),\n                                FAtom(pred=FAtomPred.KEYWORD_HAS, keyword=Keyword.FLYING),\n                            ),\n                        ),\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Artifact'),\n                        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Enchantment'),\n                    ),\n                ),\n                zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n            ),\n        }),\n    ),\n    # [2]\n    ActivatedAbility(\n        cost=Cost(parts=(CostLoyalty(delta=-8),)),\n        effect=A(Verb.GET_EMBLEM, {\n            'controller': ControllerRef.YOU,\n            'emblem': EmblemSpec(\n                abilities=(\n                    StaticAbility(\n                        effect=Seq(\n                            steps=(\n                                A(Verb.MODIFY_PT, {\n                                    'power': PtDelta(\n                                        direction=PtDirection.INCREASE,\n                                        magnitude=QConst(value=2),\n                                    ),\n                                    'target': Selector(\n                                        count=QUnbounded(),\n                                        mode=SelectorMode.ALL,\n                                        filter=FAnd(\n                                            children=(\n                                                FAtom(\n                                                    pred=FAtomPred.CONTROLLER_IS,\n                                                    who=ControllerRef.YOU,\n                                                ),\n                                                FAtom(\n                                                    pred=FAtomPred.TYPE_EQ,\n                                                    string_value='Creature',\n                                                ),\n                                            ),\n                                        ),\n                                        zones=(\n                                            Zone(\n                                                kind=ZoneKind.BATTLEFIELD,\n                                                controller=ControllerRef.ANY,\n                                            ),\n                                        ),\n                                    ),\n                                    'toughness': PtDelta(\n                                        direction=PtDirection.INCREASE,\n                                        magnitude=QConst(value=2),\n                                    ),\n                                }),\n                                A(Verb.GRANT_ABILITY, {\n                                    'ability': KeywordAbility(keyword=Keyword.VIGILANCE),\n                                    'target': Selector(\n                                        count=QUnbounded(),\n                                        mode=SelectorMode.ALL,\n                                        filter=FAnd(\n                                            children=(\n                                                FAtom(\n                                                    pred=FAtomPred.CONTROLLER_IS,\n                                                    who=ControllerRef.YOU,\n                                                ),\n                                                FAtom(\n                                                    pred=FAtomPred.TYPE_EQ,\n                                                    string_value='Creature',\n                                                ),\n                                            ),\n                                        ),\n                                        zones=(\n                                            Zone(\n                                                kind=ZoneKind.BATTLEFIELD,\n                                                controller=ControllerRef.ANY,\n                                            ),\n                                        ),\n                                    ),\n                                }),\n                                A(Verb.GRANT_ABILITY, {\n                                    'ability': KeywordAbility(keyword=Keyword.TRAMPLE),\n                                    'target': Selector(\n                                        count=QUnbounded(),\n                                        mode=SelectorMode.ALL,\n                                        filter=FAnd(\n                                            children=(\n                                                FAtom(\n                                                    pred=FAtomPred.CONTROLLER_IS,\n                                                    who=ControllerRef.YOU,\n                                                ),\n                                                FAtom(\n                                                    pred=FAtomPred.TYPE_EQ,\n                                                    string_value='Creature',\n                                                ),\n                                            ),\n                                        ),\n                                        zones=(\n                                            Zone(\n                                                kind=ZoneKind.BATTLEFIELD,\n                                                controller=ControllerRef.ANY,\n                                            ),\n                                        ),\n                                    ),\n                                }),\n                                A(Verb.GRANT_ABILITY, {\n                                    'ability': KeywordAbility(keyword=Keyword.INDESTRUCTIBLE),\n                                    'target': Selector(\n                                        count=QUnbounded(),\n                                        mode=SelectorMode.ALL,\n                                        filter=FAnd(\n                                            children=(\n                                                FAtom(\n                                                    pred=FAtomPred.CONTROLLER_IS,\n                                                    who=ControllerRef.YOU,\n                                                ),\n                                                FAtom(\n                                                    pred=FAtomPred.TYPE_EQ,\n                                                    string_value='Creature',\n                                                ),\n                                            ),\n                                        ),\n                                        zones=(\n                                            Zone(\n                                                kind=ZoneKind.BATTLEFIELD,\n                                                controller=ControllerRef.ANY,\n                                            ),\n                                        ),\n                                    ),\n                                }),\n                            ),\n                        ),\n                    ),\n                ),\n            ),\n        }),\n    ),\n    # [3]\n    SpellAbility(kind=SpellKind.PLANESWALKER),\n]\n",
   "clauses": [
    {
     "clause": "[+1]: Look at the top four cards of your library.",
@@ -820,80 +838,9 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "Mapped 2026-11-13 for the emblem encoding: the -8's GET_EMBLEM carries its emblem (EmblemSpec, controller YOU), the abilities mapper A wrote 2026-10-29 for the FDN 'Vivien Reid Emblem' entry, which the pool attached by name until the emblem encoding retired that path (the entry's record is removed). The +1 is See the Truth's LOOK_AT, Garruk's Harbinger's reveal-one-from-among (creature or land) and its rest-bottom-random REST (Brightwood Tracker's record has the same three steps); the -3 and the carrier are the compiler's. G1 starts at loyalty 5, so the -8 is played by tools/scenarios/mapped/FDN/vivien_reid_emblem_anthem.json."
+  "notes": "Re-mapped by ontology gate round W3 (DESIGN_ATOM_ONTOLOGY §19) from the stored tree: \"reveal ... from among them and put it into your hand\": the move's pick, then reveal_result(). Nothing else changed."
  },
  "probe": {
   "sha": "8cbfc62c53e93afea61694ed776055e843e8db1d4eeaafedcee749b554a337e1"
- },
- "verified": {
-  "tree_sha": "8348d6d0fd66a207fd779d0746d318418d78added5ec4e806e6d0f03717c5180",
-  "probe_sha": "8cbfc62c53e93afea61694ed776055e843e8db1d4eeaafedcee749b554a337e1",
-  "date": "2026-11-13",
-  "reviewer": "claude-sonnet-verifier-wave1c-A",
-  "clauses": [
-   {
-    "clause": "+1: look at the top four cards of your library",
-    "status": "OK",
-    "evidence": "activate [0]: four candidate cards offered (Library 2..5#1)",
-    "issue": ""
-   },
-   {
-    "clause": "You may reveal a creature or land card from among them and put it into your hand",
-    "status": "OK",
-    "evidence": "ask may [fire, skip]; fire -> one_of among the four -> hand; skip -> no card. Eligibility filter (noncreature nonland refused) pinned by pack A04_2",
-    "issue": ""
-   },
-   {
-    "clause": "Put the rest on the bottom of your library in a random order",
-    "status": "OK",
-    "evidence": "tree 'arrange': 'RANDOM', rest to BOTTOM, no ordering ask; trace asks nothing after. Pack A04_2 pins the rest at the bottom",
-    "issue": ""
-   },
-   {
-    "clause": "-3: Destroy target artifact, enchantment, or creature with flying",
-    "status": "OK",
-    "evidence": "target slot 1..1 of [opp_flier, you_relic, you_charm, opp_relic, opp_charm] (no nonflying creature); each destroyed",
-    "issue": ""
-   },
-   {
-    "clause": "-8: emblem: creatures you control get +2/+2 and have vigilance, trample, and indestructible",
-    "status": "NOT_EXERCISED",
-    "evidence": "[2] not activatable (loyalty 5<8). Pack A04_1",
-    "issue": ""
-   }
-  ],
-  "packs": [
-   "tools/scenarios/cards/FDN/vivien_reid_1.json",
-   "tools/scenarios/cards/FDN/vivien_reid_2.json"
-  ],
-  "mutation": {
-   "mutants": 42,
-   "killed": 20,
-   "score": 0.47619047619047616,
-   "survived": [
-    "drop step 0 at 1/0/effect/steps/1/inner",
-    "widen filter (drop part 0) at 1/1/effect/args/target/filter/children/0",
-    "drop step 0 at 1/2/effect/args/emblem/abilities/0/effect",
-    "drop step 1 at 1/2/effect/args/emblem/abilities/0/effect",
-    "drop step 2 at 1/2/effect/args/emblem/abilities/0/effect",
-    "drop step 3 at 1/2/effect/args/emblem/abilities/0/effect",
-    "amount+1 at 1/2/effect/args/emblem/abilities/0/effect/steps/0/args/power/magnitude",
-    "amount-1 at 1/2/effect/args/emblem/abilities/0/effect/steps/0/args/power/magnitude",
-    "widen filter (drop part 0) at 1/2/effect/args/emblem/abilities/0/effect/steps/0/args/target/filter",
-    "widen filter (drop part 1) at 1/2/effect/args/emblem/abilities/0/effect/steps/0/args/target/filter",
-    "controller YOU->OPPONENT at 1/2/effect/args/emblem/abilities/0/effect/steps/0/args/target/filter/children/0/who",
-    "amount+1 at 1/2/effect/args/emblem/abilities/0/effect/steps/0/args/toughness/magnitude",
-    "amount-1 at 1/2/effect/args/emblem/abilities/0/effect/steps/0/args/toughness/magnitude",
-    "widen filter (drop part 0) at 1/2/effect/args/emblem/abilities/0/effect/steps/1/args/target/filter",
-    "widen filter (drop part 1) at 1/2/effect/args/emblem/abilities/0/effect/steps/1/args/target/filter",
-    "controller YOU->OPPONENT at 1/2/effect/args/emblem/abilities/0/effect/steps/1/args/target/filter/children/0/who",
-    "widen filter (drop part 0) at 1/2/effect/args/emblem/abilities/0/effect/steps/2/args/target/filter",
-    "widen filter (drop part 1) at 1/2/effect/args/emblem/abilities/0/effect/steps/2/args/target/filter",
-    "controller YOU->OPPONENT at 1/2/effect/args/emblem/abilities/0/effect/steps/2/args/target/filter/children/0/who",
-    "widen filter (drop part 0) at 1/2/effect/args/emblem/abilities/0/effect/steps/3/args/target/filter",
-    "widen filter (drop part 1) at 1/2/effect/args/emblem/abilities/0/effect/steps/3/args/target/filter",
-    "controller YOU->OPPONENT at 1/2/effect/args/emblem/abilities/0/effect/steps/3/args/target/filter/children/0/who"
-   ]
-  }
  }
 }

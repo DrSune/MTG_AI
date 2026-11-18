@@ -73,6 +73,7 @@ from MTG_bot.core.ability_tree import (
     at_least,
     canonical_json,
     fingerprint,
+    reveal_result,
 )
 from MTG_bot.core.compiler import templates_b2b
 from MTG_bot.core.compiler.compiler import _merge_if_do_continuation
@@ -1427,10 +1428,11 @@ class TestB2bEffectStructure(unittest.TestCase):
         option = _optional(ability)
         seq = _seq_inner(option)
         # "a card named A and/or a card named B" is at most one card of each name: one
-        # up-to-one pick per name.
-        self.assertEqual(len(seq.steps), 4)
+        # up-to-one pick per name, each revealed after it ("reveal them": what each found,
+        # DESIGN_ATOM_ONTOLOGY §19).
+        self.assertEqual(len(seq.steps), 5)
         # SEARCH x2, in printed order
-        for idx, name in ((0, "Alpine Watchdog"), (1, "Igneous Cur")):
+        for idx, name in ((0, "Alpine Watchdog"), (2, "Igneous Cur")):
             search = _atom_step(seq, idx)
             self.assertIs(search.verb, Verb.SEARCH)
             sel = _selector(search, "cards")
@@ -1441,11 +1443,8 @@ class TestB2bEffectStructure(unittest.TestCase):
             self.assertIs(sel.mode, SelectorMode.CHOOSE)
             assert isinstance(sel.filter, FAtom)
             self.assertEqual(sel.filter.string_value, name)
-        reveal = _atom_step(seq, 2)
-        self.assertIs(reveal.verb, Verb.REVEAL)
-        self.assertIs(reveal.args.get("controller"), ControllerRef.YOU)
-        assert isinstance(reveal.args.get("count"), QUnbounded)
-        shuffle = _atom_step(seq, 3)
+            self.assertEqual(_atom_step(seq, idx + 1), reveal_result())
+        shuffle = _atom_step(seq, 4)
         self.assertIs(shuffle.verb, Verb.SHUFFLE)
         zone = shuffle.args.get("zone")
         assert isinstance(zone, Zone)
@@ -1814,11 +1813,8 @@ class TestB2bEffectStructure(unittest.TestCase):
             search.args.get("destination"),
             Zone(ZoneKind.HAND, ControllerRef.YOU),
         )
-        reveal = _atom_step(seq, 1)
-        self.assertIs(reveal.verb, Verb.REVEAL)
-        self.assertIs(reveal.args.get("controller"), ControllerRef.YOU)
-        reveal_count = _qconst(reveal, "count")
-        self.assertEqual(reveal_count.value, 1)
+        # "reveal it": the card the search found (DESIGN_ATOM_ONTOLOGY §19)
+        self.assertEqual(_atom_step(seq, 1), reveal_result())
 
     def test_nine_lives_lose_game(self) -> None:
         ability = _ability(

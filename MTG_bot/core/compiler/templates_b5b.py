@@ -59,7 +59,6 @@ from MTG_bot.core.ability_tree import (
     Keyword,
     KeywordAbility,
     LifeGainedEvent,
-    TriggeredAbility,
     PtDelta,
     PtDirection,
     QAgg,
@@ -87,6 +86,8 @@ from MTG_bot.core.ability_tree import (
     at_least,
     number_in,
     number_you_control,
+    reveal_hand,
+    reveal_result,
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
@@ -907,16 +908,12 @@ def _build_modpt_x(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_reveal_hand(m: re.Match[str]) -> SentenceOutcome:
-    atom = Atom(
-        verb=Verb.REVEAL,
-        args=AtomArgs(
-            pairs=(
-                ("controller", ControllerRef.TARGET_OPPONENT),
-                ("count", QUnbounded()),
-            )
-        ),
-    )
-    return EffectOutcome(effect=atom)
+    """``Target opponent|player reveals their hand.`` (Duress, Kitesail Freebooter, Distress):
+    REVEAL of ALL the cards of that player's hand (CR 701.20a), the hand zone of the designated
+    player, as "exile target player's graveyard" names that graveyard (Tormod's Crypt). The
+    reveal shows that hand, never the library (DESIGN_ATOM_ONTOLOGY §19)."""
+    who = ControllerRef.TARGET_OPPONENT if m.group(1) == "opponent" else ControllerRef.TARGET_PLAYER
+    return EffectOutcome(effect=reveal_hand(who))
 
 
 def _build_sacr_flying(m: re.Match[str]) -> SentenceOutcome:
@@ -1787,9 +1784,8 @@ def _build_cultivate_search(m: re.Match[str]) -> SentenceOutcome:
     hand, then shuffle.`` (Cultivate) — "up to two" is CHOOSE+QConst(2)
     (the 0/1/2 sub-choice stays open); the split is ONE_OF (battlefield,
     tapped) + REST (hand); the inline "then shuffle" is the same
-    search-shuffle step ``_build_search_shuffle`` builds.
-    Lossy: REVEAL has an unbounded count, since the grammar cannot
-    reference the found set."""
+    search-shuffle step ``_build_search_shuffle`` builds. "Reveal those
+    cards" reveals what the search found, its ``result``."""
     search = Atom(
         verb=Verb.SEARCH,
         args=AtomArgs(
@@ -1808,12 +1804,7 @@ def _build_cultivate_search(m: re.Match[str]) -> SentenceOutcome:
             )
         ),
     )
-    reveal = Atom(
-        verb=Verb.REVEAL,
-        args=AtomArgs(
-            pairs=(("controller", ControllerRef.YOU), ("count", QUnbounded()))
-        ),
-    )
+    reveal = reveal_result()
     to_bf = Atom(
         verb=Verb.MOVE_ZONE,
         args=AtomArgs(
@@ -2469,38 +2460,67 @@ def _build_play_top_revealed(m: re.Match[str]) -> SentenceOutcome:
     return AbilityOutcome(ability=StaticAbility(effect=atom))
 
 
+def _additional_time(abilities: AbilityTriggerEvent, condition: Filter | None = None) -> SentenceOutcome:
+    """"<abilities> trigger(s) an additional time": a static ability (CR 603.2d), its
+    TRIGGER_ADDITIONAL naming the abilities and the one extra time; the binder queues the copy
+    with the original as the ability triggers. A test of the game that reads no ability ("while
+    you control six or more Shrines") is the static's condition, read at that moment."""
+    return AbilityOutcome(
+        ability=StaticAbility(
+            effect=Atom(
+                verb=Verb.TRIGGER_ADDITIONAL,
+                args=AtomArgs(pairs=(("count", QConst(1)), ("event", abilities))),
+            ),
+            condition=condition,
+        )
+    )
+
+
 def _build_sanctum_all_extra_trigger(m: re.Match[str]) -> SentenceOutcome:
     """``If an ability of another Shrine you control triggers while you
     control six or more Shrines, that ability triggers an additional
-    time.`` (Sanctum of All s2) — an AbilityTriggerEvent over the triggering
-    ability's source: SUBTYPE_EQ Shrine + CONTROLLER_IS YOU + FNot(IS_SOURCE)
-    for "another". "while you control six or more Shrines" (the comparison)
-    is part of that event, read as the Shrine's ability triggers: it is in the
-    event's filter, not the condition, which only an intervening "if" is (CR
-    603.4). The effect is TRIGGER_ADDITIONAL with its count axis, QConst(1) for
-    "an additional time"."""
-    return AbilityOutcome(
-        ability=TriggeredAbility(
-            event=AbilityTriggerEvent(
-                filter=FAnd(
-                    children=(
-                        FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Shrine"),
-                        FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-                        FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
-                        at_least(
-                            6,
-                            quantity=number_you_control(
-                                FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Shrine")
-                            ),
-                        ),
-                    )
+    time.`` (Sanctum of All s2): the abilities of the permanent SUBTYPE_EQ
+    Shrine, CONTROLLER_IS YOU and FNot(IS_SOURCE) for "another"; "while you
+    control six or more Shrines" (the comparison) is the static's condition."""
+    shrine = FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Shrine")
+    return _additional_time(
+        AbilityTriggerEvent(
+            filter=FAnd(
+                children=(
+                    shrine,
+                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                    FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
                 )
-            ),
-            condition=None,
-            effect=Atom(
-                verb=Verb.TRIGGER_ADDITIONAL,
-                args=AtomArgs(pairs=(("count", QConst(1)),)),
-            ),
+            )
+        ),
+        condition=at_least(6, quantity=number_you_control(shrine)),
+    )
+
+
+def _build_entering_extra_trigger(m: re.Match[str]) -> SentenceOutcome:
+    """``If a <permanent|land|Wizard>[ you control] entering causes a triggered ability of a
+    permanent you control to trigger, that ability triggers an additional time.`` (M20 Yarok,
+    the Desecrated; ZNR Ancient Greenwarden; DOM Naban, Dean of Iteration): the abilities of the
+    permanents you control whose triggering event (``cause``) is that object entering the
+    battlefield, under your control for "you control" (the zone's controller, as every enters
+    trigger writes it). "A permanent": any object entering is one, so no subject filter."""
+    what = m.group("what")
+    subject = (
+        None if what == "permanent"
+        else FAtom(pred=FAtomPred.TYPE_EQ, string_value="Land") if what == "land"
+        else FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value=what)
+    )
+    entering = ZoneChangeEvent(
+        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),
+        to_zone=Zone(
+            kind=ZoneKind.BATTLEFIELD,
+            controller=ControllerRef.YOU if m.group("yours") else ControllerRef.ANY,
+        ),
+        subject=subject,
+    )
+    return _additional_time(
+        AbilityTriggerEvent(
+            filter=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU), cause=entering
         )
     )
 
@@ -2839,9 +2859,9 @@ TEMPLATES: tuple[Template, ...] = (
     ),
     Template(
         tid="B5b-reveal-hand",
-        name="target opponent reveals their hand",
+        name="target opponent (or player) reveals their hand",
         bucket=_BUCKET,
-        pattern=re.compile(r"^Target opponent reveals their hand\.$"),
+        pattern=re.compile(r"^Target (opponent|player) reveals their hand\.$"),
         priority=_PRIORITY,
         build=_build_reveal_hand,
     ),
@@ -3309,7 +3329,7 @@ TEMPLATES: tuple[Template, ...] = (
     ),
     Template(
         tid="B5b-sanctum-all-extra-trigger",
-        name="Sanctum-of-All extra-trigger (AbilityTriggerEvent + TRIGGER_ADDITIONAL, T5-D)",
+        name="Sanctum-of-All extra trigger (a static TRIGGER_ADDITIONAL, CR 603.2d)",
         bucket=_BUCKET,
         pattern=re.compile(
             r"^If an ability of another Shrine you control triggers while "
@@ -3318,5 +3338,17 @@ TEMPLATES: tuple[Template, ...] = (
         ),
         priority=_PRIORITY,
         build=_build_sanctum_all_extra_trigger,
+    ),
+    Template(
+        tid="B5b-entering-extra-trigger",
+        name="an entering object's triggers trigger an additional time (CR 603.2d)",
+        bucket=_BUCKET,
+        pattern=re.compile(
+            r"^If an? (?P<what>permanent|land|[A-Z][a-z]+)(?P<yours> you control)? entering "
+            r"causes a triggered ability of a permanent you control to trigger, that ability "
+            r"triggers an additional time\.$"
+        ),
+        priority=_PRIORITY,
+        build=_build_entering_extra_trigger,
     ),
 )

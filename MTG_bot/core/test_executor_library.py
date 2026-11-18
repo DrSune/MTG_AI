@@ -272,7 +272,13 @@ class TestSearchUnit(LibraryCase):
         self.assertEqual([n.verb.name for n in nodes[:2]], ["SEARCH", "REVEAL"])
         land_a, land_b = self.libs[0], self.libs[1]
         self._do(nodes[0], bindings={"cards": [land_a, land_b]})  # SEARCH
-        self._do(nodes[1])  # REVEAL QUnbounded must not crash
+        # "reveal those cards": the found ones, to all, never the library (DESIGN_ATOM_ONTOLOGY
+        # §19); run step by step, the SEARCH alone delivered them (no partition in sight)
+        shown = self._do(nodes[1], bindings={"result": [land_a, land_b]})
+        self.assertEqual(
+            [(row[1], [(o, cards) for o, _zone, cards in row[2]], row[3]) for row in shown],
+            [("REVEAL", [(str(self.p0), (str(land_a), str(land_b)))], "ALL")],
+        )
         self._do(nodes[2], bindings={"cards": [land_a]})  # ONE_OF -> BF tapped
         self._do(nodes[3], bindings={"cards": [land_b]})  # REST -> hand
         self._do(nodes[4])  # SHUFFLE

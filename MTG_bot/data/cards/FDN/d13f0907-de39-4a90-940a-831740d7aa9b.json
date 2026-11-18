@@ -26,16 +26,33 @@
         "tag": "AtomArgs",
         "pairs": [
          [
-          "controller",
+          "cards",
           {
-           "tag": "ControllerRef",
-           "name": "TARGET_OPPONENT"
-          }
-         ],
-         [
-          "count",
-          {
-           "tag": "QUnbounded"
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "HAND"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "TARGET_OPPONENT"
+             }
+            }
+           ]
           }
          ]
         ]
@@ -189,9 +206,9 @@
   ]
  },
  "mapping": {
-  "author": "claude-mapper-wave4",
-  "date": "2026-11-06",
-  "draft_py": "# FDN Pilfer {1}{B} Sorcery\n# \"Target opponent reveals their hand. You choose a nonland card from it. That player discards that card.\"\n# Shape: M21 Duress (verified), with the filter \"nonland\" alone (one-part filter written bare).\n# The designation is TARGET_OPPONENT on the reveal (the B5b-reveal-hand template's own bytes);\n# the later steps read the same binding through TARGET_PLAYER, as Duress's templates write them.\nabilities = [\n    SpellAbility(\n        kind=SpellKind.SORCERY,\n        effect=Seq(\n            steps=(\n                A(Verb.REVEAL, {'controller': ControllerRef.TARGET_OPPONENT, 'count': QUnbounded()}),\n                A(Verb.CHOOSE, {\n                    'count': QConst(value=1),\n                    'target': Selector(\n                        count=QUnbounded(),\n                        mode=SelectorMode.ALL,\n                        filter=FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land')),\n                        zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.TARGET_PLAYER),),\n                    ),\n                }),\n                A(Verb.MOVE_ZONE, {\n                    'cards': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAnd(children=()),\n                        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n                        referent='result',\n                    ),\n                    'controller': ControllerRef.TARGET_PLAYER,\n                    'destination': Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.TARGET_PLAYER),\n                    'from': Zone(kind=ZoneKind.HAND, controller=ControllerRef.TARGET_PLAYER),\n                }),\n            ),\n        ),\n    ),\n]\n",
+  "author": "claude-ontology-w3",
+  "date": "2026-11-18",
+  "draft_py": "# Patched by gate round W3 (DESIGN_ATOM_ONTOLOGY §19): REVEAL names the cards it shows.\n# FDN Pilfer: the record's stored tree (rendered by render_records.py)\nkeywords = [\n]\nabilities = [\n    # [0]\n    SpellAbility(\n        kind=SpellKind.SORCERY,\n        effect=Seq(\n            steps=(\n                reveal_hand(ControllerRef.TARGET_OPPONENT),\n                A(Verb.CHOOSE, {\n                    'count': QConst(value=1),\n                    'target': Selector(\n                        count=QUnbounded(),\n                        mode=SelectorMode.ALL,\n                        filter=FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land')),\n                        zones=(Zone(kind=ZoneKind.HAND, controller=ControllerRef.TARGET_PLAYER),),\n                    ),\n                }),\n                A(Verb.MOVE_ZONE, {\n                    'cards': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAnd(children=()),\n                        zones=(Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),),\n                        referent='result',\n                    ),\n                    'controller': ControllerRef.TARGET_PLAYER,\n                    'destination': Zone(\n                        kind=ZoneKind.GRAVEYARD,\n                        controller=ControllerRef.TARGET_PLAYER,\n                    ),\n                    'from': Zone(kind=ZoneKind.HAND, controller=ControllerRef.TARGET_PLAYER),\n                }),\n            ),\n        ),\n    ),\n]\n",
   "clauses": [
    {
     "clause": "Target opponent reveals their hand.",
@@ -207,46 +224,9 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "Remap (blind review): 'Target opponent' is TARGET_OPPONENT on the reveal (was TARGET_PLAYER, which let the caster designate themself); the rest is M21 Duress's shape with the one-part filter 'nonland'."
+  "notes": "Re-mapped by ontology gate round W3 (DESIGN_ATOM_ONTOLOGY §19) from the stored tree: the reveal names the hand, reveal_hand(TARGET_OPPONENT). Nothing else changed."
  },
  "probe": {
-  "sha": "6ef377d113e979c235bc14689b61ef48ebfdc40e12e78ec11cb02209a98086aa"
- },
- "verified": {
-  "tree_sha": "dcc2475ddb50daea30c00cabd8e90c89809dff35228f59c32a3ec56826b3ed04",
-  "probe_sha": "6ef377d113e979c235bc14689b61ef48ebfdc40e12e78ec11cb02209a98086aa",
-  "date": "2026-11-06",
-  "reviewer": "claude-verifiers-r3",
-  "clauses": [
-   {
-    "clause": "Target opponent reveals their hand.",
-    "status": "OK",
-    "evidence": "target slot (cast): 1..1 of [opp], only the opponent (B5b-reveal-hand parse). The reveal itself is information only (a recorded no-op): no state or option changes.",
-    "issue": ""
-   },
-   {
-    "clause": "You choose a nonland card from it.",
-    "status": "NOT_EXERCISED",
-    "evidence": "Trace: ask choose [0, 1, opp_spare, opp_trick] (indices plus handle aliases, verbs.py:1923-1941), but the probe's opponent hand holds no land, so 'nonland' is untested. Packs (pass): pilfer_nonland_only, pilfer_land_never_offered (the ask offers exactly the two nonland cards), pilfer_only_lands_discards_nothing (no ask, nothing discarded). A widened-filter mutant is killed.",
-    "issue": ""
-   },
-   {
-    "clause": "That player discards that card.",
-    "status": "OK",
-    "evidence": "[cast | ask -> opp_spare/0]: 'opp_spare moves hand -> graveyard'; [-> opp_trick/1]: 'opp_trick moves hand -> graveyard'; opp hand 2 -> 1 (B5b-that-player-discards parse).",
-    "issue": ""
-   }
-  ],
-  "packs": [
-   "tools/scenarios/cards/FDN/pilfer_1.json",
-   "tools/scenarios/cards/FDN/pilfer_2.json",
-   "tools/scenarios/cards/FDN/pilfer_3.json"
-  ],
-  "mutation": {
-   "mutants": 5,
-   "killed": 5,
-   "score": 1.0,
-   "survived": []
-  }
+  "sha": "37db46ae176477bcd303915335c7fc61263681ac6baad8c13e776a6d9626af10"
  }
 }

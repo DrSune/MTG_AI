@@ -157,17 +157,35 @@
          "tag": "AtomArgs",
          "pairs": [
           [
-           "controller",
+           "cards",
            {
-            "tag": "ControllerRef",
-            "name": "YOU"
-           }
-          ],
-          [
-           "count",
-           {
-            "tag": "QConst",
-            "value": 1
+            "tag": "Selector",
+            "count": {
+             "tag": "QConst",
+             "value": 1
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "CHOOSE"
+            },
+            "filter": {
+             "tag": "FAnd",
+             "children": []
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "ANY"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "ANY"
+              }
+             }
+            ],
+            "referent": "result"
            }
           ]
          ]
@@ -305,9 +323,9 @@
   ]
  },
  "mapping": {
-  "author": "claude-mapper-m3",
-  "date": "2026-11-17",
-  "draft_py": "# FDN Campus Guide: \"When this creature enters, you may search your library for a basic land card,\n# reveal it, then shuffle and put that card on top.\"\n# M21 Cultivate's verified partition (B5b-search-one-other-shuffle): with a ONE_OF move among the\n# Seq's steps the SEARCH designates the found card without moving it, REVEAL shows it, and the\n# ONE_OF move (over the found set only, Executor._partition_step / selectors' search_found) puts\n# it where the text says. Here the shuffle comes between, as printed: the library is shuffled and\n# then the found card goes on top (Gutless Plunderer's move to Zone(LIBRARY, YOU, TOP)). The found\n# card is set aside in the text and shuffled in here before it moves; the library that results is\n# the same (the card on top, the rest in a random order). Optional as a whole (Solemn Simulacrum's\n# \"you may search\", B2b-etb-basic-land); \"basic land card\" is the compiler's FAnd(SUPERTYPE_EQ\n# Basic, TYPE_EQ Land).\nbasic_land = FAnd(\n    children=(\n        FAtom(pred=FAtomPred.SUPERTYPE_EQ, string_value='Basic'),\n        FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n    ),\n)\nTOP = Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU, position=ZonePosition.TOP)\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=OptionalEffect(\n        inner=Seq(\n            steps=(\n                A(Verb.SEARCH, {\n                    'cards': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=basic_land,\n                        zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),\n                    ),\n                    'destination': TOP,\n                }),\n                A(Verb.REVEAL, {'controller': ControllerRef.YOU, 'count': QConst(value=1)}),\n                A(Verb.SHUFFLE, {'zone': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU)}),\n                A(Verb.MOVE_ZONE, {\n                    'cards': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.ONE_OF,\n                        filter=basic_land,\n                        zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),\n                    ),\n                    'destination': TOP,\n                }),\n            ),\n        ),\n    ),\n)\nabilities = [etb, *compiled]\n",
+  "author": "claude-ontology-w3",
+  "date": "2026-11-18",
+  "draft_py": "# Patched by gate round W3 (DESIGN_ATOM_ONTOLOGY §19): REVEAL names the cards it shows.\n# FDN Campus Guide: the record's stored tree (rendered by render_records.py)\nkeywords = [\n]\nabilities = [\n    # [0]\n    TriggeredAbility(\n        event=ZoneChangeEvent(\n            from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n            to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n            subject=FAtom(pred=FAtomPred.IS_SOURCE),\n        ),\n        condition=None,\n        effect=OptionalEffect(\n            inner=Seq(\n                steps=(\n                    A(Verb.SEARCH, {\n                        'cards': Selector(\n                            count=QConst(value=1),\n                            mode=SelectorMode.CHOOSE,\n                            filter=FAnd(\n                                children=(\n                                    FAtom(pred=FAtomPred.SUPERTYPE_EQ, string_value='Basic'),\n                                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                                ),\n                            ),\n                            zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),\n                        ),\n                        'destination': Zone(\n                            kind=ZoneKind.LIBRARY,\n                            controller=ControllerRef.YOU,\n                            position=ZonePosition.TOP,\n                        ),\n                    }),\n                    reveal_result(),\n                    A(Verb.SHUFFLE, {\n                        'zone': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),\n                    }),\n                    A(Verb.MOVE_ZONE, {\n                        'cards': Selector(\n                            count=QConst(value=1),\n                            mode=SelectorMode.ONE_OF,\n                            filter=FAnd(\n                                children=(\n                                    FAtom(pred=FAtomPred.SUPERTYPE_EQ, string_value='Basic'),\n                                    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                                ),\n                            ),\n                            zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),\n                        ),\n                        'destination': Zone(\n                            kind=ZoneKind.LIBRARY,\n                            controller=ControllerRef.YOU,\n                            position=ZonePosition.TOP,\n                        ),\n                    }),\n                ),\n            ),\n        ),\n    ),\n    # [1]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "When this creature enters, you may search your library for a basic land card, reveal it, then shuffle and put that card on top.",
@@ -315,7 +333,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "No card of the 19 sets has 'then shuffle and put that card on top' parsed (Liliana Vess's -2 is unparsed). Written with M21 Cultivate's verified partition: with a ONE_OF move among the steps the SEARCH only designates the found card (Executor._partition_step), REVEAL shows it, the library is shuffled and the ONE_OF move (over the found set only) puts it on top (Zone(LIBRARY, YOU, TOP), Gutless Plunderer's move). The text sets the card aside during the shuffle; here it is shuffled with the rest and then moved: the resulting library is the same (that card on top, the rest in a random order), and the search still sees the library before the shuffle. Optional as a whole (Solemn Simulacrum). Packs: tools/scenarios/mapped/FDN/campus_guide_basic_land_goes_on_top_after_the_shuffle.json, tools/scenarios/mapped/FDN/campus_guide_declined_leaves_the_library_alone.json, tools/scenarios/mapped/FDN/campus_guide_offers_only_basic_lands.json."
+  "notes": "Re-mapped by ontology gate round W3 (DESIGN_ATOM_ONTOLOGY §19) from the stored tree: \"reveal it|them\" is reveal_result(), the cards the search found. Nothing else changed."
  },
  "probe": {
   "sha": "2535609a98694fd99422fbcaefc28a4a5c0df47ac06a2b46573d46fd6a2599f6"

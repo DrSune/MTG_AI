@@ -4,9 +4,124 @@
  "oracle_id": "95b53836-18aa-451a-992d-2a111deeeab2",
  "name": "Yarok, the Desecrated",
  "text_sha": "e3d1f6af676d9f8489dc1843583f04d80c551f391a658c860cb3756a9996fb7d",
- "needs_atom": {
-  "missing": "A trigger-cause axis on AbilityTriggerEvent: 'If a permanent entering causes a triggered ability of a permanent you control to trigger, that ability triggers an additional time' (Panharmonicon family, CR 603.2) applies only to triggers whose triggering event is a permanent entering the battlefield. AbilityTriggerEvent(filter) reads only the triggering ability's SOURCE permanent (binding._fan_ability_triggers), and no condition predicate reads the triggering event, so the Sanctum of All shape (AbilityTriggerEvent(CONTROLLER_IS YOU) -> TRIGGER_ADDITIONAL 1) would double every trigger of every permanent you control (attacks, upkeep, dies...): stronger than printed. Needs e.g. AbilityTriggerEvent.cause: an EventSpec the original triggering event must match (ZoneChangeEvent to the battlefield, any permanent). Deathtouch and lifelink are compiled.",
-  "author": "claude-mapper-m20-2",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "DEATHTOUCH"
+    },
+    "params": []
+   },
+   {
+    "tag": "KeywordAbility",
+    "keyword": {
+     "tag": "Keyword",
+     "name": "LIFELINK"
+    },
+    "params": []
+   }
+  ],
+  "abilities": [
+   {
+    "tag": "StaticAbility",
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "TRIGGER_ADDITIONAL"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "event",
+        {
+         "tag": "AbilityTriggerEvent",
+         "filter": {
+          "tag": "FAtom",
+          "pred": {
+           "tag": "FAtomPred",
+           "name": "CONTROLLER_IS"
+          },
+          "string_value": null,
+          "color": null,
+          "colors": [],
+          "count": null,
+          "counter_kind": null,
+          "keyword": null,
+          "who": {
+           "tag": "ControllerRef",
+           "name": "YOU"
+          },
+          "inner_filter": null
+         },
+         "cause": {
+          "tag": "ZoneChangeEvent",
+          "from_zone": {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "ANY"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          },
+          "to_zone": {
+           "tag": "Zone",
+           "kind": {
+            "tag": "ZoneKind",
+            "name": "BATTLEFIELD"
+           },
+           "controller": {
+            "tag": "ControllerRef",
+            "name": "ANY"
+           }
+          }
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "CREATURE"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-ontology-w3",
+  "date": "2026-11-18",
+  "draft_py": "# M20 Yarok, the Desecrated: the compiler builds the whole card since ontology gate round W3\n# (DESIGN_ATOM_ONTOLOGY §19): Deathtouch and lifelink are compiled, and \"If a permanent entering\n# causes a triggered ability of a permanent you control to trigger, that ability triggers an\n# additional time.\" is B5b-entering-extra-trigger: a static TRIGGER_ADDITIONAL whose\n# AbilityTriggerEvent names the abilities of the permanents you control (CONTROLLER_IS YOU) and,\n# as its cause, the event they triggered on, a ZoneChangeEvent to the battlefield (CR 603.2d).\nabilities = compiled\n",
+  "clauses": [
+   {
+    "clause": "Deathtouch, lifelink",
+    "ir": "keywords[0]"
+   },
+   {
+    "clause": "If a permanent entering causes a triggered ability of a permanent you control to trigger, that ability triggers an additional time.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Re-mapped by ontology gate round W3 (DESIGN_ATOM_ONTOLOGY §19) from the stored tree: the needs-atom note's trigger-cause axis is AbilityTriggerEvent.cause; the compiler's tree (B5b-entering-extra-trigger), a static TRIGGER_ADDITIONAL. Nothing else changed."
+ },
+ "probe": {
+  "sha": "9686cd6010e001d48add97a8b4522b42271c1b5a6e36a65320cd4d7eb22375ca"
  }
 }

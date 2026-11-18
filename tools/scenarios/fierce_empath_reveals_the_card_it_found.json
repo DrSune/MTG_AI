@@ -1,0 +1,11 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Fierce Empath (CR 701.20a). Printed: 'When this creature enters, you may search your library for a creature card with mana value 6 or greater, reveal it, put it into your hand, then shuffle.' 'Reveal it' shows the card found (Pursued Whale), never the library's top card after the search (Llanowar Visionary, the top card here). On main 0b7f9c22 the reveal read the library's top card. Gate round W3, DESIGN_ATOM_ONTOLOGY §19.",
+ "cards": [
+  {"key": "empath", "real": "Fierce Empath", "zone": "hand", "controller": 0},
+  {"key": "whale", "real": "Pursued Whale", "zone": "library", "controller": 0},
+  {"key": "top", "real": "Llanowar Visionary", "zone": "library", "controller": 0}
+ ],
+ "steps": [{"op": "enter", "key": "empath", "decisions": ["fire", "whale"]}],
+ "expect": {"zone": {"whale": "hand", "top": "library"}, "revealed": {"whale": true, "top": false}}
+}

@@ -28,7 +28,6 @@ from MTG_bot.core.ability_tree import (
     CostSacrifice,
     CostTap,
     CounterKind,
-    CounterPlacedEvent,
     CreatureDiesEvent,
     DeclareBlockersEvent,
     DurationEot,
@@ -61,6 +60,7 @@ from MTG_bot.core.ability_tree import (
     Seq,
     SpellAbility,
     SpellKind,
+    StateTrigger,
     StaticAbility,
     TokenSpec,
     TriggeredAbility,
@@ -73,6 +73,7 @@ from MTG_bot.core.ability_tree import (
     at_least,
     canonical_json,
     fingerprint,
+    reveal_hand,
 )
 from MTG_bot.core.compiler import templates_b2a
 from MTG_bot.core.compiler.compiler import compile_card
@@ -700,38 +701,39 @@ class TestB2aTriggerEvents(unittest.TestCase):
         self.assertEqual(event.to_zone, Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU))
         self.assertEqual(event.from_zone, Zone(ZoneKind.ANY, ControllerRef.ANY))
 
-    def test_mazemind_is_counter_placed_page(self) -> None:
+    def test_mazemind_is_a_state_trigger_on_page_counters(self) -> None:
         ability = _ability(
             _single_match(
                 self.reg,
                 "When there are four or more page counters on this artifact, exile it.",
             )
         )
-        event = ability.event
-        assert isinstance(event, CounterPlacedEvent)
-        self.assertIs(event.counter_kind, CounterKind.PAGE)
-        # The source, with four or more page counters: the threshold is part of the trigger
-        # event (a state trigger, CR 603.8), never re-read as the ability resolves.
+        # A state trigger (CR 603.8, DESIGN_ATOM_ONTOLOGY §19): four or more page counters on the
+        # object with the ability, checked as players would receive priority, never re-read as
+        # the ability resolves.
         self.assertEqual(
-            event.filter,
-            FAnd(
-                children=(
-                    FAtom(pred=FAtomPred.IS_SOURCE),
-                    FAtom(pred=FAtomPred.HAS_COUNTER, counter_kind=CounterKind.PAGE, count=QConst(4)),
-                )
+            ability.event,
+            StateTrigger(
+                filter=FAtom(pred=FAtomPred.HAS_COUNTER, counter_kind=CounterKind.PAGE, count=QConst(4))
             ),
         )
+        self.assertIsNone(ability.condition)
 
-    def test_nine_lives_is_counter_placed_incarnation(self) -> None:
+    def test_nine_lives_is_a_state_trigger_on_incarnation_counters(self) -> None:
         ability = _ability(
             _single_match(
                 self.reg,
                 "When there are nine or more incarnation counters on this enchantment, exile it.",
             )
         )
-        event = ability.event
-        assert isinstance(event, CounterPlacedEvent)
-        self.assertIs(event.counter_kind, CounterKind.INCARNATION)
+        self.assertEqual(
+            ability.event,
+            StateTrigger(
+                filter=FAtom(
+                    pred=FAtomPred.HAS_COUNTER, counter_kind=CounterKind.INCARNATION, count=QConst(9)
+                )
+            ),
+        )
 
     def test_deathbloom_is_creature_dies(self) -> None:
         ability = _ability(
@@ -1541,17 +1543,15 @@ class TestB2aEffectStructure(unittest.TestCase):
         self.assertEqual(_qconst(atom, "count"), QConst(2))
         self.assertIs(atom.args.get("controller"), ControllerRef.YOU)
 
-    def test_kitesail_reveals_unbounded_hand(self) -> None:
+    def test_kitesail_reveals_the_targets_hand(self) -> None:
         ability = _ability(
             _single_match(
                 self.reg,
                 "When this creature enters, target opponent reveals their hand.",
             )
         )
-        atom = _atom(ability)
-        self.assertIs(atom.verb, Verb.REVEAL)
-        self.assertIs(atom.args.get("controller"), ControllerRef.TARGET_OPPONENT)
-        self.assertIsInstance(atom.args.get("count"), QUnbounded)
+        # the hand, every card of it (DESIGN_ATOM_ONTOLOGY §19): never the library
+        self.assertEqual(_atom(ability), reveal_hand(ControllerRef.TARGET_OPPONENT))
 
     def test_aven_gagglemaster_gain_life_qbin_mul_flying(self) -> None:
         ability = _ability(

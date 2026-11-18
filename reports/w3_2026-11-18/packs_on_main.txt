@@ -1,0 +1,30 @@
+    assert not ['revealed[shock]: expected True, got False', 'revealed[bear]: expected True, got False', 'revealed[deep]: expected False, got True']
+/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w3/base/MTG_bot/core/test_scenario_packs.py:50: AssertionError: revealed[shock]: expected True, got False
+E   AssertionError: revealed[whale]: expected True, got False
+      revealed[top]: expected False, got True
+    assert not ['revealed[whale]: expected True, got False', 'revealed[top]: expected False, got True']
+/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w3/base/MTG_bot/core/test_scenario_packs.py:50: AssertionError: revealed[whale]: expected True, got False
+E   AssertionError: zone[nine]: expected exile, got battlefield
+      lost[0]: expected True, got False
+    assert not ['zone[nine]: expected exile, got battlefield', 'lost[0]: expected True, got False']
+/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w3/base/MTG_bot/core/test_scenario_packs.py:50: AssertionError: zone[nine]: expected exile, got battlefield
+E   AssertionError: step {'op': 'advance_turn', 'decisions': ['skip']}: ValueError: executor: trigger:player:0:aebe25776d97 needs a decision from ('card:1', 'card:0'), nothing is primed and no answerer is registered
+      expect lanes this runner never checks: ['life', 'zone']
+    assert not ["step {'op': 'advance_turn', 'decisions': ['skip']}: ValueError: executor: trigger:player:0:aebe25776d97 needs a deci...'card:0'), nothing is primed and no answerer is registered", "expect lanes this runner never checks: ['life', 'zone']"]
+/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w3/base/MTG_bot/core/test_scenario_packs.py:50: AssertionError: step {'op': 'advance_turn', 'decisions': ['skip']}: ValueError: executor: trigger:player:0:aebe25776d97 needs a decision from ('card:1', 'card:0'), nothing is primed and no answerer is registered
+E   AssertionError: revealed[reclaimer]: expected True, got False
+      revealed[forest]: expected False, got True
+    assert not ['revealed[reclaimer]: expected True, got False', 'revealed[forest]: expected False, got True']
+/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w3/base/MTG_bot/core/test_scenario_packs.py:67: AssertionError: revealed[reclaimer]: expected True, got False
+E   AssertionError: tokens[Spirit]: expected 2, got 1
+    assert not ['tokens[Spirit]: expected 2, got 1']
+/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w3/base/MTG_bot/core/test_scenario_packs.py:67: AssertionError: tokens[Spirit]: expected 2, got 1
+=========================== short test summary info ============================
+FAILED MTG_bot/core/test_scenario_packs.py::test_pack[basris_aegis_graveyard_search_reveals_the_card_found]
+FAILED MTG_bot/core/test_scenario_packs.py::test_pack[duress_reveals_the_hand_not_the_library]
+FAILED MTG_bot/core/test_scenario_packs.py::test_pack[fierce_empath_reveals_the_card_it_found]
+FAILED MTG_bot/core/test_scenario_packs.py::test_pack[nine_lives_countered_exile_trigger_triggers_again]
+FAILED MTG_bot/core/test_scenario_packs.py::test_pack[sanctum_of_all_copy_goes_with_the_original]
+FAILED MTG_bot/core/test_scenario_packs.py::test_mapped_pack[mapped/M20/brightwood_tracker_reveals_the_card_picked]
+FAILED MTG_bot/core/test_scenario_packs.py::test_mapped_pack[mapped/M20/yarok_doubles_an_entering_creatures_trigger]
+7 failed, 1 passed, 3220 deselected in 3.11s

@@ -72,6 +72,7 @@ from MTG_bot.core.ability_tree import (
     at_least,
     canonical_json,
     number_you_control,
+    reveal_hand,
 )
 from MTG_bot.core.compiler.compiler import compile_card
 from MTG_bot.core.compiler.ingest import RawCard
@@ -596,9 +597,10 @@ def _as_static(ab: Any) -> StaticAbility:
 class TestTemplateInventory(unittest.TestCase):
     """Verify the B5b template collection is well-formed."""
 
-    def test_79_templates(self) -> None:
-        # 80 until ontology round R13 moved the spell's rider to templates_b19
-        self.assertEqual(len(TEMPLATES), 79)
+    def test_80_templates(self) -> None:
+        # 80 until ontology round R13 moved the spell's rider to templates_b19; 80 again since
+        # gate round W3's B5b-entering-extra-trigger (DESIGN_ATOM_ONTOLOGY §19)
+        self.assertEqual(len(TEMPLATES), 80)
 
     def test_unique_tids(self) -> None:
         tids = [t.tid for t in TEMPLATES]
@@ -614,7 +616,7 @@ class TestTemplateInventory(unittest.TestCase):
 
     def test_registry_accepts_all(self) -> None:
         reg = _make_registry()
-        self.assertEqual(len(reg), 79)
+        self.assertEqual(len(reg), 80)
 
 
 # ---------------------------------------------------------------------------
@@ -1182,14 +1184,14 @@ class TestStructuralAssertions(unittest.TestCase):
         self.assertEqual(target.count, QAtMost(2))
 
     def test_reveal_hand(self) -> None:
-        """B5b-reveal-hand: REVEAL, TARGET_OPPONENT, QUnbounded."""
+        """B5b-reveal-hand: REVEAL of ALL the cards of the target opponent's hand
+        (DESIGN_ATOM_ONTOLOGY §19), never the library."""
         outcome = self._match_outcome("B5b-reveal-hand")
-        eff = _as_effect(outcome)
-        atom = _as_atom(eff.effect)
-        self.assertEqual(atom.verb, Verb.REVEAL)
-        p = _pairs_dict(atom)
-        self.assertEqual(p["controller"], ControllerRef.TARGET_OPPONENT)
-        self.assertIsInstance(p["count"], QUnbounded)
+        atom = _as_atom(_as_effect(outcome).effect)
+        self.assertEqual(atom, reveal_hand(ControllerRef.TARGET_OPPONENT))
+        hand = _pairs_dict(atom)["cards"]
+        self.assertEqual(hand.zones, (Zone(ZoneKind.HAND, ControllerRef.TARGET_OPPONENT),))
+        self.assertIs(hand.mode, SelectorMode.ALL)
 
     def test_sacr_flying(self) -> None:
         """B5b-sacr-flying: the target opponent sacrifices one of their fliers,

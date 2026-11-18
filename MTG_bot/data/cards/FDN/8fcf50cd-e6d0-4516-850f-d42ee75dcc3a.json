@@ -148,17 +148,35 @@
         "tag": "AtomArgs",
         "pairs": [
          [
-          "controller",
+          "cards",
           {
-           "tag": "ControllerRef",
-           "name": "YOU"
-          }
-         ],
-         [
-          "count",
-          {
-           "tag": "QConst",
-           "value": 1
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "CHOOSE"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "ANY"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ],
+           "referent": "result"
           }
          ]
         ]
@@ -203,9 +221,9 @@
   ]
  },
  "mapping": {
-  "author": "claude-mapper-m7",
-  "date": "2026-11-17",
-  "draft_py": "SELF = Selector(\n    count=QConst(value=1),\n    mode=SelectorMode.CHOOSE,\n    filter=FAtom(pred=FAtomPred.IS_SOURCE),\n    zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n)\ntutor_land = ActivatedAbility(\n    cost=Cost(parts=(CostManaGeneric(amount=QConst(value=2)), CostTap(), CostSacrifice(target=SELF))),\n    effect=Seq(\n        steps=(\n            A(Verb.SEARCH, {\n                'cards': Selector(\n                    count=QConst(value=1),\n                    mode=SelectorMode.CHOOSE,\n                    filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                    zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),\n                ),\n                'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n            }),\n            A(Verb.REVEAL, {'controller': ControllerRef.YOU, 'count': QConst(value=1)}),\n            A(Verb.SHUFFLE, {'zone': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU)}),\n        ),\n    ),\n)\nabilities = [tutor_land, *compiled]\n",
+  "author": "claude-ontology-w3",
+  "date": "2026-11-18",
+  "draft_py": "# Patched by gate round W3 (DESIGN_ATOM_ONTOLOGY §19): REVEAL names the cards it shows.\n# FDN Expedition Map: the record's stored tree (rendered by render_records.py)\nkeywords = [\n]\nabilities = [\n    # [0]\n    ActivatedAbility(\n        cost=Cost(\n            parts=(\n                CostManaGeneric(amount=QConst(value=2)),\n                CostSacrifice(\n                    target=Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAtom(pred=FAtomPred.IS_SOURCE),\n                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),\n                    ),\n                ),\n                CostTap(),\n            ),\n        ),\n        effect=Seq(\n            steps=(\n                A(Verb.SEARCH, {\n                    'cards': Selector(\n                        count=QConst(value=1),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land'),\n                        zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),\n                    ),\n                    'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n                }),\n                reveal_result(),\n                A(Verb.SHUFFLE, {'zone': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU)}),\n            ),\n        ),\n    ),\n    # [1]\n    SpellAbility(kind=SpellKind.ARTIFACT),\n]\n",
   "clauses": [
    {
     "clause": "{2}, {T}, Sacrifice this artifact: Search your library for a land card, reveal it, put it into your hand, then shuffle.",
@@ -213,7 +231,7 @@
    }
   ],
   "g0_warnings": [],
-  "notes": "Fierce Empath's search, reveal, shuffle. Pack: tools/scenarios/mapped/FDN/expedition_map_finds_a_land_into_hand.json."
+  "notes": "Re-mapped by ontology gate round W3 (DESIGN_ATOM_ONTOLOGY §19) from the stored tree: \"reveal it|them\" is reveal_result(), the cards the search found. Nothing else changed."
  },
  "probe": {
   "sha": "4d5a2095fc72867469ed487494100c5e9fa46d26b6632ccf1b0f999c56aa3523"

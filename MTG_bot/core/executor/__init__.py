@@ -2008,14 +2008,16 @@ class Executor:
     def _priority_check(self) -> None:
         """CR 117.5, the check made each time a player would receive
         priority: the state-based actions (CR 704.3, repeated until none
-        applies), then every ability that triggered since the last check goes
-        on the stack (CR 603.3, ``TriggerBinder.put_waiting``), and again,
-        until neither happens. Putting a trigger on the stack can itself
+        applies), the state triggers whose state holds (CR 603.8,
+        ``TriggerBinder.check_states``), then every ability that triggered since
+        the last check goes on the stack (CR 603.3, ``TriggerBinder.put_waiting``),
+        and again, until neither happens. Putting a trigger on the stack can itself
         trigger ("becomes the target"). While an effect ends the turn the
         binder holds the triggers (CR 724.1c)."""
         while True:
             self.binder.on_events()
             self._state_checks()
+            self.binder.check_states()
             if self.binder.hold or not self.world.triggers:
                 break
             self.binder.put_waiting()

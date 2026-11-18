@@ -1,0 +1,10 @@
+{"set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Yarok, the Desecrated (CR 603.2d; its record, the compiler's tree since gate round W3). Printed: 'If a permanent entering causes a triggered ability of a permanent you control to trigger, that ability triggers an additional time.' Hanged Executioner enters under seat 0's control: its 'When this creature enters, create a 1/1 white Spirit creature token with flying.' triggers twice, two Spirits. On main 0b7f9c22 Yarok's record was a needs-atom note: no Yarok to play. Falsifier: yarok_leaves_an_opponents_trigger_alone.",
+ "cards": [
+  {"key": "yarok", "real": "Yarok, the Desecrated", "zone": "battlefield", "controller": 0},
+  {"key": "exec", "real": "Hanged Executioner", "zone": "hand", "controller": 0}
+ ],
+ "steps": [{"op": "enter", "key": "exec"}],
+ "expect": {"zone": {"exec": "battlefield"}, "tokens": {"Spirit": 2}}
+}

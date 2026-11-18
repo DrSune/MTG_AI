@@ -1,0 +1,10 @@
+the state as a counter placement (old Nine Lives): refused: CounterPlacedEvent: a filter testing how many counters of its own kind the object has is a state trigger's (St
+the carrier trigger (old Sanctum of All): refused: AbilityTriggerEvent: a test that reads no subject (a count, a turn) is the static's condition, never a conjunc
+an ability triggering as a delayed trigger's event: refused: DelayedTrigger: event must be an EventSpec a delayed trigger can match, got AbilityTriggerEvent
+an ability triggering as a prevention's event: refused: Atom: PREVENT_EFFECT's event cannot be a AbilityTriggerEvent: only TRIGGER_ADDITIONAL reads an ability trigger
+TRIGGER_ADDITIONAL with no event: refused: Atom: TRIGGER_ADDITIONAL missing required roles ['event']
+TRIGGER_ADDITIONAL with count 0: refused: Atom: TRIGGER_ADDITIONAL missing required roles ['event']
+the hand reveal as the whole library (old Duress): refused: Atom: REVEAL: `count` is how many cards from the top; a whole hand or the cards found are `cards`
+a look at the whole library: refused: Atom: LOOK_AT: `count` is how many cards from the top; a whole hand or the cards found are `cards`
+a top-1 reveal after a look (old pick reveal): refused: Seq: a card revealed after a look or a search is the pick's or the find's: REVEAL(cards=RESULT_REFERENT), neve
+a top-1 reveal after a search (old named tutor's "reveal it"): refused: Seq: a card revealed after a look or a search is the pick's or the find's: REVEAL(cards=RESULT_REFERENT), neve

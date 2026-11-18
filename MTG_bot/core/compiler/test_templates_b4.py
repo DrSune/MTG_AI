@@ -57,6 +57,7 @@ from MTG_bot.core.ability_tree import (
     ZonePosition,
     canonical_json,
     fingerprint,
+    reveal_result,
 )
 from MTG_bot.core.compiler import templates_b4
 from MTG_bot.core.compiler.templates import (
@@ -1117,10 +1118,8 @@ class TestB4IrStructure(unittest.TestCase):
         assert isinstance(dest, Zone)
         self.assertIs(dest.kind, ZoneKind.HAND)
         self.assertIs(dest.controller, ControllerRef.YOU)
-        # REVEAL
-        self.assertIs(reveal_atom.verb, Verb.REVEAL)
-        self.assertIs(_pairs(reveal_atom).get("controller"), ControllerRef.YOU)
-        self.assertEqual(_qconst(_pairs(reveal_atom).get("count")).value, 1)
+        # REVEAL of the card found ("reveal it", DESIGN_ATOM_ONTOLOGY §19)
+        self.assertEqual(reveal_atom, reveal_result())
 
     # ------------------------------------------------------------------
     # Blocked-side restrictions, MANDATE_BLOCK, ETB X-counters
@@ -1273,10 +1272,10 @@ class TestB4Round7AnaphoraIr(unittest.TestCase):
         opt = outcome.effect
         assert isinstance(opt, OptionalEffect)
         seq = _as_seq(opt.inner)
-        reveal = _as_atom(seq.steps[0])
-        self.assertIs(reveal.verb, Verb.REVEAL)
-        move = _as_atom(seq.steps[1])
+        # the pick's move, then the reveal of what it picked (DESIGN_ATOM_ONTOLOGY §19)
+        move = _as_atom(seq.steps[0])
         self.assertIs(move.verb, Verb.MOVE_ZONE)
+        self.assertEqual(seq.steps[1], reveal_result())
         cards = _selector(move, "cards")
         self.assertIs(cards.mode, SelectorMode.ONE_OF)
         self.assertIsInstance(cards.count, QConst)

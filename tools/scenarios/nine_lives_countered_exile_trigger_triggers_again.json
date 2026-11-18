@@ -1,0 +1,16 @@
+{"set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Nine Lives (CR 603.8, a state trigger; the card's ruling). Printed: 'When there are nine or more incarnation counters on this enchantment, exile it.' and 'When this enchantment leaves the battlefield, you lose the game.' With eight counters, seat 1's Shock at seat 0 is prevented and puts the ninth counter on (the replacement); the exile trigger goes on the stack (seat 1 holds priority). Seat 1 counters it with Sublime Epiphany's 'Counter target activated or triggered ability' (the word '1'). Nine counters remain, so the state trigger triggers again at once (CR 603.8: once its instance has left the stack and the state still holds), Nine Lives is exiled and seat 0 loses the game. On main 0b7f9c22 the trigger was a counter-placed one: countered, it never came back, and Nine Lives stayed on the battlefield for good (stronger than printed). Gate round W3, DESIGN_ATOM_ONTOLOGY §19.",
+ "cards": [
+  {"key": "nine", "real": "Nine Lives", "zone": "battlefield", "controller": 0, "counters": {"INCARNATION": 8}},
+  {"key": "shock", "real": "Shock", "zone": "hand", "controller": 1},
+  {"key": "se", "real": "Sublime Epiphany", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"1": {"R": 1, "U": 6}},
+ "steps": [
+  {"op": "cast", "key": "shock", "controller": 1, "targets": ["p0"], "hold": true},
+  {"op": "resolve", "hold": true},
+  {"op": "cast", "key": "se", "controller": 1, "targets": ["ability:nine"], "decisions": ["1"]}
+ ],
+ "expect": {"zone": {"nine": "exile", "se": "graveyard"}, "life": {"0": 20}, "lost": {"0": true}}
+}

@@ -1,0 +1,546 @@
+compiler trees changed (50):
+   10E Distress
+   DOM Divest
+   DOM Naban, Dean of Iteration
+   ELD Covetous Urge
+   ELD Memory Theft
+   ELD Rowan's Stalwarts
+   ELD Specter's Shriek
+   FDN Duress
+   FDN Fierce Empath
+   FDN Mazemind Tome
+   FDN Pilfer
+   IKO Memory Leak
+   M10 Duress
+   M11 Cultivate
+   M11 Duress
+   M12 Distress
+   M13 Duress
+   M13 Mindclaw Shaman
+   M14 Duress
+   M14 Lifebane Zombie
+   M19 Duress
+   M20 Duress
+   M20 Ethereal Elk
+   M20 Goldmane Griffin
+   M20 Icon of Ancestry
+   M20 Sorin's Guide
+   M20 Thought Distortion
+   M20 Yanling's Harbinger
+   M20 Yarok, the Desecrated
+   M21 Alpine Houndmaster
+   M21 Basri's Aegis
+   M21 Chandra's Firemaw
+   M21 Cultivate
+   M21 Duress
+   M21 Fierce Empath
+   M21 Garruk's Harbinger
+   M21 Garruk's Warsteed
+   M21 Kitesail Freebooter
+   M21 Liliana's Scorn
+   M21 Mazemind Tome
+   M21 Nine Lives
+   M21 Sanctum of All
+   M21 Teferi's Wavecaster
+   ORI Nightsnare
+   THB Agonizing Remorse
+   THB Ashiok's Forerunner
+   THB Elspeth's Devotee
+   WAR Toll of the Invasion
+   ZNR Ancient Greenwarden
+   ZNR Pelakka Predation // Pelakka Caverns
+trees with records applied changed (60):
+   10E Distress compiler -> compiler unverified
+   DOM Divest compiler -> compiler unverified
+   DOM Naban, Dean of Iteration compiler -> compiler unverified
+   ELD Covetous Urge compiler -> compiler unverified
+   ELD Memory Theft compiler -> compiler unverified
+   ELD Rowan's Stalwarts compiler -> compiler unverified
+   ELD Specter's Shriek compiler -> compiler unverified
+   FDN Campus Guide record -> record unverified
+   FDN Duress compiler -> compiler verified
+   FDN Expedition Map record -> record unverified
+   FDN Fierce Empath compiler -> compiler verified
+   FDN Loot, Exuberant Explorer record -> record unverified
+   FDN Mazemind Tome compiler -> compiler verified
+   FDN Micromancer record -> record unverified
+   FDN Pilfer record -> record verified
+   FDN Squad Rallier record -> record unverified
+   FDN Vivien Reid record -> record verified
+   IKO Memory Leak compiler -> compiler unverified
+   M10 Duress compiler -> compiler verified
+   M11 Cultivate compiler -> compiler verified
+   M11 Duress compiler -> compiler verified
+   M12 Distress compiler -> compiler unverified
+   M13 Duress compiler -> compiler verified
+   M13 Mindclaw Shaman compiler -> compiler unverified
+   M14 Duress compiler -> compiler verified
+   M14 Lifebane Zombie compiler -> compiler unverified
+   M19 Duress compiler -> compiler verified
+   M19 Vivien Reid record -> record verified
+   M20 Battalion Foot Soldier record -> record verified
+   M20 Brightwood Tracker record -> record verified
+   M20 Chandra's Flame Wave record -> record verified
+   M20 Duress compiler -> compiler verified
+   M20 Ethereal Elk compiler -> compiler verified
+   M20 Goldmane Griffin compiler -> compiler verified
+   M20 Icon of Ancestry record -> record verified
+   M20 Sorin's Guide compiler -> compiler verified
+   M20 Thought Distortion record -> record verified
+   M20 Yanling's Harbinger compiler -> compiler verified
+   M20 Yarok, the Desecrated needs-atom record -> record unverified
+   M21 Alpine Houndmaster compiler -> compiler verified
+   M21 Basri's Aegis compiler -> compiler verified
+   M21 Chandra's Firemaw compiler -> compiler verified
+   M21 Cultivate compiler -> compiler verified
+   M21 Duress compiler -> compiler verified
+   M21 Fierce Empath compiler -> compiler verified
+   M21 Garruk's Harbinger compiler -> compiler verified
+   M21 Garruk's Warsteed compiler -> compiler verified
+   M21 Kitesail Freebooter compiler -> compiler verified
+   M21 Liliana's Scorn compiler -> compiler verified
+   M21 Mazemind Tome compiler -> compiler verified
+   M21 Nine Lives compiler -> compiler verified
+   M21 Sanctum of All compiler -> compiler verified
+   M21 Teferi's Wavecaster compiler -> compiler verified
+   ORI Nightsnare compiler -> compiler unverified
+   THB Agonizing Remorse compiler -> compiler unverified
+   THB Ashiok's Forerunner compiler -> compiler unverified
+   THB Elspeth's Devotee compiler -> compiler unverified
+   WAR Toll of the Invasion compiler -> compiler unverified
+   ZNR Ancient Greenwarden compiler -> compiler unverified
+   ZNR Pelakka Predation // Pelakka Caverns compiler -> compiler unverified
+compiler: fewer unparsed sentences (6):
+   10E Distress 3 -> 2
+   DOM Divest 3 -> 2
+   DOM Naban, Dean of Iteration 1 -> 0
+   M12 Distress 3 -> 2
+   M20 Yarok, the Desecrated 1 -> 0
+   ZNR Ancient Greenwarden 1 -> 0
+compiler: newly compiling whole (3): [('DOM', 'Naban, Dean of Iteration'), ('M20', 'Yarok, the Desecrated'), ('ZNR', 'Ancient Greenwarden')]
+verified cards leaving the verified pool (36): [('FDN', 'Duress'), ('FDN', 'Fierce Empath'), ('FDN', 'Mazemind Tome'), ('FDN', 'Pilfer'), ('FDN', 'Vivien Reid'), ('M10', 'Duress'), ('M11', 'Cultivate'), ('M11', 'Duress'), ('M13', 'Duress'), ('M14', 'Duress'), ('M19', 'Duress'), ('M19', 'Vivien Reid'), ('M20', 'Battalion Foot Soldier'), ('M20', 'Brightwood Tracker'), ('M20', "Chandra's Flame Wave"), ('M20', 'Duress'), ('M20', 'Ethereal Elk'), ('M20', 'Goldmane Griffin'), ('M20', 'Icon of Ancestry'), ('M20', "Sorin's Guide"), ('M20', 'Thought Distortion'), ('M20', "Yanling's Harbinger"), ('M21', 'Alpine Houndmaster'), ('M21', "Basri's Aegis"), ('M21', "Chandra's Firemaw"), ('M21', 'Cultivate'), ('M21', 'Duress'), ('M21', 'Fierce Empath'), ('M21', "Garruk's Harbinger"), ('M21', "Garruk's Warsteed"), ('M21', 'Kitesail Freebooter'), ('M21', "Liliana's Scorn"), ('M21', 'Mazemind Tome'), ('M21', 'Nine Lives'), ('M21', 'Sanctum of All'), ('M21', "Teferi's Wavecaster")]
+verified cards joining (0): []
+still-verified cards (unchanged bytes) whose tree reads a changed engine path (422):
+   10E Gravedigger ['trigger']
+   10E Quirion Dryad ['trigger']
+   DOM Deathbloom Thallid ['trigger']
+   DOM Keldon Raider ['trigger']
+   DOM Opt ['scry']
+   ELD Opt ['scry']
+   ELD Syr Alin, the Lion's Claw ['trigger']
+   ELD Thornwood Falls ['trigger']
+   ELD Wind-Scarred Crag ['trigger']
+   FDN Adventuring Gear ['trigger']
+   FDN Affectionate Indrik ['trigger']
+   FDN Ajani's Pridemate ['trigger']
+   FDN Ambush Wolf ['trigger']
+   FDN Ancestor Dragon ['trigger']
+   FDN Apothecary Stomper ['trigger']
+   FDN Arbiter of Woe ['trigger']
+   FDN Archway Angel ['trigger']
+   FDN Ball Lightning ['trigger']
+   FDN Banishing Light ['trigger']
+   FDN Battle-Rattle Shaman ['trigger']
+   FDN Battlesong Berserker ['trigger']
+   FDN Bigfin Bouncer ['trigger']
+   FDN Bloodfell Caves ['trigger']
+   FDN Bloodtithe Collector ['trigger']
+   FDN Blossoming Sands ['trigger']
+   FDN Brineborn Cutthroat ['trigger']
+   FDN Burglar Rat ['trigger']
+   FDN Burrog Befuddler ['trigger']
+   FDN Clinquant Skymage ['trigger']
+   FDN Cloudblazer ['trigger']
+   FDN Corsair Captain ['trigger']
+   FDN Crossway Troublemakers ['trigger']
+   FDN Crow of Dark Tidings ['trigger']
+   FDN Dauntless Veteran ['trigger']
+   FDN Dazzling Angel ['trigger']
+   FDN Devout Decree ['scry']
+   FDN Diamond Mare ['trigger']
+   FDN Dismal Backwater ['trigger']
+   FDN Dragon Mage ['trigger']
+   FDN Dragon Trainer ['trigger']
+   FDN Drakuseth, Maw of Flames ['trigger']
+   FDN Drogskol Reaver ['trigger']
+   FDN Dwynen, Gilt-Leaf Daen ['trigger']
+   FDN Elvish Regrower ['trigger']
+   FDN Erudite Wizard ['trigger']
+   FDN Exclusion Mage ['trigger']
+   FDN Fake Your Own Death ['trigger']
+   FDN Felidar Savior ['trigger']
+   FDN Firebrand Archer ['trigger']
+   FDN Firespitter Whelp ['trigger']
+   FDN Garruk's Uprising ['trigger']
+   FDN Gleaming Barrier ['trigger']
+   FDN Goldvein Pick ['trigger']
+   FDN Gorehorn Raider ['trigger']
+   FDN Guarded Heir ['trigger']
+   FDN Guttersnipe ['trigger']
+   FDN Halana and Alena, Partners ['trigger']
+   FDN Hare Apparent ['trigger']
+   FDN Helpful Hunter ['trigger']
+   FDN Herald of Faith ['trigger']
+   FDN High-Society Hunter ['trigger']
+   FDN Icewind Elemental ['trigger']
+   FDN Impact Tremors ['trigger']
+   FDN Infestation Sage ['trigger']
+   FDN Inspiring Overseer ['trigger']
+   FDN Jungle Hollow ['trigger']
+   FDN Linden, the Steadfast Queen ['trigger']
+   FDN Maalfeld Twins ['trigger']
+   FDN Marauding Blight-Priest ['trigger']
+   FDN Massacre Wurm ['trigger']
+   FDN Meteor Golem ['trigger']
+   FDN Midnight Reaper ['trigger']
+   FDN Mindsparker ['trigger']
+   FDN Mischievous Mystic ['trigger']
+   FDN Mold Adder ['trigger']
+   FDN Nullpriest of Oblivion ['trigger']
+   FDN Opt ['scry']
+   FDN Pelakka Wurm ['trigger']
+   FDN Pirate's Cutlass ['trigger']
+   FDN Prideful Parent ['trigger']
+   FDN Rapacious Dragon ['trigger']
+   FDN Regal Caracal ['trigger']
+   FDN Resolute Reinforcements ['trigger']
+   FDN Rugged Highlands ['trigger']
+   FDN Scoured Barrens ['trigger']
+   FDN Searslicer Goblin ['trigger']
+   FDN Shipwreck Dowser ['trigger']
+   FDN Skeleton Archer ['trigger']
+   FDN Skyship Buccaneer ['trigger']
+   FDN Solemn Simulacrum ['trigger']
+   FDN Spinner of Souls ['reveal', 'trigger']
+   FDN Spitfire Lagac ['trigger']
+   FDN Starlight Snare ['trigger']
+   FDN Stasis Snare ['trigger']
+   FDN Storm Fleet Spy ['trigger']
+   FDN Stromkirk Bloodthief ['trigger']
+   FDN Swiftwater Cliffs ['trigger']
+   FDN Syr Alin, the Lion's Claw ['trigger']
+   FDN Tatyova, Benthic Druid ['trigger']
+   FDN Temple of Abandon ['scry', 'trigger']
+   FDN Temple of Deceit ['scry', 'trigger']
+   FDN Temple of Enlightenment ['scry', 'trigger']
+   FDN Temple of Epiphany ['scry', 'trigger']
+   FDN Temple of Malady ['scry', 'trigger']
+   FDN Temple of Malice ['scry', 'trigger']
+   FDN Temple of Mystery ['scry', 'trigger']
+   FDN Temple of Plenty ['scry', 'trigger']
+   FDN Temple of Silence ['scry', 'trigger']
+   FDN Temple of Triumph ['scry', 'trigger']
+   FDN Thornwood Falls ['trigger']
+   FDN Tranquil Cove ['trigger']
+   FDN Twinblade Paladin ['trigger']
+   FDN Vampire Spawn ['trigger']
+   FDN Volley Veteran ['trigger']
+   FDN Wardens of the Cycle ['trigger']
+   FDN Wildwood Scourge ['trigger']
+   FDN Wind-Scarred Crag ['trigger']
+   IKO Anticipate ['look']
+   IKO Bloodfell Caves ['trigger']
+   IKO Blossoming Sands ['trigger']
+   IKO Capture Sphere ['trigger']
+   IKO Dismal Backwater ['trigger']
+   IKO Frost Lynx ['trigger']
+   IKO Jungle Hollow ['trigger']
+   IKO Rugged Highlands ['trigger']
+   IKO Scoured Barrens ['trigger']
+   IKO Swiftwater Cliffs ['trigger']
+   IKO Thornwood Falls ['trigger']
+   IKO Tranquil Cove ['trigger']
+   IKO Wind-Scarred Crag ['trigger']
+   KHM Goldvein Pick ['trigger']
+   M10 Ball Lightning ['trigger']
+   M10 Gravedigger ['trigger']
+   M11 Ajani's Pridemate ['trigger']
+   M11 Chandra's Spitfire ['trigger']
+   M11 Gravedigger ['trigger']
+   M12 Goblin Arsonist ['trigger']
+   M12 Gravedigger ['trigger']
+   M12 Solemn Simulacrum ['trigger']
+   M13 Goblin Arsonist ['trigger']
+   M13 Griffin Protector ['trigger']
+   M13 Quirion Dryad ['trigger']
+   M14 Pitchburn Devils ['trigger']
+   M15 Ajani's Pridemate ['trigger']
+   M15 Frost Lynx ['trigger']
+   M15 Gravedigger ['trigger']
+   M15 Meteorite ['trigger']
+   M15 Netcaster Spider ['trigger']
+   M15 Radiant Fountain ['trigger']
+   M19 Ajani's Pridemate ['trigger']
+   M19 Anticipate ['look']
+   M19 Diamond Mare ['trigger']
+   M19 Epicure of Blood ['trigger']
+   M19 Exclusion Mage ['trigger']
+   M19 Gift of Paradise ['trigger']
+   M19 Gravedigger ['trigger']
+   M19 Herald of Faith ['trigger']
+   M19 Infernal Scarring ['trigger']
+   M19 Meteor Golem ['trigger']
+   M19 Pelakka Wurm ['trigger']
+   M19 Riddlemaster Sphinx ['trigger']
+   M19 Skeleton Archer ['trigger']
+   M19 Skyscanner ['trigger']
+   M19 Volley Veteran ['trigger']
+   M20 Ajani, Strength of the Pride ['trigger']
+   M20 Ancestral Blade ['trigger']
+   M20 Angelic Gift ['trigger']
+   M20 Angelic Guardian ['trigger']
+   M20 Anticipate ['look']
+   M20 Audacious Thief ['trigger']
+   M20 Bag of Holding ['trigger']
+   M20 Bishop of Wings ['trigger']
+   M20 Bloodfell Caves ['trigger']
+   M20 Bloodthirsty Aerialist ['trigger']
+   M20 Blossoming Sands ['trigger']
+   M20 Boneclad Necromancer ['trigger']
+   M20 Brineborn Cutthroat ['trigger']
+   M20 Cavalier of Dawn ['trigger']
+   M20 Cavalier of Flame ['trigger']
+   M20 Cavalier of Gales ['scry', 'trigger']
+   M20 Cavalier of Night ['trigger']
+   M20 Cavalier of Thorns ['reveal', 'trigger']
+   M20 Chandra's Spitfire ['trigger']
+   M20 Cloudkin Seer ['trigger']
+   M20 Corpse Knight ['trigger']
+   M20 Dawning Angel ['trigger']
+   M20 Devout Decree ['scry']
+   M20 Diamond Knight ['trigger']
+   M20 Dismal Backwater ['trigger']
+   M20 Diviner's Lockbox ['reveal']
+   M20 Dragon Mage ['trigger']
+   M20 Drakuseth, Maw of Flames ['trigger']
+   M20 Drawn from Dreams ['look']
+   M20 Dread Presence ['trigger']
+   M20 Epicure of Blood ['trigger']
+   M20 Faerie Miscreant ['trigger']
+   M20 Fathom Fleet Cutthroat ['trigger']
+   M20 Ferocious Pup ['trigger']
+   M20 Field of the Dead ['trigger']
+   M20 Frost Lynx ['trigger']
+   M20 Gift of Paradise ['trigger']
+   M20 Glaring Aegis ['trigger']
+   M20 Gnarlback Rhino ['trigger']
+   M20 Goblin Ringleader ['reveal', 'trigger']
+   M20 Gods Willing ['scry']
+   M20 Golos, Tireless Pilgrim ['trigger']
+   M20 Gravedigger ['trigger']
+   M20 Griffin Protector ['trigger']
+   M20 Gruesome Scourger ['trigger']
+   M20 Haazda Officer ['trigger']
+   M20 Hanged Executioner ['trigger']
+   M20 Healer of the Glade ['trigger']
+   M20 Heart-Piercer Bow ['trigger']
+   M20 Howling Giant ['trigger']
+   M20 Immortal Phoenix ['trigger']
+   M20 Impassioned Orator ['trigger']
+   M20 Inspiring Captain ['trigger']
+   M20 Jungle Hollow ['trigger']
+   M20 Keldon Raider ['trigger']
+   M20 Knight of the Ebon Legion ['trigger']
+   M20 Kykar, Wind's Fury ['trigger']
+   M20 Lavakin Brawler ['trigger']
+   M20 Lotus Field ['trigger']
+   M20 Marauding Raptor ['trigger']
+   M20 Mask of Immolation ['trigger']
+   M20 Master Splicer ['trigger']
+   M20 Meteor Golem ['trigger']
+   M20 Moldervine Reclamation ['trigger']
+   M20 Mystic Forge ['look']
+   M20 Netcaster Spider ['trigger']
+   M20 Nightpack Ambusher ['trigger']
+   M20 Octoprophet ['scry', 'trigger']
+   M20 Omnath, Locus of the Roil ['trigger']
+   M20 Overgrowth Elemental ['trigger']
+   M20 Rapacious Dragon ['trigger']
+   M20 Retributive Wand ['trigger']
+   M20 Riddlemaster Sphinx ['trigger']
+   M20 Risen Reef ['look', 'trigger']
+   M20 Rotting Regisaur ['trigger']
+   M20 Rugged Highlands ['trigger']
+   M20 Sage's Row Denizen ['trigger']
+   M20 Savage Gorger ['trigger']
+   M20 Savannah Sage ['trigger']
+   M20 Scampering Scorcher ['trigger']
+   M20 Scholar of the Ages ['trigger']
+   M20 Scoured Barrens ['trigger']
+   M20 Season of Growth ['scry', 'trigger']
+   M20 Silverback Shaman ['trigger']
+   M20 Skeleton Archer ['trigger']
+   M20 Skyknight Vanguard ['trigger']
+   M20 Sleep Paralysis ['trigger']
+   M20 Starfield Mystic ['trigger']
+   M20 Steadfast Sentry ['trigger']
+   M20 Swiftwater Cliffs ['trigger']
+   M20 Temple of Epiphany ['scry', 'trigger']
+   M20 Temple of Malady ['scry', 'trigger']
+   M20 Temple of Mystery ['scry', 'trigger']
+   M20 Temple of Silence ['scry', 'trigger']
+   M20 Temple of Triumph ['scry', 'trigger']
+   M20 Thornwood Falls ['trigger']
+   M20 Tomebound Lich ['trigger']
+   M20 Tranquil Cove ['trigger']
+   M20 Trusted Pegasus ['trigger']
+   M20 Twinblade Paladin ['trigger']
+   M20 Undead Servant ['trigger']
+   M20 Vengeful Warchief ['trigger']
+   M20 Vilis, Broker of Blood ['trigger']
+   M20 Vivien, Nature's Avenger ['reveal']
+   M20 Voracious Hydra ['trigger']
+   M20 Waterkin Shaman ['trigger']
+   M20 Wildfire Elemental ['trigger']
+   M20 Wind-Scarred Crag ['trigger']
+   M20 Wolfkin Bond ['trigger']
+   M20 Wolfrider's Saddle ['trigger']
+   M20 Woodland Champion ['trigger']
+   M20 Yarok's Fenlurker ['trigger']
+   M20 Yarok's Wavecrasher ['trigger']
+   M21 Adherent of Hope ['trigger']
+   M21 Archfiend's Vessel ['trigger']
+   M21 Aven Gagglemaster ['trigger']
+   M21 Barrin, Tolarian Archmage ['trigger']
+   M21 Basri Ket ['trigger']
+   M21 Basri's Acolyte ['trigger']
+   M21 Basri's Lieutenant ['trigger']
+   M21 Battle-Rattle Shaman ['trigger']
+   M21 Bloodfell Caves ['trigger']
+   M21 Blossoming Sands ['trigger']
+   M21 Bolt Hound ['trigger']
+   M21 Bone Pit Brute ['trigger']
+   M21 Brash Taunter ['trigger']
+   M21 Burlfist Oak ['trigger']
+   M21 Canopy Stalker ['trigger']
+   M21 Capture Sphere ['trigger']
+   M21 Carrion Grub ['trigger']
+   M21 Chandra's Incinerator ['trigger']
+   M21 Chandra's Pyreling ['trigger']
+   M21 Chrome Replicator ['trigger']
+   M21 Conclave Mentor ['trigger']
+   M21 Crypt Lurker ['trigger']
+   M21 Daybreak Charger ['trigger']
+   M21 Deathbloom Thallid ['trigger']
+   M21 Dire Fleet Warmonger ['trigger']
+   M21 Dismal Backwater ['trigger']
+   M21 Elder Gargaroth ['trigger']
+   M21 Faith's Fetters ['trigger']
+   M21 Falconer Adept ['trigger']
+   M21 Feline Sovereign ['trigger']
+   M21 Gadrak, the Crown-Scourge ['trigger']
+   M21 Gale Swooper ['trigger']
+   M21 Garruk's Uprising ['trigger']
+   M21 Garruk, Savage Herald ['reveal']
+   M21 Garruk, Unleashed ['trigger']
+   M21 Ghostly Pilferer ['trigger']
+   M21 Gloom Sower ['trigger']
+   M21 Goblin Arsonist ['trigger']
+   M21 Goremand ['trigger']
+   M21 Griffin Aerie ['trigger']
+   M21 Havoc Jester ['trigger']
+   M21 Historian of Zhalfir ['trigger']
+   M21 Hooded Blightfang ['trigger']
+   M21 Idol of Endurance ['trigger']
+   M21 Indulging Patrician ['trigger']
+   M21 Infernal Scarring ['trigger']
+   M21 Jeskai Elder ['trigger']
+   M21 Jolrael, Mwonvuli Recluse ['trigger']
+   M21 Jungle Hollow ['trigger']
+   M21 Keral Keep Disciples ['trigger']
+   M21 Kinetic Augur ['trigger']
+   M21 Library Larcenist ['trigger']
+   M21 Light of Promise ['trigger']
+   M21 Liliana's Devotee ['trigger']
+   M21 Liliana's Scrounger ['trigger']
+   M21 Liliana's Standard Bearer ['trigger']
+   M21 Liliana, Waker of the Dead ['trigger']
+   M21 Llanowar Visionary ['trigger']
+   M21 Lorescale Coatl ['trigger']
+   M21 Makeshift Battalion ['trigger']
+   M21 Malefic Scythe ['trigger']
+   M21 Mangara, the Diplomat ['trigger']
+   M21 Massacre Wurm ['trigger']
+   M21 Meteorite ['trigger']
+   M21 Mystic Skyfish ['trigger']
+   M21 Niambi, Esteemed Speaker ['trigger']
+   M21 Opt ['scry']
+   M21 Ornery Dilophosaur ['trigger']
+   M21 Pack Leader ['trigger']
+   M21 Pitchburn Devils ['trigger']
+   M21 Pridemalkin ['trigger']
+   M21 Pursued Whale ['trigger']
+   M21 Quirion Dryad ['trigger']
+   M21 Radha, Heart of Keld ['look']
+   M21 Radiant Fountain ['trigger']
+   M21 Rambunctious Mutt ['trigger']
+   M21 Riddleform ['scry', 'trigger']
+   M21 Rin and Seri, Inseparable ['trigger']
+   M21 Roaming Ghostlight ['trigger']
+   M21 Rousing Read ['trigger']
+   M21 Rugged Highlands ['trigger']
+   M21 Sabertooth Mauler ['trigger']
+   M21 Sanctum of Calm Waters ['trigger']
+   M21 Sanctum of Fruitful Harvest ['trigger']
+   M21 Sanctum of Stone Fangs ['trigger']
+   M21 Scoured Barrens ['trigger']
+   M21 Setessan Training ['trigger']
+   M21 Shipwreck Dowser ['trigger']
+   M21 Siege Striker ['trigger']
+   M21 Silversmote Ghoul ['trigger']
+   M21 Skeleton Archer ['trigger']
+   M21 Skyscanner ['trigger']
+   M21 Snarespinner ['trigger']
+   M21 Solemn Simulacrum ['trigger']
+   M21 Spellgorger Weird ['trigger']
+   M21 Spined Megalodon ['scry', 'trigger']
+   M21 Spirit of Malevolence ['trigger']
+   M21 Sporeweb Weaver ['trigger']
+   M21 Storm Caller ['trigger']
+   M21 Stormwing Entity ['scry', 'trigger']
+   M21 Swiftwater Cliffs ['trigger']
+   M21 Teferi's Tutelage ['trigger']
+   M21 Temple of Epiphany ['scry', 'trigger']
+   M21 Temple of Malady ['scry', 'trigger']
+   M21 Temple of Mystery ['scry', 'trigger']
+   M21 Temple of Silence ['scry', 'trigger']
+   M21 Temple of Triumph ['scry', 'trigger']
+   M21 Terror of the Peaks ['trigger']
+   M21 Thieves' Guild Enforcer ['trigger']
+   M21 Thornwood Falls ['trigger']
+   M21 Tide Skimmer ['trigger']
+   M21 Tolarian Kraken ['trigger']
+   M21 Track Down ['reveal', 'scry']
+   M21 Tranquil Cove ['trigger']
+   M21 Transmogrify ['reveal']
+   M21 Trufflesnout ['trigger']
+   M21 Turret Ogre ['trigger']
+   M21 Twinblade Assassins ['trigger']
+   M21 Valorous Steed ['trigger']
+   M21 Vito, Thorn of the Dusk Rose ['trigger']
+   M21 Waker of Waves ['look']
+   M21 Wall of Runes ['scry', 'trigger']
+   M21 Warden of the Woods ['trigger']
+   M21 Watcher of the Spheres ['trigger']
+   M21 Wildwood Scourge ['trigger']
+   M21 Wind-Scarred Crag ['trigger']
+   ORI Infernal Scarring ['trigger']
+   ORI Meteorite ['trigger']
+   ORI Undead Servant ['trigger']
+   THB Banishing Light ['trigger']
+   THB Setessan Training ['trigger']
+   THB Temple of Abandon ['scry', 'trigger']
+   THB Temple of Deceit ['scry', 'trigger']
+   THB Temple of Enlightenment ['scry', 'trigger']
+   THB Temple of Malice ['scry', 'trigger']
+   THB Temple of Plenty ['scry', 'trigger']
+   WAR Ajani's Pridemate ['trigger']
+   WAR Makeshift Battalion ['trigger']
+   WAR Snarespinner ['trigger']
+   WAR Spellgorger Weird ['trigger']
+   WAR Trusted Pegasus ['trigger']
+   WAR Turret Ogre ['trigger']
+   WAR Wall of Runes ['scry', 'trigger']
+   ZNR Marauding Blight-Priest ['trigger']
+   ZNR Nullpriest of Oblivion ['trigger']
+verified stamps matching, per set (base -> branch): {'10E': '23->23', 'DOM': '18->18', 'ELD': '14->14', 'FDN': '261->256', 'IKO': '24->24', 'KHM': '9->9', 'M10': '30->29', 'M11': '28->26', 'M12': '27->27', 'M13': '30->29', 'M14': '31->30', 'M15': '26->26', 'M19': '66->64', 'M20': '286->276', 'M21': '280->266', 'ORI': '23->23', 'THB': '16->16', 'WAR': '22->22', 'ZNR': '14->14'}

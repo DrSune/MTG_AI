@@ -1,0 +1,10 @@
+{"set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Yarok, the Desecrated (CR 603.2d), the falsifier of yarok_doubles_an_entering_creatures_trigger. Printed: 'If a permanent entering causes a triggered ability of a permanent you control to trigger, that ability triggers an additional time.' Hanged Executioner enters under seat 1's control: its enters trigger is an ability of a permanent seat 1 controls, not of one Yarok's controller controls, so it triggers once: one Spirit.",
+ "cards": [
+  {"key": "yarok", "real": "Yarok, the Desecrated", "zone": "battlefield", "controller": 0},
+  {"key": "exec", "real": "Hanged Executioner", "zone": "hand", "controller": 1}
+ ],
+ "steps": [{"op": "enter", "key": "exec"}],
+ "expect": {"zone": {"exec": "battlefield"}, "tokens": {"Spirit": 1}}
+}

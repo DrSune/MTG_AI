@@ -121,10 +121,10 @@ KIND_TARGETING = "TARGETING"
 # verdict, the paid loyalty delta or None when it is not a loyalty ability),
 # which the node's ``kind`` reads.
 KIND_ABILITY_ACTIVATED = "ABILITY_ACTIVATED"
-# An ability TRIGGERED (Sanctum of All family). SYNTHETIC-ONLY kind —
-# never journalled (the matcher feeds AbilityTriggerEvent nodes from
-# _queue at firing-queue time), so it never reaches the fingerprint.
-KIND_ABILITY_TRIGGERED = "ABILITY_TRIGGERED"
+# A state trigger triggered (CR 603.8, TriggerBinder.check_states): a state holds, no event
+# occurred. SYNTHETIC-ONLY, like the kind below: it labels the firing (``data`` names the
+# ability), the journal never holds one.
+KIND_STATE = "STATE"
 # A reflexive trigger (CR 603.12) triggered on what the resolution that
 # created it did (TriggerBinder.fire_reflexive). SYNTHETIC-ONLY, like the
 # kind above: it labels the firing, the journal never holds one.

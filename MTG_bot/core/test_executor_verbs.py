@@ -854,7 +854,9 @@ class TestManaScryShuffleLook(ExecutorCase):
         )
         self.assertEqual(ev1[0][1], "LOOK_AT")
         self.assertEqual(ev2[0][1], "REVEAL")
-        self.assertEqual(ev1[0][3], (str(self.libs[3]), str(self.libs[2])))
+        # one row per look: its cards by owner and zone, to whom (DESIGN_ATOM_ONTOLOGY §19)
+        self.assertEqual(ev1[0][2:], (((str(self.p0), ZONE_LIBRARY, (str(self.libs[3]), str(self.libs[2]))),),
+                                      str(self.p0)))
         self.assertEqual(self.world.fingerprint(), fp)  # no state touched
 
     def _reveal_until_creature_then_take_it(self, controller) -> list:
@@ -874,7 +876,10 @@ class TestManaScryShuffleLook(ExecutorCase):
     def test_reveal_until_stops_at_the_first_match(self):
         spell = self.world.add_card(card_id("Top Sorcery", type_line="Sorcery"), self.p0)
         events = self._reveal_until_creature_then_take_it(self.p0)
-        self.assertEqual(events[0][1:], ("REVEAL", str(self.p0), (str(spell), str(self.libs[3]))))
+        self.assertEqual(
+            events[0][1:],
+            ("REVEAL", ((str(self.p0), ZONE_LIBRARY, (str(spell), str(self.libs[3]))),), "ALL"),
+        )
         self.assertEqual(self.world.zone_of(self.libs[3]).kind, ZONE_HAND)  # that card
         self.assertEqual(self.world.zone_of(spell).kind, ZONE_LIBRARY)  # revealed, unmoved
         self.assertEqual(self.world.zone_of(self.libs[2]).kind, ZONE_LIBRARY)  # never revealed
@@ -884,7 +889,10 @@ class TestManaScryShuffleLook(ExecutorCase):
         lands = [self.world.add_card(card_id(f"Land {i}", type_line="Land"), self.p1)
                  for i in (1, 2)]
         events = self._reveal_until_creature_then_take_it(self.p1)
-        self.assertEqual(events[0][1:], ("REVEAL", str(self.p1), (str(lands[1]), str(lands[0]))))
+        self.assertEqual(
+            events[0][1:],
+            ("REVEAL", ((str(self.p1), ZONE_LIBRARY, (str(lands[1]), str(lands[0]))),), "ALL"),
+        )
         for land in lands:  # no "that card": nothing moves
             self.assertEqual(self.world.zone_of(land).kind, ZONE_LIBRARY)
 

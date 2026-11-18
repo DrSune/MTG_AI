@@ -132,16 +132,35 @@
          "tag": "AtomArgs",
          "pairs": [
           [
-           "controller",
+           "cards",
            {
-            "tag": "ControllerRef",
-            "name": "YOU"
-           }
-          ],
-          [
-           "count",
-           {
-            "tag": "QUnbounded"
+            "tag": "Selector",
+            "count": {
+             "tag": "QConst",
+             "value": 1
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "CHOOSE"
+            },
+            "filter": {
+             "tag": "FAnd",
+             "children": []
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "ANY"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "ANY"
+              }
+             }
+            ],
+            "referent": "result"
            }
           ]
          ]
@@ -187,9 +206,9 @@
   ]
  },
  "mapping": {
-  "author": "claude-mapper-m20-1",
-  "date": "2026-11-05",
-  "draft_py": "# Battalion Foot Soldier: \"When this creature enters, you may search your library for any number\n# of cards named Battalion Foot Soldier, reveal them, put them into your hand, then shuffle.\"\n# Fierce Empath's optional ETB tutor (SEARCH to hand, REVEAL, SHUFFLE; no SEARCH controller role,\n# guide D12) with Alpine Houndmaster's NAME_EQ filter and \"reveal them\" (QUnbounded), and\n# Chandra, Heart of Fire's \"any number of\" = CHOOSE with QUnbounded.\netb = TriggeredAbility(\n    event=ZoneChangeEvent(\n        from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n        to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n        subject=FAtom(pred=FAtomPred.IS_SOURCE),\n    ),\n    condition=None,\n    effect=OptionalEffect(\n        inner=Seq(\n            steps=(\n                A(Verb.SEARCH, {\n                    'cards': Selector(\n                        count=QUnbounded(),\n                        mode=SelectorMode.CHOOSE,\n                        filter=FAtom(pred=FAtomPred.NAME_EQ, string_value='Battalion Foot Soldier'),\n                        zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),\n                    ),\n                    'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n                }),\n                A(Verb.REVEAL, {'controller': ControllerRef.YOU, 'count': QUnbounded()}),\n                A(Verb.SHUFFLE, {'zone': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU)}),\n            ),\n        ),\n    ),\n)\nabilities = [etb, *compiled]\n",
+  "author": "claude-ontology-w3",
+  "date": "2026-11-18",
+  "draft_py": "# Patched by gate round W3 (DESIGN_ATOM_ONTOLOGY §19): REVEAL names the cards it shows.\n# M20 Battalion Foot Soldier: the record's stored tree (rendered by render_records.py)\nkeywords = [\n]\nabilities = [\n    # [0]\n    TriggeredAbility(\n        event=ZoneChangeEvent(\n            from_zone=Zone(kind=ZoneKind.ANY, controller=ControllerRef.ANY),\n            to_zone=Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.YOU),\n            subject=FAtom(pred=FAtomPred.IS_SOURCE),\n        ),\n        condition=None,\n        effect=OptionalEffect(\n            inner=Seq(\n                steps=(\n                    A(Verb.SEARCH, {\n                        'cards': Selector(\n                            count=QUnbounded(),\n                            mode=SelectorMode.CHOOSE,\n                            filter=FAtom(\n                                pred=FAtomPred.NAME_EQ,\n                                string_value='Battalion Foot Soldier',\n                            ),\n                            zones=(Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),),\n                        ),\n                        'destination': Zone(kind=ZoneKind.HAND, controller=ControllerRef.YOU),\n                    }),\n                    reveal_result(),\n                    A(Verb.SHUFFLE, {\n                        'zone': Zone(kind=ZoneKind.LIBRARY, controller=ControllerRef.YOU),\n                    }),\n                ),\n            ),\n        ),\n    ),\n    # [1]\n    SpellAbility(kind=SpellKind.CREATURE),\n]\n",
   "clauses": [
    {
     "clause": "When this creature enters, you may search your library for any number of cards named Battalion Foot Soldier, reveal them, put them into your hand, then shuffle.",
@@ -197,41 +216,9 @@
    }
   ],
   "g0_warnings": [],
-  "notes": ""
+  "notes": "Re-mapped by ontology gate round W3 (DESIGN_ATOM_ONTOLOGY §19) from the stored tree: \"reveal it|them\" is reveal_result(), the cards the search found. Nothing else changed."
  },
  "probe": {
-  "sha": "c37c98f37f8dd63b147c1e325a4b21089cbbc8efa053d37c4f92e1a31c017a71"
- },
- "verified": {
-  "tree_sha": "9740d0377845e1dd8b8c3d7c7f8c195b0039892dfc38a6111843ccdffb5d5fb1",
-  "probe_sha": "319683e8dc8e8ed18fcea84273d47120127821a7db2aa924ef12129104e5fa72",
-  "date": "2026-11-13",
-  "reviewer": "claude-sonnet-verifier-wave1c-B",
-  "clauses": [
-   {
-    "clause": "When this creature enters, you may search ... any number of cards named Battalion Foot Soldier, reveal them, put them into your hand, then shuffle",
-    "status": "NOT_EXERCISED",
-    "evidence": "trace library holds no copy, only the may ask is seen (fire/skip); packs B05_1/_2/_4 show pick-by-pick with a stop, B05_3 decline",
-    "issue": ""
-   }
-  ],
-  "packs": [
-   "tools/scenarios/cards/M20/battalion_foot_soldier_1.json",
-   "tools/scenarios/cards/M20/battalion_foot_soldier_2.json",
-   "tools/scenarios/cards/M20/battalion_foot_soldier_3.json",
-   "tools/scenarios/cards/M20/battalion_foot_soldier_4.json"
-  ],
-  "mutation": {
-   "mutants": 8,
-   "killed": 3,
-   "score": 0.375,
-   "survived": [
-    "drop step 0 at 1/0/effect/inner",
-    "drop step 1 at 1/0/effect/inner",
-    "drop step 2 at 1/0/effect/inner",
-    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/cards/zones/0/controller",
-    "zone HAND->BATTLEFIELD at 1/0/effect/inner/steps/0/args/destination"
-   ]
-  }
+  "sha": "319683e8dc8e8ed18fcea84273d47120127821a7db2aa924ef12129104e5fa72"
  }
 }

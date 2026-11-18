@@ -14,8 +14,10 @@
       ]
     },
     "Alpine Houndmaster": {
-      "count": 3,
+      "count": 5,
       "shapes": [
+        "8b10a755c5de2665",
+        "8b10a755c5de2665",
         "8ee9c29664ca15fe",
         "c5a2d0101bea8d8a",
         "ce01c5879d2c1c5a"
@@ -45,6 +47,14 @@
         "9583947c6a67fa87"
       ]
     },
+    "Basri's Aegis": {
+      "count": 3,
+      "shapes": [
+        "8b10a755c5de2665",
+        "8b10a755c5de2665",
+        "8b10a755c5de2665"
+      ]
+    },
     "Basri, Devoted Paladin": {
       "count": 2,
       "shapes": [
@@ -68,6 +78,14 @@
       "count": 1,
       "shapes": [
         "6bbd7b676f7b6b6a"
+      ]
+    },
+    "Chandra's Firemaw": {
+      "count": 3,
+      "shapes": [
+        "8b10a755c5de2665",
+        "8b10a755c5de2665",
+        "8b10a755c5de2665"
       ]
     },
     "Chandra's Incinerator": {
@@ -116,8 +134,9 @@
       ]
     },
     "Cultivate": {
-      "count": 1,
+      "count": 2,
       "shapes": [
+        "8b10a755c5de2665",
         "dd35b2b11b8b3fcf"
       ]
     },
@@ -182,6 +201,12 @@
         "96fb45fb7efa5276"
       ]
     },
+    "Fierce Empath": {
+      "count": 1,
+      "shapes": [
+        "8b10a755c5de2665"
+      ]
+    },
     "Fiery Emancipation": {
       "count": 1,
       "shapes": [
@@ -198,6 +223,20 @@
       "count": 1,
       "shapes": [
         "d46ac34acd74b4f3"
+      ]
+    },
+    "Garruk's Harbinger": {
+      "count": 1,
+      "shapes": [
+        "8b10a755c5de2665"
+      ]
+    },
+    "Garruk's Warsteed": {
+      "count": 3,
+      "shapes": [
+        "8b10a755c5de2665",
+        "8b10a755c5de2665",
+        "8b10a755c5de2665"
       ]
     },
     "Garruk, Savage Herald": {
@@ -292,6 +331,14 @@
       "count": 1,
       "shapes": [
         "8ee9c29664ca15fe"
+      ]
+    },
+    "Liliana's Scorn": {
+      "count": 3,
+      "shapes": [
+        "8b10a755c5de2665",
+        "8b10a755c5de2665",
+        "8b10a755c5de2665"
       ]
     },
     "Liliana's Steward": {
@@ -546,6 +593,14 @@
       "count": 1,
       "shapes": [
         "8ee9c29664ca15fe"
+      ]
+    },
+    "Teferi's Wavecaster": {
+      "count": 3,
+      "shapes": [
+        "8b10a755c5de2665",
+        "8b10a755c5de2665",
+        "8b10a755c5de2665"
       ]
     },
     "Thieves' Guild Enforcer": {

@@ -37,6 +37,7 @@ from MTG_bot.core.ability_tree import (
     StaticAbility,
     TriggeredAbility,
     Verb,
+    reveal_result,
 )
 from MTG_bot.core.compiler import frames, templates_b17
 from MTG_bot.core.compiler.compiler import compile_card
@@ -158,8 +159,9 @@ def test_the_reveal_is_garruks_harbingers_with_the_chosen_type(registry) -> None
     harbinger = only(registry, "You may reveal a creature card or Garruk planeswalker card from "
                                "among them and put it into your hand.").outcome.effect
     assert isinstance(effect, OptionalEffect) and isinstance(harbinger, OptionalEffect)
-    (reveal, move), (h_reveal, h_move) = effect.inner.steps, harbinger.inner.steps
-    assert reveal == h_reveal
+    # the pick's move, then the reveal of what it picked (DESIGN_ATOM_ONTOLOGY §19)
+    (move, reveal), (h_move, h_reveal) = effect.inner.steps, harbinger.inner.steps
+    assert reveal == h_reveal == reveal_result()
     assert move.args.get("cards").filter == FAnd(children=(CREATURE, TYPE))
     assert move.args.get("destination") == h_move.args.get("destination")
 

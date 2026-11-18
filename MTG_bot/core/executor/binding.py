@@ -99,6 +99,7 @@ from MTG_bot.core.ability_tree import (
     Selector,
     SelectorMode,
     Seq,
+    StateTrigger,
     StepEvent,
     TapStateEvent,
     TargetingEvent,
@@ -118,7 +119,6 @@ from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.durations import duration_tag
 from MTG_bot.core.executor.events import (
     KIND_ABILITY_ACTIVATED,
-    KIND_ABILITY_TRIGGERED,
     KIND_CARD_DRAWN,
     KIND_CAST,
     KIND_COUNTER_PLACED,
@@ -129,6 +129,7 @@ from MTG_bot.core.executor.events import (
     KIND_LIFE_GAINED,
     KIND_LIFE_LOST,
     KIND_REFLEXIVE,
+    KIND_STATE,
     KIND_TAP_STATE,
     KIND_TARGETING,
     KIND_TURN_PHASE,
@@ -997,8 +998,8 @@ class TriggerBinder:
             # so they are brought up to date first (CR 603.10: the effects that
             # exist right after the event; Warded Battlements' +1/+0 on the
             # creatures just declared as attackers). An extra instance (CR
-            # 603.2d, ``additional``) is queued later, when the carrier
-            # resolves; its original passed this check.
+            # 603.2d, ``additional``) is queued with its original, which passed
+            # this check.
             self.executor.layers.recompute()
             if not self._condition_holds(
                 node, event, source, self._ctx(source, controller, event)
@@ -1019,14 +1020,17 @@ class TriggerBinder:
         )
         self.firings[instance.clock] = payload
         if not additional:
-            # Sanctum of All ("whenever another Shrine you control's
-            # ability triggers"): an ordinary queued firing feeds every
-            # AbilityTriggerEvent subscriber in a SYNTHETIC match pass --
-            # no journal row is written, and `additional` firings (CR
-            # 603.2d: an extra trigger has no triggering event) never feed
-            # it again, which is what keeps two extra-trigger carriers from
-            # chasing each other.
-            self._fan_ability_triggers(payload)
+            # CR 603.2d: "rather than simply determining that such an ability has triggered,
+            # determine how many times it should trigger": the copies the live TRIGGER_ADDITIONAL
+            # statics add are queued now, with the original, as further instances of one
+            # ability (a reflexive one's reading the same resolution, CR 603.12; a gathered one's
+            # the same objects, CR 603.2c). They are not counted again: such an effect "doesn't
+            # invoke itself repeatedly".
+            for _ in range(self._additional_times(payload)):
+                self._queue(
+                    source, controller, node, event, additional=True, delayed=delayed,
+                    carried=carried, gathered=gathered,
+                )
 
     def _occurrences(self, event: GameEvent) -> list[GameEvent]:
         """The rows of the one event ``event`` is an occurrence of (CR 603.2c): the attacker rows
@@ -1074,43 +1078,39 @@ class TriggerBinder:
             return None
         return replace(event, data=(sum(e.amount for e in rows), *event.data[1:]))
 
-    def _fan_ability_triggers(self, payload: _Firing) -> None:
-        """Queue one firing per AbilityTriggerEvent subscriber whose
-        filter matches the triggering ability's SOURCE permanent, in the
-        subscriber's coordinates (IS_SOURCE = the subscriber, so "another"
-        is the filter's own FNot(IS_SOURCE)). The synthetic event carries
-        the matched payload so the TRIGGER_ADDITIONAL verb can re-queue
-        it; the subscriber's condition (Sanctum's "six or more Shrines")
-        gates like any other trigger's: when it triggers and again at resolve
-        time (CR 603.4). CR 603.2d: an
-        extra-trigger carrier's OWN firings never fan out — the family's
-        effect does not apply to instances of itself, which is what keeps
-        two carriers from chasing each other (each adds its one extra per
-        ORIGINAL firing; the extras carry no triggering event)."""
-        effect = payload.node.effect
-        if isinstance(effect, Atom) and effect.verb is Verb.TRIGGER_ADDITIONAL:
-            return
-        subscribers = [
-            (handle, ability)
-            for (handle, _idx), ability in sorted(
-                self.attached.items(), key=lambda kv: (str(kv[0][0]), kv[0][1])
-            )
-            if isinstance(ability.event, AbilityTriggerEvent)
-            and handle != payload.source
-        ]
-        for handle, ability in subscribers:
-            ctrl = self._controller_of(handle)
-            synth = GameEvent(
-                clock=-1,
-                kind=KIND_ABILITY_TRIGGERED,
-                subject=payload.source,
-                cause=handle,
-                cause_verb="TRIGGER",
-                data=(payload,),
-            )
-            ctx = self._ctx(handle, ctrl, synth)
-            if eval_filter(ability.event.filter, payload.source, ctx):
-                self._queue(handle, ctrl, ability, synth)
+    def _additional_times(self, payload: _Firing) -> int:
+        """CR 603.2d: how many more times the ability of ``payload`` triggers, the sum of the
+        counts of the live TRIGGER_ADDITIONAL statics (Sanctum of All, Yarok, the Desecrated)
+        whose AbilityTriggerEvent describes it. It must be an ability of a permanent: its source
+        is on the battlefield as it triggers. The event's ``filter`` is read over that permanent
+        and its ``cause`` matched against the event the ability triggered on, both in the
+        static's coordinates (IS_SOURCE is the static's own object, YOU its controller); the
+        static's condition ("while you control six or more Shrines") is read by its liveness,
+        now, as the ability triggers."""
+        statics = self.executor.layers.extra_triggers()
+        source = payload.source
+        if (
+            not statics
+            or source not in self.world.cards
+            or self.world.zone_of(source).kind != ZONE_BATTLEFIELD
+        ):
+            return 0
+        extra = 0
+        for layer in statics:
+            atom = layer.atoms[0]
+            spec = atom.args.get("event")
+            assert isinstance(spec, AbilityTriggerEvent)  # Atom.__post_init__
+            ctx = self._ctx(layer.source, layer.controller, payload.event)
+            if not eval_filter(spec.filter, source, ctx):
+                continue
+            # A state's or a reflexive trigger's synthetic event matches no cause: no event
+            # caused it.
+            if spec.cause is not None and not self._match_node(
+                spec.cause, payload.event, layer.source, layer.controller
+            ):
+                continue
+            extra += resolve(atom.args.get("count"), ctx)
+        return extra
 
     def _keyword_node(self, handle: Handle) -> TriggeredAbility:
         """The canonical compiled-shape node for a printed prowess trigger (CR 702.108a),
@@ -1572,6 +1572,49 @@ class TriggerBinder:
                     self.executor.stack.push(obj)
                     put += 1
         return put
+
+    def check_states(self) -> None:
+        """CR 603.8: a state trigger "trigger[s] as soon as the game state matches the
+        condition" and does not trigger again "until the ability has resolved, has been
+        countered, or has otherwise left the stack. Then, if the object with the ability is
+        still in the same zone and the game state still matches its trigger condition, the
+        ability will trigger again." Checked each time a player would receive priority
+        (``Executor._priority_check``), after the state-based actions: every bound state
+        trigger whose state holds over its object triggers, unless an instance of it waits or is
+        on the stack. An instance is the object's while that object has not changed zones since
+        it triggered (CR 400.7: a new object's ability is a new ability). Its event names no
+        object; ``data`` names the ability, which the waiting check reads."""
+        states = [
+            (key, ability)
+            for key, ability in self._triggers()
+            if isinstance(ability.event, StateTrigger)
+        ]
+        if not states:
+            return
+        from MTG_bot.core.executor.returns import moved_since
+
+        journal = self.executor.journal
+
+        def waiting(source: Handle, event: GameEvent) -> tuple[Handle, int] | None:
+            if event.kind != KIND_STATE or moved_since(journal, source, event.clock):
+                return None
+            return source, event.data[0]
+
+        pending = {waiting(p.source, p.event) for p in self.firings.values()} | {
+            waiting(o.source, o.event)
+            for o in self.executor.stack.frames
+            if o.spell_kind == "TRIGGERED" and isinstance(o.event, GameEvent)
+        }
+        for (handle, idx), ability in states:
+            if (handle, idx) in pending:
+                continue
+            ctrl = self._controller_of(handle)
+            event = GameEvent(
+                clock=journal.clock, kind=KIND_STATE, subject=None, cause=handle,
+                cause_verb="STATE", data=(idx,),
+            )
+            if eval_filter(ability.event.filter, handle, self._ctx(handle, ctrl, event)):
+                self._queue(handle, ctrl, ability, event)
 
     def _resolution_order(self, controller: Handle, mine: list[_Firing]) -> list[_Firing]:
         """CR 603.3b: ``controller`` orders its own simultaneous triggers (``mine``, in

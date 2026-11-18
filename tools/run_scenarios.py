@@ -1544,9 +1544,10 @@ class ScenarioRunner:
             if got != dict(kinds):
                 fails.append(f"counters[{key}]: expected {dict(kinds)}, got {got}")
         # Whether a REVEAL showed the card (CR 701.20a). A reveal moves nothing and journals no
-        # row, so the lane reads the executor's event tuples, (i, "REVEAL", player, cards).
+        # row, so the lane reads the executor's event tuples, (i, "REVEAL", ((owner, zone,
+        # cards), ...), viewers) (verbs._seen).
         if "revealed" in expect:
-            shown = {card for e in self.ex.events if e[1] == "REVEAL" for card in e[3]}
+            shown = {card for e in self.ex.events if e[1] == "REVEAL" for _o, _z, cards in e[2] for card in cards}
             for key, want in expect["revealed"].items():
                 got_shown = str(self.handles[key]) in shown
                 if got_shown != bool(want):

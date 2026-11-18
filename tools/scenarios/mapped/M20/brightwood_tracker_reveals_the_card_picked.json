@@ -1,0 +1,13 @@
+{"set": "M20",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "notes": "Brightwood Tracker (CR 701.20a; its record, re-mapped by gate round W3). Printed: '{5}{G}, {T}: Look at the top four cards of your library. You may reveal a creature card from among them and put it into your hand. Put the rest on the bottom of your library in a random order.' The library's top two cards are Forest, then Elvish Reclaimer; the creature is picked and put into seat 0's hand, and the reveal shows it, never the Forest. On main 0b7f9c22 the reveal came before the pick and showed the look's first card, the Forest, which went to the bottom.",
+ "cards": [
+  {"key": "tracker", "real": "Brightwood Tracker", "zone": "battlefield", "controller": 0},
+  {"key": "reclaimer", "real": "Elvish Reclaimer", "zone": "library", "controller": 0},
+  {"key": "forest", "real": "Forest", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"G": 6}},
+ "steps": [{"op": "activate", "key": "tracker", "idx": 0, "decisions": ["fire", "reclaimer"]}],
+ "expect": {"zone": {"reclaimer": "hand", "forest": "library"},
+            "revealed": {"reclaimer": true, "forest": false}}
+}

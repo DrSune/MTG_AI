@@ -1,0 +1,25 @@
+    
+    First differing element 0:
+    ('player:0', ('card:8',))
+    ('player:0', ('card:1',), 'hand', 'ALL')
+    
+    - [('player:0', ('card:8',))]
+    ?                      ^
+    
+    + [('player:0', ('card:1',), 'hand', 'ALL')]
+    ?                      ^   +++++++++++++++
+/usr/lib/python3.12/unittest/case.py:715: AssertionError: Lists differ: [('player:0', ('card:8',))] != [('player:0', ('card:1',), 'hand', 'ALL')]
+=========================== short test summary info ============================
+FAILED MTG_bot/core/test_executor_w3.py::TestStateTriggers::test_a_countered_state_trigger_triggers_again_at_once
+FAILED MTG_bot/core/test_executor_w3.py::TestStateTriggers::test_a_new_object_triggers_on_its_own
+FAILED MTG_bot/core/test_executor_w3.py::TestStateTriggers::test_two_damage_events_at_eight_counters_trigger_once
+FAILED MTG_bot/core/test_executor_w3.py::TestYarok::test_an_entering_creatures_trigger_triggers_twice
+FAILED MTG_bot/core/test_executor_w3.py::TestYarok::test_yarok_entering_with_a_creature_doubles_its_trigger
+FAILED MTG_bot/core/test_executor_w3.py::TestTheCopiesGoWithTheOriginal::test_one_order_option_for_the_ability_and_its_copy
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_a_card_picked_from_a_look_is_the_card_revealed
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_a_graveyard_search_reveals_the_card_found_not_the_library_top
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_a_look_is_the_lookers_alone
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_a_scry_names_each_card_and_its_end_for_the_scryer
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_duress_reveals_the_hand_only
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_fierce_empath_reveals_the_card_found
+12 failed, 4 passed in 3.81s

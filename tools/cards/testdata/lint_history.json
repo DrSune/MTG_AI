@@ -537,7 +537,7 @@
   "oracle_id": "d13f0907-de39-4a90-940a-831740d7aa9b",
   "name": "Pilfer",
   "source": "git show fa6e00bc~1:MTG_bot/data/cards/FDN/d13f0907-de39-4a90-940a-831740d7aa9b.json (ir)",
-  "note": "FDN round 1's mapped record: 'Target opponent reveals their hand' written with TARGET_PLAYER; judged WRONG by the blind verifier (round_fdn_verify1), re-mapped in fa6e00bc",
+  "note": "FDN round 1's mapped record: 'Target opponent reveals their hand' written with TARGET_PLAYER; judged WRONG by the blind verifier (round_fdn_verify1), re-mapped in fa6e00bc; its reveal re-encoded by gate round W3 (DESIGN_ATOM_ONTOLOGY §19) as the hand of TARGET_PLAYER, the defect kept",
   "keywords": [],
   "abilities": [
    {
@@ -559,16 +559,33 @@
         "tag": "AtomArgs",
         "pairs": [
          [
-          "controller",
+          "cards",
           {
-           "tag": "ControllerRef",
-           "name": "TARGET_PLAYER"
-          }
-         ],
-         [
-          "count",
-          {
-           "tag": "QUnbounded"
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "HAND"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "TARGET_PLAYER"
+             }
+            }
+           ]
           }
          ]
         ]

@@ -323,20 +323,24 @@ def _is_self(filter_: Any) -> bool:
 
 
 def _reveal_dead_roles(ability: Any) -> set[str]:
-    """The REVEAL roles of ``ability`` no game state can observe (see ``mutants``): REVEAL is a
-    recorded no-op (verbs.py ``_look``: it moves nothing, the journal has no row for it, the seat
-    view tracks no revealed card). Its only outputs are the look window, read by a Conditional
-    right after it, a ONE_OF/REST partition over the library top or a REVEAL right after it, and
-    the ``result`` register, read by a ``referent="result"`` node, THAT_MANY_COUNT or FIGHT's
-    attacker. With none of those in the ability, controller and count are dead. A Conditional
-    judges the window's first card, the top card for any count >= 1, so it leaves count dead.
-    Several REVEALs qualify when each sits in its own option of one "choose one" (a count-1
-    Choose: the executor runs exactly one option, so at most one REVEAL runs; query.choose_options
-    reads no option's contents), the "search your library and/or graveyard" zone choice."""
+    """The roles of the top-of-library REVEALs of ``ability`` (``controller`` and ``count``) no game
+    state can observe (see ``mutants``): REVEAL is a recorded no-op (verbs.py ``_look``: it moves
+    nothing, the journal has no row for it, and no reader of its event-log row plays: the seat view
+    tracks no revealed card). Its only outputs are the look window, read by a Conditional right
+    after it or a ONE_OF/REST partition over the library top, and the ``result`` register, read by
+    a ``referent="result"`` node, THAT_MANY_COUNT or FIGHT's attacker. With none of those in the
+    ability, controller and count are dead. A Conditional judges the window's first card, the top
+    card for any count >= 1, so it leaves count dead. Several REVEALs qualify when each sits in its
+    own option of one "choose one" (a count-1 Choose: the executor runs exactly one option, so at
+    most one REVEAL runs; query.choose_options reads no option's contents). A REVEAL of named
+    ``cards`` (a hand, or the ``result`` of the instruction before: DESIGN_ATOM_ONTOLOGY §19) has
+    no output but its row, so ``mutants`` holds its ``cards`` dead wherever it stands; it is no
+    look here."""
     if not isinstance(ability, (TriggeredAbility, ActivatedAbility, SpellAbility)):
         return set()
     nodes = list(walk(ability))
-    looks = [n for n in nodes if isinstance(n, Atom) and n.verb in (Verb.REVEAL, Verb.LOOK_AT)]
+    looks = [n for n in nodes if isinstance(n, Atom) and n.verb in (Verb.REVEAL, Verb.LOOK_AT)
+             and n.args.get("cards") is None]
     if not looks or any(n.verb is not Verb.REVEAL or n.args.get("duration") is not None for n in looks):
         return set()
     if len(looks) > 1 and not _one_per_option(ability, looks):
@@ -349,47 +353,6 @@ def _reveal_dead_roles(ability: Any) -> set[str]:
                 and any(z.kind is ZoneKind.LIBRARY and z.position is ZonePosition.TOP for z in n.zones)):
             return set()
     return {"count"} if any(isinstance(n, Conditional) for n in nodes) else {"controller", "count"}
-
-
-def _window_reveal(ability: Any) -> Atom | None:
-    """The REVEAL of "look at N cards ... you may reveal one from among them" whose controller and
-    count no game state can observe (see ``mutants``), or None. It runs right after the ability's
-    one LOOK_AT, so ``_look`` takes its prior-window branch whenever that window holds a card:
-    the controller is not read, the count only slices the window, the window is kept and nothing
-    is written to ``result``. The window is empty only when the LOOK_AT's library is: its count
-    is a constant >= 1 or a damage trigger's AMOUNT (no damage event deals 0, CR 120.8). Then the
-    mutant reveals another library's cards, which no reader here can see: no Conditional, no
-    ``result`` reader and only partitions over your own library top, which drop cards not in it.
-    Both look atoms name you, and no mode or condition reorders the atoms."""
-    if not isinstance(ability, (TriggeredAbility, ActivatedAbility, SpellAbility)):
-        return None
-    nodes = list(walk(ability))
-    atoms = [n for n in nodes if isinstance(n, Atom)]
-    looks = [n for n in atoms if n.verb in (Verb.REVEAL, Verb.LOOK_AT)]
-    if len(looks) != 2 or looks[0].verb is not Verb.LOOK_AT or looks[1].verb is not Verb.REVEAL:
-        return None
-    look, reveal = looks
-    if atoms.index(reveal) != atoms.index(look) + 1 or any(a.args.get("duration") is not None for a in looks):
-        return None
-    if any(a.args.get("controller") is not ControllerRef.YOU for a in looks):
-        return None
-    if not (isinstance(reveal.args.get("count"), QConst) and reveal.args.get("count").value >= 1):
-        return None
-    count = look.args.get("count")
-    damage_amount = (isinstance(count, QProp) and count.referent == "event" and count.field is QPropField.AMOUNT
-                     and isinstance(ability, TriggeredAbility) and isinstance(ability.event, DamageDealtEvent))
-    if not (isinstance(count, QConst) and count.value >= 1) and not damage_amount:
-        return None
-    for n in nodes:
-        if isinstance(n, (Conditional, Choose)) or getattr(n, "referent", None) == "result" or (
-                isinstance(n, QProp) and n.field is QPropField.THAT_MANY_COUNT) or (
-                isinstance(n, Atom) and n.verb is Verb.FIGHT):
-            return None
-        if isinstance(n, Selector) and n.mode in (SelectorMode.ONE_OF, SelectorMode.REST) and any(
-                z.kind is ZoneKind.LIBRARY and z.position is ZonePosition.TOP and z.controller is not ControllerRef.YOU
-                for z in n.zones):
-            return None
-    return reveal
 
 
 def _one_card_result_moves(ability: Any, base: tuple) -> set[tuple]:
@@ -803,13 +766,12 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         dead |= _static_disclosures(ability, (1, i))
         dead |= _one_card_picks(ability, (1, i))
         roles = _reveal_dead_roles(ability)
-        for path, node in _paths(ability, (1, i)) if roles else ():
+        for path, node in _paths(ability, (1, i)):
             if isinstance(node, Atom) and node.verb is Verb.REVEAL:
-                dead |= {(*path, "args", role) for role in roles}
-        window_reveal = _window_reveal(ability)
-        for path, node in _paths(ability, (1, i)) if window_reveal is not None else ():
-            if node is window_reveal:
-                dead |= {(*path, "args", "controller"), (*path, "args", "count")}
+                # a reveal of named cards writes no window and no register: its row is its only
+                # output, and nothing that plays reads it (_reveal_dead_roles)
+                dead |= ({(*path, "args", "cards")} if node.args.get("cards") is not None
+                         else {(*path, "args", role) for role in roles})
     for path, node in _paths(root):
         cands: list[tuple[str, Any]] = []
         at = path  # where the candidates are rebuilt; the zone swap of an arranged move rebuilds the move

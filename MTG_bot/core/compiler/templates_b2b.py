@@ -120,6 +120,7 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
     at_least,
     number_you_control,
+    reveal_result,
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
@@ -449,6 +450,7 @@ def _build_alpine_houndmaster_etb(m: re.Match[str]) -> SentenceOutcome:
     FOr(NAME A, NAME B) could fetch two Alpine Watchdogs. No IR node says
     "distinct names", so the one search is written as two picks; nothing
     observes the difference (no card in the pool triggers on searching).
+    "Reveal them" is a reveal of each pick's ``result``, after it.
     """
     return _ability(
         _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
@@ -456,16 +458,9 @@ def _build_alpine_houndmaster_etb(m: re.Match[str]) -> SentenceOutcome:
             inner=Seq(
                 steps=(
                     _named_search_one("Alpine Watchdog"),
+                    reveal_result(),
                     _named_search_one("Igneous Cur"),
-                    Atom(
-                        verb=Verb.REVEAL,
-                        args=AtomArgs(
-                            pairs=(
-                                ("controller", ControllerRef.YOU),
-                                ("count", QUnbounded()),
-                            )
-                        ),
-                    ),
+                    reveal_result(),
                     Atom(
                         verb=Verb.SHUFFLE,
                         args=AtomArgs(
@@ -521,15 +516,7 @@ def _build_fierce_empath_etb(m: re.Match[str]) -> SentenceOutcome:
                             )
                         ),
                     ),
-                    Atom(
-                        verb=Verb.REVEAL,
-                        args=AtomArgs(
-                            pairs=(
-                                ("controller", ControllerRef.YOU),
-                                ("count", QConst(1)),
-                            )
-                        ),
-                    ),
+                    reveal_result(),
                     Atom(
                         verb=Verb.SHUFFLE,
                         args=AtomArgs(
@@ -980,11 +967,7 @@ def _build_named_card_search_etb(m: re.Match[str]) -> SentenceOutcome:
                 )
             ),
         )
-        reveal = Atom(
-            verb=Verb.REVEAL,
-            args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("count", QConst(1)))),
-        )
-        return Seq(steps=(search, reveal))
+        return Seq(steps=(search, reveal_result()))  # "reveal it": the card the search found
 
     # "put it into your hand" is the SEARCH's own destination, not a separate
     # move.

@@ -143,7 +143,8 @@ def test_reveal_until_has_one_reading_of_count() -> None:
     atom(Verb.REVEAL, controller=ControllerRef.YOU, count=QConst(1), until=CREATURE)
     with pytest.raises(ValueError, match="passes every card"):
         atom(Verb.REVEAL, controller=ControllerRef.YOU, count=QConst(2), until=FAnd(()))
-    with pytest.raises(ValueError, match="QUnbounded is no count"):
+    # QUnbounded is no count to stop at, nor a count of cards from the top (gate round W3)
+    with pytest.raises(ValueError, match="`count` is how many cards from the top"):
         atom(Verb.REVEAL, controller=ControllerRef.YOU, count=QUnbounded(), until=CREATURE)
 
 

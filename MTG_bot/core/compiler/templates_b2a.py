@@ -49,7 +49,6 @@ from MTG_bot.core.ability_tree import (
     CostSacrifice,
     CostTap,
     CounterKind,
-    CounterPlacedEvent,
     CreatureDiesEvent,
     DeclareBlockersEvent,
     DurationEot,
@@ -80,6 +79,7 @@ from MTG_bot.core.ability_tree import (
     Selector,
     SelectorMode,
     Seq,
+    StateTrigger,
     StaticAbility,
     TokenSpec,
     TriggeredAbility,
@@ -92,6 +92,7 @@ from MTG_bot.core.ability_tree import (
     at_least,
     at_most,
     number_you_control,
+    reveal_hand,
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
@@ -822,19 +823,13 @@ def _build_niambi_etb(m: re.Match[str]) -> SentenceOutcome:
 
 def _exile_at_counters(kind: CounterKind, n: int) -> SentenceOutcome:
     """"When there are N or more <kind> counters on this <permanent>, exile it." (Mazemind
-    Tome, Nine Lives): a state trigger (CR 603.8), read as the counters are placed. The
-    threshold is part of the trigger event, so it is in the event's filter: it is not an
-    intervening "if" (CR 603.4) and is not read again as the ability resolves."""
+    Tome, Nine Lives): a state trigger (CR 603.8), its state read over the permanent with the
+    ability each time a player would receive priority. Not an intervening "if" (CR 603.4): it
+    is not read again as the ability resolves. Not a CounterPlacedEvent: that triggered again
+    on each counter placed while the first waited, and never again once it was countered with
+    the counters still there (the cards' rulings)."""
     return _ability(
-        CounterPlacedEvent(
-            counter_kind=kind,
-            filter=FAnd(
-                children=(
-                    FAtom(pred=FAtomPred.IS_SOURCE),
-                    FAtom(pred=FAtomPred.HAS_COUNTER, counter_kind=kind, count=QConst(n)),
-                )
-            ),
-        ),
+        StateTrigger(filter=FAtom(pred=FAtomPred.HAS_COUNTER, counter_kind=kind, count=QConst(n))),
         Atom(
             verb=Verb.MOVE_ZONE,
             args=AtomArgs(
@@ -1480,17 +1475,9 @@ def _build_bone_pit_brute(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_kitesail_freebooter(m: re.Match[str]) -> SentenceOutcome:
+    """"When this creature enters, target opponent reveals their hand": the hand, revealed."""
     return _ability(
-        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)),
-        Atom(
-            verb=Verb.REVEAL,
-            args=AtomArgs(
-                pairs=(
-                    ("controller", ControllerRef.TARGET_OPPONENT),
-                    ("count", QUnbounded()),
-                )
-            ),
-        ),
+        _etb_event(FAtom(pred=FAtomPred.IS_SOURCE)), reveal_hand(ControllerRef.TARGET_OPPONENT)
     )
 
 

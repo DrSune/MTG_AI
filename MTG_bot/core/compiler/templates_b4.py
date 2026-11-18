@@ -66,6 +66,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
     ZonePosition,
+    reveal_result,
 )
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
@@ -706,16 +707,7 @@ def _build_search_named_card(card_name: str) -> SentenceOutcome:
                 )
             ),
         )
-        reveal_atom = Atom(
-            verb=Verb.REVEAL,
-            args=AtomArgs(
-                pairs=(
-                    ("controller", ControllerRef.YOU),
-                    ("count", QConst(1)),
-                )
-            ),
-        )
-        return Seq(steps=(search_atom, reveal_atom))
+        return Seq(steps=(search_atom, reveal_result()))  # "reveal it": the card found
 
     # "put it into your hand" is the SEARCH's own destination, as in the ETB twin.
     seq = and_or_zone_search(
@@ -940,17 +932,16 @@ def _build_reveal_one_from_among(m: re.Match[str]) -> SentenceOutcome:
 
 def reveal_one_from_among(pick_filter: Filter) -> OptionalEffect:
     """"You may reveal a <kind of card> from among them and put it into your hand" after a look
-    at the top of your library: OptionalEffect ("may") over Seq(REVEAL 1, MOVE_ZONE ONE_OF): the
-    looked-at cards stay on top of the library, so the pool is the TOP position and the pick is
-    exactly ONE_OF (Garruk's Harbinger; Icon of Ancestry's "of the chosen type", B17)."""
+    at the top of your library: OptionalEffect ("may") over Seq(MOVE_ZONE ONE_OF, REVEAL of its
+    result): the looked-at cards stay on top of the library, so the pool is the TOP position and
+    the pick is exactly ONE_OF (Garruk's Harbinger; Icon of Ancestry's "of the chosen type",
+    B17). The reveal shows the card picked, so it reads the move's ``result`` after it: nothing
+    happens between the two (no priority, no choice), and a reveal before the pick could only
+    name the look's first cards, whatever was picked (DESIGN_ATOM_ONTOLOGY §19)."""
     pool = Zone(
         kind=ZoneKind.LIBRARY,
         controller=ControllerRef.YOU,
         position=ZonePosition.TOP,
-    )
-    reveal = Atom(
-        verb=Verb.REVEAL,
-        args=AtomArgs(pairs=(("controller", ControllerRef.YOU), ("count", QConst(1)))),
     )
     move = Atom(
         verb=Verb.MOVE_ZONE,
@@ -964,7 +955,7 @@ def reveal_one_from_among(pick_filter: Filter) -> OptionalEffect:
             )
         ),
     )
-    return OptionalEffect(inner=Seq(steps=(reveal, move)))
+    return OptionalEffect(inner=Seq(steps=(move, reveal_result())))
 
 
 # ---------------------------------------------------------------------------

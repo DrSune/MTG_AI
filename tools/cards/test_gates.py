@@ -45,6 +45,7 @@ from MTG_bot.core.ability_tree import (
     Verb,
     Zone,
     ZoneKind,
+    reveal_hand,
 )
 from MTG_bot.core.compiler.ingest import ingest_pool
 from MTG_bot.core.executor.binding import _required_target_keys
@@ -736,19 +737,20 @@ def test_target_to_all_on_a_twin_stack_designation_is_dead() -> None:
             assert _game(pack, _mutant(lofty, LOFTY.format(branch), everyone)) == real, (flier, branch)
 
 
-HARBINGER_REVEAL = "1/0/effect/steps/1/inner/steps/0/args"
+HARBINGER_REVEAL = "1/0/effect/steps/1/inner/steps/1/args"
+OPPONENTS_HAND = reveal_hand(ControllerRef.OPPONENT).args.get("cards")
 
 
-def test_reveal_from_a_look_window_is_dead() -> None:
+def test_a_reveal_of_the_card_picked_is_dead() -> None:
     """Garruk's Harbinger: "look at that many cards ... You may reveal a creature card ... from
-    among them and put it into your hand. Put the rest on the bottom." The REVEAL right after the
-    LOOK_AT reads that window (verbs.py _look, prior-window branch): with cards in the library the
-    controller and count change nothing; with an empty library the mutant reveals the opponent's
-    top card, and the library-top partitions, which keep only cards in your library, ignore it."""
+    among them and put it into your hand. Put the rest on the bottom." The reveal follows the
+    pick's move and shows its ``result`` (DESIGN_ATOM_ONTOLOGY §19): it writes no window and no
+    register, so nothing that plays reads it, and its ``cards`` offers no mutant; revealing
+    another hand plays the same game."""
     harb = _card("Garruk's Harbinger")
     offered = _where(harb)
     assert not {w for _op, w in offered if w.startswith(HARBINGER_REVEAL)}
-    assert ("amount+1", "1/0/effect/steps/1/inner/steps/1/args/cards/count") in offered  # the pick stays live
+    assert ("amount+1", "1/0/effect/steps/1/inner/steps/0/args/cards/count") in offered  # the pick stays live
     pack = _pack([{"key": "gh", "real": "Garruk's Harbinger", "zone": "battlefield", "controller": 0},
                   {"key": "beast", "name": "Beast", "type": "Creature", "power": "3", "toughness": "3",
                    "zone": "library", "controller": 0},
@@ -756,31 +758,21 @@ def test_reveal_from_a_look_window_is_dead() -> None:
                   {"key": "opener", "name": "Opener", "type": "Sorcery", "zone": "hand", "controller": 0},
                   *_library(1, "Theirs", 2)],
                  [{"op": "combat", "seat": 0, "attack": {"gh": True}, "may": {"gh": True}, "decisions": ["beast"]}])
-
-    def empty_library(r: ScenarioRunner) -> None:
-        for h in list(r.world.players[r.p0].zone("library").entries):
-            r.world.move_to_zone(h, r.p0, "exile")
-
-    mutants = (_mutant(harb, f"{HARBINGER_REVEAL}/controller", ControllerRef.OPPONENT),
-               _mutant(harb, f"{HARBINGER_REVEAL}/count", QConst(2)))
     real = _game(pack)
     assert next(o for o in real[0].values() if o[0] == "Beast")[1] == "hand"  # the pick from the window
     assert real[1]["player:1"][0] == 16  # 4 combat damage
-    for mutant in mutants:
-        assert _game(pack, mutant) == real
-    real_empty = _game(pack, setup=empty_library)
-    for mutant in mutants:
-        assert _game(pack, mutant, setup=empty_library) == real_empty
+    assert _game(pack, _mutant(harb, f"{HARBINGER_REVEAL}/cards", OPPONENTS_HAND)) == real
 
 
 # ---------------------------------------------- the "library and/or graveyard" zone choice
 WARSTEED_OPTION = "1/0/effect/inner/options/{}/steps/{}/args"
 
 
-def test_reveal_per_option_of_a_zone_choice_is_dead() -> None:
-    """"Search your library and/or graveyard" is a choose-one of three searches, each with
-    its own REVEAL. Exactly one option runs, so at most one REVEAL does, and nothing reads it:
-    every option plays the same game with its REVEAL naming the opponent or revealing two."""
+def test_a_reveal_of_the_card_found_is_dead() -> None:
+    """"Search your library and/or graveyard ... reveal it": each of the three searches is followed
+    by the reveal of its ``result`` (DESIGN_ATOM_ONTOLOGY §19), which no game state reads: no
+    mutant of its ``cards``, and every option plays the same game when it reveals the opponent's
+    hand instead. Each search stays live. No top-of-library reveal is left in the ability."""
     ws = _card("Garruk's Warsteed")
     offered = _where(ws)
     for option in (0, 1, 2):
@@ -797,14 +789,8 @@ def test_reveal_per_option_of_a_zone_choice_is_dead() -> None:
         found = "Garruk, Savage Herald"
         assert sum(o[0] == found and o[1] == "hand" for o in real[0].values()) == 1, option
         reveal = WARSTEED_OPTION.format(option, 1)
-        assert _game(pack, _mutant(ws, f"{reveal}/controller", ControllerRef.OPPONENT)) == real, option
-        assert _game(pack, _mutant(ws, f"{reveal}/count", QConst(2))) == real, option
-    # not one per option: a "choose two" could run two REVEALs in a row, so the rule stays off
-    choose = ws.abilities[0].effect.inner
-    two = dataclasses.replace(ws.abilities[0], effect=dataclasses.replace(
-        ws.abilities[0].effect, inner=dataclasses.replace(choose, count=QConst(value=2))))
-    assert gates._reveal_dead_roles(two) == set()
-    assert gates._reveal_dead_roles(ws.abilities[0]) == {"controller", "count"}
+        assert _game(pack, _mutant(ws, f"{reveal}/cards", OPPONENTS_HAND)) == real, option
+    assert gates._reveal_dead_roles(ws.abilities[0]) == set()
 
 
 CULTIVATE_SEARCH = "1/0/effect/steps/0/args/destination"

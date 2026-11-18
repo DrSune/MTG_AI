@@ -22,6 +22,7 @@ from functools import cache
 import pytest
 
 from MTG_bot.core.ability_tree import (
+    AbilityTriggerEvent,
     ActivatedAbility,
     Atom,
     AtomArgs,
@@ -59,13 +60,7 @@ from MTG_bot.core.ability_tree import (
     number_you_control,
     to_dict,
 )
-from MTG_bot.core.executor import binding, verbs
-from MTG_bot.core.executor.events import (
-    KIND_ABILITY_TRIGGERED,
-    KIND_REFLEXIVE,
-    KIND_TARGETING,
-    GameEvent,
-)
+from MTG_bot.core.executor.events import KIND_TARGETING
 from MTG_bot.core.executor.games import compile_supply, get_supply
 from MTG_bot.core.test_executor_binding import record_of
 from tools.run_scenarios import ScenarioRunner
@@ -264,23 +259,25 @@ def test_kraken_pays_with_no_legal_target_and_its_reflexive_trigger_is_removed()
 
 
 def test_an_extra_copy_of_a_reflexive_trigger_reads_the_same_resolution() -> None:
-    """Sanctum of All's "that ability triggers an additional time" (TRIGGER_ADDITIONAL) on a
-    reflexive trigger: the extra copy carries the bindings, X and event register of the
-    resolution that created it, as the original does (CR 603.12). Before, the copy was queued
-    without them, so "X" and "the sacrificed creature" read nothing."""
-    r = _runner([_creature("bear", 0)])
-    bear = r.handles["bear"]
-    carried = binding._Carried({"result": bear}, 3, None, None)
-    original = binding._Firing(source=bear, controller=r.p0, node=reflexive(TAP), seq=0, carried=carried,
-                               event=GameEvent(clock=0, kind=KIND_REFLEXIVE, subject=None, cause=bear,
-                                               cause_verb="REFLEXIVE"))
-    ctx = r.ex._ctx(source=bear, controller=r.p0, bindings=None, decisions=())
-    ctx.event = GameEvent(clock=-1, kind=KIND_ABILITY_TRIGGERED, subject=bear, cause=bear,
-                          cause_verb="TRIGGER", data=(original,))
+    """A static "that ability triggers an additional time" (TRIGGER_ADDITIONAL, CR 603.2d) over a
+    reflexive trigger: its copy is queued with it, carrying the bindings, X and event register of
+    the resolution that created it, as the original does (CR 603.12). Before gate round 6 the
+    copy was queued without them, so "X" and "the sacrificed creature" read nothing."""
+    r = _runner([_creature("bear", 0), _creature("doubler", 0)])
+    bear, doubler = r.handles["bear"], r.handles["doubler"]
+    doubling = StaticAbility(effect=Atom(Verb.TRIGGER_ADDITIONAL, AtomArgs(pairs=(
+        ("count", QConst(1)),
+        ("event", AbilityTriggerEvent(filter=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU))),
+    ))))
+    r.ex.attach_card(doubler, record_of([doubling], name="Doubler",
+                                        oid=r.world.cards[doubler].identity.oracle_id))
+    ctx = r.ex._ctx(source=bear, controller=r.p0, bindings={"result": bear}, decisions=())
+    ctx.x_value = 3
     before = set(r.ex.binder.firings)
-    verbs._v_trigger_additional(ctx, Atom(Verb.TRIGGER_ADDITIONAL, AtomArgs(pairs=(("count", QConst(1)),))))
-    (copy,) = [p for k, p in r.ex.binder.firings.items() if k not in before]
-    assert copy.node is original.node and copy.carried == carried
+    r.ex.binder.fire_reflexive(reflexive(TAP), ctx)
+    original, copy = [p for k, p in r.ex.binder.firings.items() if k not in before]
+    assert copy.node is original.node and copy.carried == original.carried
+    assert copy.carried.x_value == 3 and copy.carried.bindings == {"result": bear}
 
 
 SORIN = {"key": "sorin", "real": "Sorin, Imperious Bloodlord", "zone": "battlefield", "controller": 0,

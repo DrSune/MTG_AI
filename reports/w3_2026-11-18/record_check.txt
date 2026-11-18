@@ -1,0 +1,14 @@
+FDN Campus Guide: rest of the tree equal; REVEAL atoms 1 -> 1; verified block gone
+FDN Expedition Map: rest of the tree equal; REVEAL atoms 1 -> 1; verified block gone
+FDN Vivien Reid: rest of the tree equal; REVEAL atoms 1 -> 1; verified block gone
+FDN Pilfer: rest of the tree equal; REVEAL atoms 1 -> 1; verified block gone
+FDN Micromancer: rest of the tree equal; REVEAL atoms 1 -> 1; verified block gone
+FDN Squad Rallier: rest of the tree equal; REVEAL atoms 1 -> 1; verified block gone
+FDN Loot, Exuberant Explorer: rest of the tree equal; REVEAL atoms 1 -> 1; verified block gone
+M19 Vivien Reid: rest of the tree equal; REVEAL atoms 1 -> 1; verified block gone
+M20 Icon of Ancestry: rest of the tree equal; REVEAL atoms 1 -> 1; verified block gone
+M20 Thought Distortion: rest of the tree equal; REVEAL atoms 1 -> 1; verified block gone
+M20 Yarok, the Desecrated: new tree (was ['name', 'needs_atom', 'oracle_id', 'schema', 'set', 'text_sha'])
+M20 Chandra's Flame Wave: rest of the tree equal; REVEAL atoms 3 -> 3; verified block gone
+M20 Battalion Foot Soldier: rest of the tree equal; REVEAL atoms 1 -> 1; verified block gone
+M20 Brightwood Tracker: rest of the tree equal; REVEAL atoms 1 -> 1; verified block gone

@@ -80,16 +80,33 @@
         "tag": "AtomArgs",
         "pairs": [
          [
-          "controller",
+          "cards",
           {
-           "tag": "ControllerRef",
-           "name": "TARGET_OPPONENT"
-          }
-         ],
-         [
-          "count",
-          {
-           "tag": "QUnbounded"
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": []
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "HAND"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "TARGET_OPPONENT"
+             }
+            }
+           ]
           }
          ]
         ]
@@ -205,9 +222,9 @@
   ]
  },
  "mapping": {
-  "author": "claude-mapper-wave3",
-  "date": "2026-11-06",
-  "draft_py": "# M20 Thought Distortion\n# 1. \"This spell can't be countered.\" is the compiler's (B14), compiled[0].\n# 2. \"Target opponent reveals their hand.\" is the compiler's REVEAL (B5b-reveal-hand), kept.\n# 3. \"Exile all noncreature, nonland cards from that player's hand and graveyard.\": the \"exile all\n#    <cards> from <zone>\" MOVE_ZONE of Tormod's Crypt / Idol of Endurance (role 'target', mode ALL,\n#    Zone(EXILE, OWNER)), over the target player's hand and graveyard; \"that player\" after \"Target\n#    opponent reveals their hand\" reads TARGET_PLAYER (Duress; query.player_target_slot: one\n#    designated player, opponent-only because the tree reads TARGET_OPPONENT). \"noncreature,\n#    nonland card\" is Duress's FAnd of two FNot(TYPE_EQ).\nreveal = compiled[1].effect\nspell = SpellAbility(\n    kind=SpellKind.SORCERY,\n    effect=Seq(\n        steps=(\n            reveal,\n            A(Verb.MOVE_ZONE, {\n                'destination': Zone(kind=ZoneKind.EXILE, controller=ControllerRef.OWNER),\n                'target': Selector(\n                    count=QUnbounded(),\n                    mode=SelectorMode.ALL,\n                    filter=FAnd(\n                        children=(\n                            FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature')),\n                            FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land')),\n                        ),\n                    ),\n                    zones=(\n                        Zone(kind=ZoneKind.HAND, controller=ControllerRef.TARGET_PLAYER),\n                        Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.TARGET_PLAYER),\n                    ),\n                ),\n            }),\n        ),\n    ),\n)\nabilities = [compiled[0], spell]\n",
+  "author": "claude-ontology-w3",
+  "date": "2026-11-18",
+  "draft_py": "# Patched by gate round W3 (DESIGN_ATOM_ONTOLOGY §19): REVEAL names the cards it shows.\n# M20 Thought Distortion: the record's stored tree (rendered by render_records.py)\nkeywords = [\n]\nabilities = [\n    # [0]\n    StaticAbility(\n        effect=A(Verb.PREVENT_EFFECT, {\n            'condition': FAtom(pred=FAtomPred.IS_SOURCE),\n            'event': CounteredEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)),\n        }),\n    ),\n    # [1]\n    SpellAbility(\n        kind=SpellKind.SORCERY,\n        effect=Seq(\n            steps=(\n                reveal_hand(ControllerRef.TARGET_OPPONENT),\n                A(Verb.MOVE_ZONE, {\n                    'destination': Zone(kind=ZoneKind.EXILE, controller=ControllerRef.OWNER),\n                    'target': Selector(\n                        count=QUnbounded(),\n                        mode=SelectorMode.ALL,\n                        filter=FAnd(\n                            children=(\n                                FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Creature')),\n                                FNot(inner=FAtom(pred=FAtomPred.TYPE_EQ, string_value='Land')),\n                            ),\n                        ),\n                        zones=(\n                            Zone(kind=ZoneKind.GRAVEYARD, controller=ControllerRef.TARGET_PLAYER),\n                            Zone(kind=ZoneKind.HAND, controller=ControllerRef.TARGET_PLAYER),\n                        ),\n                    ),\n                }),\n            ),\n        ),\n    ),\n]\n",
   "clauses": [
    {
     "clause": "This spell can't be countered.",
@@ -225,46 +242,9 @@
   "g0_warnings": [
    "component shapes no compiled card has (review them in the probe): selector ALL [GRAVEYARD,HAND]"
   ],
-  "notes": "Can't-be-countered static and the REVEAL are the compiler's. Exile: Tormod's Crypt / Idol of Endurance 'exile all <cards> from <zone>' MOVE_ZONE (role target, mode ALL, Zone(EXILE, OWNER)) over Zone(HAND|GRAVEYARD, TARGET_PLAYER); 'that player' after 'Target opponent reveals their hand' reads TARGET_PLAYER as in Duress (one designated player, opponent-only, query.player_target_slot); 'noncreature, nonland' is Duress's FAnd of FNot(TYPE_EQ). G0 warns ALL over [GRAVEYARD,HAND] is a new selector shape: the probe exiles opp_trick (hand) and opp_used (graveyard) and leaves the creature cards."
+  "notes": "Re-mapped by ontology gate round W3 (DESIGN_ATOM_ONTOLOGY §19) from the stored tree: the reveal names the hand, reveal_hand(TARGET_OPPONENT). Nothing else changed."
  },
  "probe": {
-  "sha": "cb48bd36aeff219301316b676fdfd4338af07e220ef2f89be59342dfa45d01c4"
- },
- "verified": {
-  "tree_sha": "fd4e2a3af20276bbb9e5ec71888f320f53a583a82c86f35fdb43233fe3544c97",
-  "probe_sha": "cb48bd36aeff219301316b676fdfd4338af07e220ef2f89be59342dfa45d01c4",
-  "date": "2026-11-06",
-  "reviewer": "claude-verifiers-r3",
-  "clauses": [
-   {
-    "clause": "This spell can't be countered.",
-    "status": "NOT_EXERCISED",
-    "evidence": "No counterspell in the probe. Compiled template B14. Pack thought_distortion_1: P1's Negate resolves, the spell still resolves.",
-    "issue": ""
-   },
-   {
-    "clause": "Target opponent reveals their hand.",
-    "status": "OK",
-    "evidence": "Target slot 1..1 of [opp]; REVEAL (TARGET_OPPONENT, all) as Duress's compiled sentence; reveal is information only.",
-    "issue": ""
-   },
-   {
-    "clause": "Exile all noncreature, nonland cards from that player's hand and graveyard.",
-    "status": "OK",
-    "evidence": "opp_trick hand -> exile, opp_used graveyard -> exile; creatures opp_spare and opp_fallen stay (opp hand 2 -> 1). The probe had no land there: pack thought_distortion_1 (lands and an artifact creature stay; instant, sorcery, enchantment and the resolved Negate exiled; P0's own cards untouched).",
-    "issue": ""
-   }
-  ],
-  "packs": [
-   "tools/scenarios/cards/M20/thought_distortion_1.json"
-  ],
-  "mutation": {
-   "mutants": 5,
-   "killed": 4,
-   "score": 0.8,
-   "survived": [
-    "widen filter (drop part 1) at 1/1/effect/steps/1/args/target/filter"
-   ]
-  }
+  "sha": "528967c15fa4dd24c1a1091d33e0dc3b989ebdecd6b4bc5041f07ef2d1d5feab"
  }
 }

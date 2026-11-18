@@ -232,11 +232,12 @@ def test_a_mulligan_makes_every_card_of_the_hand_a_new_object(table) -> None:
     """The London mulligan shuffles the hand into the library (CR 103.5), so each of its cards is
     a new object after it (CR 400.7), drawn again or not. The engine does not journal those moves
     (games.mulligans), so the tracker renews them: at the mulligan every card of the hand is
-    "never" used, and the next decision reads no forecast back onto a card drawn again. Seed 7
+    "never" used, and the next decision reads no forecast back onto a card drawn again. Seed 8
     draws one again and plays it later (the review of 2026-11-18 found it labelled with that
-    use)."""
+    use; seed 7 did until gate round W3's re-baked cards left the verified M21 pool and changed
+    its deal)."""
     me = _MulliganOnce(table)
-    play_game(7, [me, HeuristicAgent()], deck_mode="coherent", pool_mode="verified")
+    play_game(8, [me, HeuristicAgent()], deck_mode="coherent", pool_mode="verified")
     tracker = me.tracker
     handle = {i: h for (h, _), i in tracker.ids.items()}
     again = set(me.hands[0]) & set(me.hands[1])

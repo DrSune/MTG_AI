@@ -250,14 +250,10 @@ class Verb(Enum):
     # `cards` names the creatures (the MANDATE_ATTACK subject role),
     # `duration` an "attack this turn" window.
     ATTACK_POLICY = "ATTACK_POLICY"
-    # TRIGGER_ADDITIONAL (Sanctum of All "that ability triggers an
-    # additional time"): the {count} axis of the extra-trigger family — the
-    # AbilityTriggerEvent firing re-triggers the ability it matched
-    # `count` more times. CR 603.2d: those extra triggers are created
-    # WITHOUT a triggering event, so they never re-arm an
-    # AbilityTriggerEvent (the executor marks and skips them). Shared
-    # encoding for the whole pool family (Panharmonicon, a derived
-    # self-count carrier): one verb, reusable count Quantity.
+    # TRIGGER_ADDITIONAL ("that ability triggers an additional time", Sanctum of All, Yarok, the
+    # Desecrated): a static ability's effect only (CR 603.2d). `event` (an AbilityTriggerEvent)
+    # names the triggered abilities it applies to, `count` how many more times each triggers:
+    # the binder counts the live ones as an ability triggers and queues the copies with it.
     TRIGGER_ADDITIONAL = "TRIGGER_ADDITIONAL"
 
 
@@ -1530,15 +1526,14 @@ class FAtom:
                 raise ValueError(f"FAtom: {self.pred.name} requires slot 'count'")
             if isinstance(self.count, QConst) and self.count.value < 1:
                 raise ValueError(f"FAtom: {self.pred.name} requires count >= 1")
-            if isinstance(
-                self.event, (StepEvent, AbilityTriggerEvent, PhasingEvent, CounteredEvent)
-            ) or (
+            if isinstance(self.event, _UNTRIGGERABLE_EVENTS) or (
                 isinstance(self.event, DeclareBlockersEvent) and self.event.count is not None
             ):
-                # no history to read: the first three are never journalled, a
-                # countered spell has left the stack before its row could be
-                # matched (a "spell" filter cannot be judged afterwards), and a
-                # block row is one pair, so a blocker count cannot be read off it
+                # no history to read: a step, phasing and an ability triggering are never
+                # journalled, a state is no event (CR 603.8), a countered spell has left the
+                # stack before its row could be matched (a "spell" filter cannot be judged
+                # afterwards), and a block row is one pair, so a blocker count cannot be read
+                # off it
                 raise ValueError(
                     f"FAtom: {self.pred.name} cannot read {type(self.event).__name__} "
                     "(no journal history the matcher can judge)"
@@ -2126,6 +2121,19 @@ class CounterPlacedEvent:
                 "CounterPlacedEvent: count must be a Quantity or None, got "
                 f"{type(self.count).__name__}"
             )
+        parts = self.filter.children if isinstance(self.filter, FAnd) else (self.filter,)
+        if any(
+            isinstance(p, FAtom) and p.pred is FAtomPred.HAS_COUNTER
+            and p.counter_kind is self.counter_kind
+            for p in parts
+        ):
+            # "When there are N or more <kind> counters on it" is a state (CR 603.8): read on
+            # each placement it triggers again while its first instance waits, and never again
+            # once that instance is countered with the counters still there.
+            raise ValueError(
+                "CounterPlacedEvent: a filter testing how many counters of its own kind the "
+                "object has is a state trigger's (StateTrigger), not a placement's"
+            )
 
 
 @dataclass(frozen=True)
@@ -2197,21 +2205,77 @@ class PhasingEvent:
 
 @dataclass(frozen=True)
 class AbilityTriggerEvent:
-    """An ability TRIGGERED (Sanctum of All "whenever another Shrine you
-    control's ability triggers"). Like every event class it has a subject
-    filter, here evaluated over the TRIGGERING ability's source
-    permanent ("another Shrine you control" = SUBTYPE_EQ + CONTROLLER_IS
-    + FNot(IS_SOURCE)). The quantity axis rides the effect: the
-    TRIGGER_ADDITIONAL verb's `count` (an "additional time" is +1, a
-    "…for each category" self-repeat is a derived Quantity)."""
+    """A triggered ability of a permanent triggering: the abilities a TRIGGER_ADDITIONAL static
+    makes trigger additional times (CR 603.2d), and only that (`_extra_trigger_fault`).
+
+    - ``filter`` is read over the permanent whose ability triggered, in the static's
+      coordinates: "an ability of another Shrine you control" is SUBTYPE_EQ Shrine,
+      CONTROLLER_IS YOU and FNot(IS_SOURCE) (IS_SOURCE is the static's own object). A test that
+      reads no subject ("while you control six or more Shrines") is the static's `condition`,
+      never a conjunct here: one encoding.
+    - ``cause``, when present, is the event the ability triggered on: "if a permanent entering
+      causes a triggered ability ... to trigger" (Yarok, the Desecrated) is a ZoneChangeEvent to
+      the battlefield. It is any event a trigger can match, never a state (a state trigger has
+      no event) nor this class."""
 
     filter: Filter
+    cause: EventSpec | None = None
 
     def __post_init__(self) -> None:
         if not _is_filter(self.filter):
             raise ValueError(
                 f"AbilityTriggerEvent: filter must be a Filter, got "
                 f"{type(self.filter).__name__}"
+            )
+        parts = self.filter.children if isinstance(self.filter, FAnd) else (self.filter,)
+        if any(not _reads_subject(p) for p in parts):
+            raise ValueError(
+                "AbilityTriggerEvent: a test that reads no subject (a count, a turn) is the "
+                "static's condition, never a conjunct of the filter over the permanent whose "
+                "ability triggered"
+            )
+        if self.cause is not None and (
+            not _is_event(self.cause)
+            or isinstance(self.cause, _UNTRIGGERABLE_EVENTS)
+            or (isinstance(self.cause, DeclareBlockersEvent) and self.cause.count is not None)
+        ):
+            raise ValueError(
+                "AbilityTriggerEvent: cause is the event the ability triggered on, one a trigger "
+                f"can match, got {type(self.cause).__name__}"
+            )
+
+
+@dataclass(frozen=True)
+class StateTrigger:
+    """A state trigger's trigger condition (CR 603.8): a game state, not an event. ``filter`` is
+    read over the object with the ability, as a static's condition is: "When there are nine or
+    more incarnation counters on this enchantment" (Nine Lives) is FAtom(HAS_COUNTER, 9,
+    INCARNATION); "When you control no permanents with phylactery counters on them" a
+    comparison that reads no subject. The binder checks it each time a player would receive
+    priority (``TriggerBinder.check_states``). It does not trigger again while an instance of
+    it waits or is on the stack, and triggers again once that instance has left the stack
+    (resolved, countered, removed) if the state still holds and its object has not changed
+    zones since (CR 603.8, 400.7). It stands only as a TriggeredAbility's event.
+
+    Refused: IS_SOURCE as the filter or one of its conjuncts (the subject is that object
+    already: a second form), the universal filter (it would trigger at every check), and the
+    state written as an event (a CounterPlacedEvent testing the count it reaches:
+    ``CounterPlacedEvent``)."""
+
+    filter: Filter
+
+    def __post_init__(self) -> None:
+        if not _is_filter(self.filter):
+            raise ValueError(
+                f"StateTrigger: filter must be a Filter, got {type(self.filter).__name__}"
+            )
+        if isinstance(self.filter, FAnd) and not self.filter.children:
+            raise ValueError("StateTrigger: the universal filter is no state: it always holds")
+        parts = self.filter.children if isinstance(self.filter, FAnd) else (self.filter,)
+        if FAtom(pred=FAtomPred.IS_SOURCE) in parts:
+            raise ValueError(
+                "StateTrigger: the filter is read over the object with the ability; IS_SOURCE "
+                "says it again"
             )
 
 
@@ -2489,7 +2553,14 @@ EventSpec = (
     | SacrificeEvent
     | AbilityActivatedEvent
     | CounteredEvent
+    | AbilityTriggerEvent
+    | StateTrigger
 )
+
+#: Event specs no trigger can match: no journal row feeds them (the binder's
+#: ``_UNSUPPORTED_EVENTS``), an ability triggering (TRIGGER_ADDITIONAL's description, CR
+#: 603.2d) and a state (CR 603.8, no event). The cause an extra trigger reads is never one.
+_UNTRIGGERABLE_EVENTS = (StepEvent, PhasingEvent, CounteredEvent, AbilityTriggerEvent, StateTrigger)
 
 
 # ---- Leaf value types used inside AtomArgs ----
@@ -3357,20 +3428,40 @@ class Atom:
                     "leaving the role out, and DurationWhileCondition could start "
                     "again and move the object a second time"
                 )
+        # CR 603.2d: TRIGGER_ADDITIONAL's event names the triggered abilities that trigger
+        # additional times, and nothing else describes an ability triggering; a state is no
+        # event a prevention could read either.
+        event = roles.get("event")
+        if self.verb is Verb.TRIGGER_ADDITIONAL:
+            if not isinstance(event, AbilityTriggerEvent):
+                raise ValueError(
+                    "Atom: TRIGGER_ADDITIONAL's event names the triggered abilities that trigger "
+                    f"additional times (an AbilityTriggerEvent), got {type(event).__name__}"
+                )
+            count = roles["count"]
+            if isinstance(count, QUnbounded) or (isinstance(count, QConst) and count.value < 1):
+                raise ValueError(
+                    "Atom: TRIGGER_ADDITIONAL's count is how many more times the ability "
+                    "triggers: a number of at least 1"
+                )
+        elif isinstance(event, (AbilityTriggerEvent, StateTrigger)):
+            raise ValueError(
+                f"Atom: {self.verb.name}'s event cannot be a {type(event).__name__}: only "
+                "TRIGGER_ADDITIONAL reads an ability triggering, and a state is no event"
+            )
+        if self.verb in (Verb.REVEAL, Verb.LOOK_AT):
+            fault = _look_roles_fault(roles)
+            if fault is not None:
+                raise ValueError(f"Atom: {self.verb.name}: {fault}")
         # REVEAL's `until`: `count` is the number of revealed cards that pass
-        # it. The universal filter passes every card, so it would be a second
-        # form of the plain top-`count` REVEAL; QUnbounded is no number to stop at.
+        # it (a number: _look_roles_fault). The universal filter passes every card, so it
+        # would be a second form of the plain top-`count` REVEAL.
         if self.verb is Verb.REVEAL and "until" in roles:
             until = roles["until"]
             if isinstance(until, FAnd) and not until.children:
                 raise ValueError(
                     "Atom: REVEAL until=FAnd(()) passes every card: that is a plain "
                     "REVEAL of `count` cards"
-                )
-            if isinstance(roles.get("count"), QUnbounded):
-                raise ValueError(
-                    "Atom: REVEAL with `until` counts the revealed cards that pass it; "
-                    "QUnbounded is no count to stop at"
                 )
         # GET_EMBLEM's recipient is one of EMBLEM_RECIPIENTS. Any other ref or a player Selector
         # is a second form of one of them (OPPONENT is every opponent with three seats, a
@@ -3444,6 +3535,25 @@ class Seq:
                     "Seq: two equal copy steps would share one designation; \"twice\" is one "
                     "copy with a `count`, two printed copies are two different steps"
                 )
+        looked = False
+        for step in self.steps:
+            own = list(walk(step, skip=_FOREIGN_ABILITY_NODES))
+            if looked and any(
+                isinstance(n, Atom) and n.verb is Verb.REVEAL and n.args.get("count") is not None
+                for n in own
+            ):
+                # "Reveal a creature card from among them and put it into your hand" shows the
+                # card the move picks, "search ..., reveal it" the card found: REVEAL(cards=
+                # RESULT_REFERENT) after that move or search. A top-`count` reveal there named the
+                # look's first cards, or the library's top after the search, whatever was picked
+                # or found: a second encoding of "reveal it", and a false record.
+                raise ValueError(
+                    "Seq: a card revealed after a look or a search is the pick's or the find's: "
+                    "REVEAL(cards=RESULT_REFERENT), never a top-`count` REVEAL"
+                )
+            looked = looked or any(
+                isinstance(n, Atom) and n.verb in (Verb.LOOK_AT, Verb.SEARCH) for n in own
+            )
 
 
 @dataclass(frozen=True)
@@ -3864,6 +3974,46 @@ def _copy_roles_fault(verb: Verb, roles: dict[str, object]) -> str | None:
     return None
 
 
+def _look_roles_fault(roles: dict[str, object]) -> str | None:
+    """Why a REVEAL's or LOOK_AT's roles say nothing or say a meaning twice, else None (CR
+    701.20a: a reveal shows the named cards to all players; a look shows them to the looker).
+    One encoding per set of cards:
+
+    - the top N cards of a library: `controller` and `count` (a number: QUnbounded was "the
+      whole library", read for a hand and for searched cards alike, which revealed neither);
+    - a whole hand: REVEAL's `cards` alone, ALL of one hand zone, unfiltered;
+    - the cards the instruction before found, moved or looked at ("reveal it", "reveal them"):
+      REVEAL's `cards` alone, :data:`RESULT_REFERENT`.
+
+    A pick from a look ("reveal a creature card from among them and put it into your hand") is
+    the move's pick, then the reveal of its `result` (``Seq.__post_init__``)."""
+    cards = roles.get("cards")
+    if cards is None:
+        if "controller" not in roles or "count" not in roles:
+            return "the top cards of a library are `controller` and `count`; other cards `cards`"
+        if isinstance(roles["count"], QUnbounded):
+            return "`count` is how many cards from the top; a whole hand or the cards found are `cards`"
+        return None
+    assert isinstance(cards, Selector)  # role table
+    if roles.keys() != {"cards"}:
+        return "`cards` names the cards revealed, alone"
+    if cards.referent is not None:
+        return None if cards == RESULT_REFERENT else (
+            "the cards an instruction found or moved are the `result` referent (RESULT_REFERENT)"
+        )
+    zone = cards.zones[0] if len(cards.zones) == 1 else None
+    if (
+        zone is None
+        or zone.kind is not ZoneKind.HAND
+        or zone.position is not None
+        or cards.mode is not SelectorMode.ALL
+        or not isinstance(cards.count, QUnbounded)
+        or cards.filter != FAnd(children=())
+    ):
+        return "`cards` over a zone is a whole hand: ALL of one hand zone, unfiltered"
+    return None
+
+
 def gathers_occurrences(event: object) -> bool:
     """Can one event hold several occurrences a trigger on ``event`` matches, so that once per
     event and once per occurrence play differently (CR 603.2c)? A declaration's attackers can; so
@@ -3914,6 +4064,8 @@ def _check_once_per_event(owner: str, event: object, value: object) -> None:
         return
     if value is not True:
         raise ValueError(f"{owner}: once_per_event is True or absent, got {value!r}")
+    if isinstance(event, StateTrigger):
+        raise ValueError(f"{owner}: a state (CR 603.8) has no occurrences to trigger once for")
     if isinstance(
         event, (DeclareAttackersEvent, DamageDealtEvent, ZoneChangeEvent)
     ) and not gathers_occurrences(event):
@@ -3968,6 +4120,17 @@ def _reads_subject(filter_: object) -> bool:
     if isinstance(filter_, FNot):
         return _reads_subject(filter_.inner)
     return isinstance(filter_, FAtom) and not reads_no_subject(filter_)
+
+
+def _reads_event_register(effect: object) -> bool:
+    """Does ``effect`` read its trigger's event register ("it", "they", "that many", "its
+    power", "until it leaves", "that spell")? Its own nodes only: a nested ability (a granted
+    one, a token's, a delayed or reflexive trigger) has a register of its own."""
+    return any(
+        getattr(n, "referent", None) == "event"
+        or (isinstance(n, DurationUntilLeaves) and n.source == "event")
+        for n in walk(effect, skip=(*_A_CLASSES, DelayedTrigger))
+    )
 
 
 #: The roles a verb reads as one object, taking the first of several: "it deals" (CR 120.2b names
@@ -4068,9 +4231,15 @@ class DelayedTrigger:
                 raise ValueError(
                     f"DelayedTrigger: duration must be a Duration, got {type(self.duration).__name__}"
                 )
-            if not _is_event(self.event):
+            if not _is_event(self.event) or isinstance(
+                self.event, (AbilityTriggerEvent, StateTrigger)
+            ):
+                # the binder matches a delayed trigger against journalled events only: a state
+                # (CR 603.8) is checked for printed abilities, and an ability triggering is a
+                # static's description (CR 603.2d)
                 raise ValueError(
-                    f"DelayedTrigger: event must be an EventSpec, got {type(self.event).__name__}"
+                    "DelayedTrigger: event must be an EventSpec a delayed trigger can match, got "
+                    f"{type(self.event).__name__}"
                 )
         if self.condition is not None and not _is_filter(self.condition):
             raise ValueError(
@@ -4164,10 +4333,29 @@ class TriggeredAbility:
             raise ValueError(
                 f"TriggeredAbility: event must be an EventSpec, got {type(self.event).__name__}"
             )
+        if isinstance(self.event, AbilityTriggerEvent):
+            # The old carrier form: a trigger of its own went on the stack between the
+            # original and its copy, and its copy was queued only when it resolved.
+            raise ValueError(
+                "TriggeredAbility: \"that ability triggers an additional time\" is a static "
+                "ability (CR 603.2d): StaticAbility(TRIGGER_ADDITIONAL(event=AbilityTriggerEvent))"
+            )
         if self.condition is not None and not _is_filter(self.condition):
             raise ValueError(
                 f"TriggeredAbility: condition must be a Filter, got {type(self.condition).__name__}"
             )
+        if isinstance(self.event, StateTrigger):
+            if self.condition is not None:
+                # no card of the 19 sets prints one; the state is the filter, read once
+                raise ValueError(
+                    "TriggeredAbility: a state trigger (CR 603.8) takes no intervening \"if\": "
+                    "its state is the StateTrigger's filter"
+                )
+            if _reads_event_register(self.effect):
+                raise ValueError(
+                    "TriggeredAbility: a state trigger (CR 603.8) has no triggering event, so "
+                    "nothing for \"it\", \"that many\" or \"its power\" of the event to read"
+                )
         _check_once_per_event("TriggeredAbility", self.event, self.once_per_event)
         if not _is_effect(self.effect):
             raise ValueError(
@@ -4310,9 +4498,10 @@ class ReplacementAbility:
     action: Effect
 
     def __post_init__(self) -> None:
-        if not _is_event(self.event):
+        if not _is_event(self.event) or isinstance(self.event, (AbilityTriggerEvent, StateTrigger)):
             raise ValueError(
-                f"ReplacementAbility: event must be an EventSpec, got {type(self.event).__name__}"
+                "ReplacementAbility: event must be an EventSpec a replacement can replace, got "
+                f"{type(self.event).__name__}"
             )
         if getattr(self.event, "ordinal", None) is not None:
             # no replacement lane reads one; ignored, it would replace every event
@@ -4662,6 +4851,44 @@ def _reflexive_misplaced(
         _reflexive_misplaced(getattr(node, f.name), host, False, rotated, barred)
         for f in dataclasses.fields(node)
     )
+
+
+def extra_trigger_fault(*nodes: Any) -> str | None:
+    """Why a TRIGGER_ADDITIONAL under ``nodes`` (a card's keywords and abilities) stands where it
+    means nothing, else None. "That ability triggers an additional time" is a static ability's
+    continuous effect, read as abilities trigger (CR 603.2d, 604.1): it stands only as the
+    effect (or a step of the effect) of a StaticAbility that is the card's, a token's, an
+    emblem's or a copy's own, never in a resolving effect (a one-shot changes how no ability
+    triggers), a replacement, a cost, an "as ~ enters" state or a granted static (the layers
+    register a permanent's own statics only)."""
+
+    def misplaced(node: Any, in_static: bool, granted: bool) -> bool:
+        if isinstance(node, tuple):
+            return any(misplaced(item, in_static, granted) for item in node)
+        if not dataclasses.is_dataclass(node) or isinstance(node, type):
+            return False
+        if isinstance(node, Atom):
+            if node.verb is Verb.TRIGGER_ADDITIONAL:
+                return not in_static or granted
+            return any(
+                misplaced(value, False, granted or (node.verb is Verb.GRANT_ABILITY and role == "ability"))
+                for role, value in node.args.pairs
+            )
+        if isinstance(node, StaticAbility):
+            return misplaced(node.effect, True, granted) or misplaced(node.condition, False, granted)
+        if isinstance(node, (TokenSpec, EmblemSpec, CopyOf)):
+            granted = False  # their abilities are the token's, the emblem's, the copy's own
+        keep = in_static and isinstance(node, Seq)
+        return any(
+            misplaced(getattr(node, f.name), keep, granted) for f in dataclasses.fields(node)
+        )
+
+    if misplaced(nodes, False, False):
+        return (
+            "TRIGGER_ADDITIONAL is a static ability's effect (CR 603.2d): a card's, token's, "
+            "emblem's or copy's own static, never a resolving effect or a granted static"
+        )
+    return None
 
 
 def permission_fault(*nodes: Any) -> str | None:
@@ -5111,6 +5338,7 @@ class CardRecord:
         fault = (
             chosen_quality_fault(self.keywords, self.abilities)
             or permission_fault(self.keywords, self.abilities)
+            or extra_trigger_fault(self.keywords, self.abilities)
             or event_object_fault(self.keywords, self.abilities)
             or self_copy_fault(self.abilities, bool({"Instant", "Sorcery"} & set(self.types)))
         )
@@ -5196,6 +5424,7 @@ _EV_CLASSES = (
     SacrificeEvent,
     AbilityActivatedEvent,
     CounteredEvent,
+    StateTrigger,
 )
 _D_CLASSES = (
     DurationEot,
@@ -5507,10 +5736,10 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     # ability's controller. A ControllerRef or referent Selector, as for
     # LOSE_LIFE.
     Verb.CREATE_TOKEN: {"tokens": True, "count": False, "controller": False},
-    # TRIGGER_ADDITIONAL (Sanctum of All): how many EXTRA times the matched ability
-    # triggers — a full Quantity (QConst 1 for "an additional time", a
-    # derived QBin/QCount for a per-category self-repeat).
-    Verb.TRIGGER_ADDITIONAL: {"count": True},
+    # TRIGGER_ADDITIONAL (a static's effect, CR 603.2d): `event` names the triggered abilities
+    # (an AbilityTriggerEvent), `count` how many more times each triggers (QConst 1 for "an
+    # additional time").
+    Verb.TRIGGER_ADDITIONAL: {"count": True, "event": True},
     Verb.PUT_COUNTER: {"target": True, "counter_kind": True, "count": True},
     Verb.REMOVE_COUNTER: {"target": True, "counter_kind": True, "count": True},
     Verb.MODIFY_PT: {
@@ -5590,15 +5819,22 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     Verb.SACRIFICE: {"target": True},
     Verb.DISCARD: {"controller": True, "cards": True},
     Verb.SCRY: {"controller": True, "count": True},
-    # REVEAL's duration: "Play with the top card of your library revealed"
-    # is a continuous revealed state — DurationPermanent, top of library
-    # implicit as for LOOK_AT. `count` = the revealed cards that pass `until`;
-    # every card when `until` is absent. So with `until` the cards are revealed
-    # one at a time from the top until `count` of them pass it ("until they
-    # reveal a creature card", Transmogrify: count 1), and those are the
-    # ``result`` ("that card"). Atom refuses `until` = the universal FAnd (a
-    # plain REVEAL of `count` cards) and a QUnbounded `count` with `until`.
-    Verb.REVEAL: {"controller": True, "count": True, "duration": False, "until": False},
+    # REVEAL and LOOK_AT name the cards they show (CR 701.20a; _look_roles_fault). The top
+    # `count` cards of `controller`'s library: "reveal the top four cards of your library". With
+    # `until` they are revealed one at a time from the top until `count` of them pass it ("until
+    # they reveal a creature card", Transmogrify: count 1), and those are the ``result`` ("that
+    # card"). REVEAL's `duration`: "Play with the top card of your library revealed", a
+    # continuous revealed state (DurationPermanent). REVEAL's `cards`, alone, names any other
+    # cards: a whole hand ("target opponent reveals their hand": ALL over Zone(HAND, ...)), or
+    # the cards the instruction before found, moved or looked at ("reveal it", "reveal those
+    # cards": the `result` referent).
+    Verb.REVEAL: {
+        "controller": False,
+        "count": False,
+        "duration": False,
+        "until": False,
+        "cards": False,
+    },
     Verb.LOOK_AT: {"controller": True, "count": True},
     Verb.ATTACH: {"equipment": True, "target": True},
     # GAIN_CONTROL's duration: "gain control of target creature until end
@@ -5778,6 +6014,7 @@ _DATACLASSES: tuple[type, ...] = (
     SacrificeEvent,
     AbilityActivatedEvent,
     CounteredEvent,
+    StateTrigger,
     LiteralName,
     PtDelta,
     TokenSpec,
@@ -5923,7 +6160,8 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
     "BecomesBlockedEvent": (("filter", "filter"),),
     "TapStateEvent": (("tapped", "bool"), ("filter", "filter")),
     "PhasingEvent": (("phased_in", "bool"), ("filter", "filter")),
-    "AbilityTriggerEvent": (("filter", "filter"),),
+    "AbilityTriggerEvent": (("filter", "filter"), ("cause", "opt:event")),
+    "StateTrigger": (("filter", "filter"),),
     "TurnPhaseEvent": (("phase", "enum:Phase"), ("actor", "opt:filter")),
     "StepEvent": (
         ("phase", "enum:Phase"),
@@ -6142,6 +6380,7 @@ _EVENT_TAGS = frozenset(
         "SacrificeEvent",
         "AbilityActivatedEvent",
         "CounteredEvent",
+        "StateTrigger",
     }
 )
 _COST_DELTA_TAGS = frozenset(
@@ -6570,6 +6809,30 @@ def _walk_value(value: Any, skip: type | tuple[type, ...] = ()) -> Iterator[Any]
 #: only its own targets (CR 601.2c, 602.2b, 603.3d): the other ability chooses
 #: its own when it is activated or put on the stack.
 _FOREIGN_ABILITY_NODES: tuple[type, ...] = (*_A_CLASSES, TokenSpec, DelayedTrigger)
+
+#: "It", "those cards" (C2's referent convention, count 1 by that convention: a referent is
+#: bound, never chosen): REVEAL's `cards` reads the `result` register whole
+#: (:func:`_look_roles_fault`). Built here, after canonical_json, which Selector sorts with.
+RESULT_REFERENT = Selector(
+    QConst(1), SelectorMode.CHOOSE, FAnd(children=()),
+    zones=(Zone(ZoneKind.ANY, ControllerRef.ANY),), referent="result",
+)
+
+
+def reveal_hand(who: ControllerRef) -> Atom:
+    """"<Player> reveals their hand": REVEAL of ALL the cards of ``who``'s hand, the one
+    encoding (:func:`_look_roles_fault`; the hand zone of a designated player, as "exile target
+    player's graveyard" names that graveyard)."""
+    hand = Selector(
+        QUnbounded(), SelectorMode.ALL, FAnd(children=()), zones=(Zone(ZoneKind.HAND, who),)
+    )
+    return Atom(verb=Verb.REVEAL, args=AtomArgs(pairs=(("cards", hand),)))
+
+
+def reveal_result() -> Atom:
+    """"Reveal it", "reveal them", "reveal those cards": REVEAL of the cards the instruction
+    before found, moved or looked at (the ``result`` register, read whole), the one encoding."""
+    return Atom(verb=Verb.REVEAL, args=AtomArgs(pairs=(("cards", RESULT_REFERENT),)))
 
 #: Verbs that always take cards from a library (CR 121.1 draw; a mill is a MOVE_ZONE whose
 #: zones say so).

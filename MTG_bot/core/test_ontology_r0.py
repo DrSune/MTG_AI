@@ -32,6 +32,7 @@ from MTG_bot.core.ability_tree import (
     QConst,
     Selector,
     SelectorMode,
+    Seq,
     Verb,
     Zone,
     ZoneKind,
@@ -450,24 +451,17 @@ class TestL5NoBlindDraw(LibraryProbe):
                 lib_before = list(
                     self.world.players[self.p0].zone(ZONE_LIBRARY).entries
                 )
-                self.run_search_step(card, str(gv))
-                # the tail: every step after the SEARCH except the SHUFFLE
-                tail = [
-                    s
-                    for s in steps[1:]
+                # the search and its tail, every step but the SHUFFLE, as one resolution: "reveal
+                # it" reads the card the search found (its `result`, DESIGN_ATOM_ONTOLOGY §19)
+                run = [
+                    from_dict("Atom", s) if s.get("tag") == "Atom" else from_dict("Effect", s)
+                    for s in steps
                     if not (s.get("tag") == "Atom" and s["verb"]["name"] == "SHUFFLE")
                 ]
-                for s in tail:
-                    node = (
-                        from_dict("Atom", s)
-                        if s.get("tag") == "Atom"
-                        else from_dict("Effect", s)
-                    )
-                    self.ex.execute(
-                        node,
-                        source=self.p0,
-                        controller=self.p0,
-                    )
+                self.ex.apply_effect(
+                    Seq(steps=tuple(run)), source=self.p0, controller=self.p0,
+                    decisions=(str(gv),),
+                )
                 self.assertEqual(
                     self.world.players[self.p0].zone(ZONE_LIBRARY).entries,
                     lib_before,
@@ -499,15 +493,14 @@ class TestNamedSearchLeavesItsSourceAlone(LibraryProbe):
                 self.setUp()
                 _, _, _, gv = self.seed(search_selector_dict(card))
                 src = self.world.add_card(card_id(card), self.p0, ZONE_LIBRARY)  # the top
-                for s in search_steps(card):
-                    if s.get("tag") == "Atom" and s["verb"]["name"] == "SHUFFLE":
-                        continue
-                    self.ex.execute(
-                        from_dict("Atom", s),
-                        source=src,
-                        controller=self.p0,
-                        decisions=(str(gv),),
-                    )
+                run = [
+                    from_dict("Atom", s)
+                    for s in search_steps(card)
+                    if not (s.get("tag") == "Atom" and s["verb"]["name"] == "SHUFFLE")
+                ]  # one resolution: "reveal it" reads the card found (its `result`)
+                self.ex.apply_effect(
+                    Seq(steps=tuple(run)), source=src, controller=self.p0, decisions=(str(gv),)
+                )
                 library = self.world.players[self.p0].zone(ZONE_LIBRARY).entries
                 self.assertEqual(library[-1], src)
                 self.assertEqual(list(self.world.players[self.p0].zone(ZONE_HAND).entries), [gv])

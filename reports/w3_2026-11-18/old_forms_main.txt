@@ -1,0 +1,10 @@
+the state as a counter placement (old Nine Lives): VALIDATES
+the carrier trigger (old Sanctum of All): VALIDATES
+an ability triggering as a delayed trigger's event: VALIDATES
+an ability triggering as a prevention's event: VALIDATES
+TRIGGER_ADDITIONAL with no event: VALIDATES
+TRIGGER_ADDITIONAL with count 0: VALIDATES
+the hand reveal as the whole library (old Duress): VALIDATES
+a look at the whole library: VALIDATES
+a top-1 reveal after a look (old pick reveal): VALIDATES
+a top-1 reveal after a search (old named tutor's "reveal it"): VALIDATES

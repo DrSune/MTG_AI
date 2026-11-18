@@ -607,11 +607,12 @@ def test_a_designated_player_is_a_printed_target():
 
 def test_designated_player_scan_has_teeth():
     """Transmogrify's tree before 2026-11-12: "That creature's controller reveals ..."
-    read as TARGET_PLAYER in REVEAL's controller role."""
+    read as TARGET_PLAYER in REVEAL's controller role (its count written as a number since
+    gate round W3, which refuses the whole-library count)."""
     old = at.Atom(
         verb=at.Verb.REVEAL,
         args=at.AtomArgs(
-            pairs=(("controller", at.ControllerRef.TARGET_PLAYER), ("count", at.QUnbounded()))
+            pairs=(("controller", at.ControllerRef.TARGET_PLAYER), ("count", at.QConst(1)))
         ),
     )
     spell = at.SpellAbility(kind=at.SpellKind.SORCERY, effect=old)

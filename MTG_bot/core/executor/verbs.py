@@ -24,7 +24,6 @@ import hashlib
 from collections.abc import Callable, Sequence
 from dataclasses import replace
 
-from MTG_bot.core.executor.events import KIND_ABILITY_TRIGGERED
 from MTG_bot.core.ability_tree import (
     DESIGNATED_PLAYER_REFS,
     Atom,
@@ -85,6 +84,7 @@ from MTG_bot.core.executor.quantity import (
 from MTG_bot.core.executor.returns import anchor_unmoved, battlefield_entry_clock
 from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
+    ReferentAbsentRegisterError,
     amount,
     apnap_order,
     effect_number,
@@ -668,39 +668,14 @@ def _source_has(ctx: ExecCtx, keyword: Keyword) -> bool:
 
 
 def _v_trigger_additional(ctx: ExecCtx, atom: Atom) -> None:
-    """TRIGGER_ADDITIONAL (Sanctum of All): re-queue the ability THIS firing matched
-    `count` extra times. The AbilityTriggerEvent fan-out stored the matched
-    firing payload in the synthetic event's data; the re-queued firings are
-    marked additional=True — CR 603.2d: an extra trigger is created without
-    a triggering event, so it never re-arms an AbilityTriggerEvent (this is
-    what keeps two extra-trigger carriers, or a self-counting carrier,
-    from chasing each other forever). Each re-queued firing is a FULL
-    resolution: its own targets, its own may-asks."""
-    event = ctx.event
-    if (
-        event is None
-        or getattr(event, "kind", None) != KIND_ABILITY_TRIGGERED
-        or not event.data
-    ):  # pragma: no cover - only a mis-compiled card can dispatch here
-        raise ValueError(
-            "executor: TRIGGER_ADDITIONAL outside an ability-triggered firing"
-        )
-    original = event.data[0]
-    if ctx.executor is None:  # pragma: no cover - bare-ctx guard
-        raise ValueError("executor: TRIGGER_ADDITIONAL needs the executor binder")
-    extra = amount(ctx, atom, "count")
-    for _ in range(extra):
-        ctx.executor.binder._queue(
-            original.source,
-            original.controller,
-            original.node,
-            original.event,
-            additional=True,
-            # a reflexive trigger's copy reads the same resolution (CR 603.12), and a gathered
-            # one's the same objects (CR 603.2c)
-            carried=original.carried,
-            gathered=original.gathered,
-        )
+    """TRIGGER_ADDITIONAL is a static ability's effect (CR 603.2d): the layers register it as its
+    permanent arrives (``LayerRegistry`` kind "extra_trigger") and the binder counts it as each
+    ability triggers (``TriggerBinder._additional_times``). The IR refuses it in any resolving
+    effect (``ability_tree.extra_trigger_fault``), so no resolution reaches this guard; its entry
+    makes the verb engine-supported (``SUPPORTED_VERBS_V2``)."""
+    raise NotImplementedError(
+        "executor: TRIGGER_ADDITIONAL is a static ability's effect; it never resolves"
+    )
 
 
 def _v_lose_life(ctx: ExecCtx, atom: Atom) -> None:
@@ -1674,7 +1649,14 @@ def _v_scry(ctx: ExecCtx, atom: Atom) -> None:
     bottom_run = _arrange(ctx, player, bottoms, "BOTTOM")
     top_run = _arrange(ctx, player, tops, "TOP")
     lib.entries = bottom_run + lib.entries[: len(lib.entries) - n] + top_run
-    ctx.events.append((len(ctx.events), "SCRY", str(player), n))
+    # CR 701.22a: the scryer looks at the cards, so the row names each one and the end it went
+    # to, top first at each end, and is the scryer's alone (_seen's row layout).
+    placed = tuple((str(c), "TOP") for c in reversed(top_run)) + tuple(
+        (str(c), "BOTTOM") for c in reversed(bottom_run)
+    )
+    ctx.events.append(
+        (len(ctx.events), "SCRY", ((str(player), ZONE_LIBRARY, placed),), str(player))
+    )
 
 
 def _v_shuffle(ctx: ExecCtx, atom: Atom) -> None:
@@ -1701,25 +1683,50 @@ def _v_shuffle(ctx: ExecCtx, atom: Atom) -> None:
         ctx.events.append((len(ctx.events), "SHUFFLE", str(owner), zone.kind))
 
 
-def _look(ctx: ExecCtx, atom: Atom) -> None:
-    """LOOK_AT / REVEAL: nothing moves; the knowledge is the event record.
+def _seen(ctx: ExecCtx, atom: Atom, cards: Sequence[Handle]) -> None:
+    """The record of what a look or a reveal showed, the knowledge it gives (nothing moves): one
+    row per atom, ``(i, verb, ((owner, zone, cards), ...), viewers)``, a group per player's zone,
+    the cards in the order shown (a library's top first), none when nothing was shown. A reveal
+    shows them to all players (CR 701.20a: ``viewers`` "ALL"), a look to the looker alone, the
+    effect's controller. A SCRY row has the same layout, its cards each paired with the end it
+    went to (``_v_scry``). One row per atom whatever it shows: a later random order is seeded by
+    the event count (``_library_order``), which what was revealed must not move."""
+    viewers = "ALL" if atom.verb is Verb.REVEAL else str(ctx.controller)
+    groups: dict[tuple[Handle, str], list[str]] = {}
+    for card in cards:
+        if card.namespace == "card" and card in ctx.world.cards:
+            # CR 400.3: a hand or a library is its owner's, so the zone holding it names him.
+            key = (ctx.world.controller_of(card), ctx.world.zone_of(card).kind)
+            groups.setdefault(key, []).append(str(card))
+    shown = tuple((str(owner), zone, tuple(group)) for (owner, zone), group in groups.items())
+    ctx.events.append((len(ctx.events), atom.verb.name, shown, viewers))
 
-    The cards are the top N of the library (the REVEAL/LOOK_AT convention),
-    for a REVEAL with ``until`` the cards from the top down to the Nth match,
-    or for an anaphoric REVEAL the window an earlier look showed."""
+
+def _look(ctx: ExecCtx, atom: Atom) -> None:
+    """LOOK_AT / REVEAL: nothing moves; the knowledge is the event record (:func:`_seen`).
+
+    The cards are the top ``count`` of ``controller``'s library, for a REVEAL with ``until``
+    the cards from the top down to the ``count``th match. REVEAL's ``cards`` names any other
+    cards: a whole hand ("target opponent reveals their hand"), or the cards the instruction
+    before found, moved or looked at ("reveal it", "reveal those cards": the ``result``
+    register, read whole as a PERMIT reads it). Those are no look at a library's top: they open
+    no look window and leave ``result`` as it was."""
     if atom.args.get("duration") is not None:
         raise NotImplementedError(
             f"executor: continuous {atom.verb.name} (duration) is 12d"
         )
+    sel = atom.args.get("cards")
+    if isinstance(sel, Selector):
+        if sel.referent is not None:
+            shown = ctx.binding_handles(sel.referent)
+            if shown is None:
+                raise ReferentAbsentRegisterError(sel.referent)
+        else:
+            shown = resolve_selector(sel, ctx)  # ALL of a hand: every card in it
+        _seen(ctx, atom, shown)
+        return
     player = role_player(ctx, atom)
     lib = ctx.world.players[player].zone(ZONE_LIBRARY)
-    count_q = atom.args.get("count")
-    # A REVEAL inside a LOOK_AT sentence (Garruk's Harbinger) is
-    # anaphoric — "reveal [one card] from among them" — not a fresh top-of-
-    # library look. Record the top-of-window payload, but preserve the wider
-    # LOOK_AT window for the following ONE_OF/REST partition instead of
-    # collapsing the population to the first card.
-    prior_window = tuple(ctx.look_window)
     until = atom.args.get("until")
     if until is not None:
         # "Reveal cards from the top of your library until you reveal a creature
@@ -1743,15 +1750,6 @@ def _look(ctx: ExecCtx, atom: Atom) -> None:
                 found.append(card)
         ctx.bindings["result"] = found
         ctx.one_of_window, ctx.one_of_picks = tuple(seen_cards), tuple(found)
-    elif isinstance(count_q, QUnbounded):
-        # QUnbounded is not number-resolvable, and here it means the ENTIRE
-        # zone — the Cultivate compile idiom (REVEAL with an unbounded count
-        # stands for the searched library, since the grammar cannot
-        # reference the found set).
-        seen_cards = list(reversed(lib.entries))
-    elif prior_window and atom.verb is Verb.REVEAL:
-        n = amount(ctx, atom, "count")
-        seen_cards = list(prior_window[:n]) if n else []
     else:
         n = amount(ctx, atom, "count")
         seen_cards = list(reversed(lib.entries[-n:])) if n else []
@@ -1761,24 +1759,12 @@ def _look(ctx: ExecCtx, atom: Atom) -> None:
         # Garruk, Savage Herald's +1 ("Reveal the top card of your library.
         # If it's a creature card, put it into your hand. Otherwise, put it on
         # the bottom of your library.") needs it. Revealing moves nothing, so
-        # the cards are still on top. The unbounded idiom above and the
-        # anaphoric reveal from among a look window stay non-producers:
-        # neither names its own cards.
+        # the cards are still on top.
         ctx.bindings["result"] = list(seen_cards)
     # The look window — the handles shown, top-first, for the NEXT sentence
-    # (Conditional subject / library-TOP partition candidates). The event
-    # record holds their str view.
-    if (
-        prior_window
-        and atom.verb is Verb.REVEAL
-        and until is None
-        and len(prior_window) > len(seen_cards)
-    ):
-        ctx.look_window = prior_window
-    else:
-        ctx.look_window = tuple(seen_cards)
-    seen = tuple(str(c) for c in seen_cards)
-    ctx.events.append((len(ctx.events), atom.verb.name, str(player), seen))
+    # (Conditional subject / library-TOP partition candidates).
+    ctx.look_window = tuple(seen_cards)
+    _seen(ctx, atom, seen_cards)
 
 
 # ----------------------------------------------------------- turn/library verbs
@@ -2885,8 +2871,6 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     # the Equip carriers).
     Verb.GAIN_CONTROL: _v_gain_control,
     Verb.ATTACH: _v_attach,
-    # The extra-trigger verb (Sanctum of All), with the AbilityTriggerEvent
-    # fan-out.
     Verb.TRIGGER_ADDITIONAL: _v_trigger_additional,
 }
 

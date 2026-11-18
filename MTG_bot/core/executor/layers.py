@@ -735,6 +735,9 @@ class LayerRegistry:
             # PERMIT: a permission to play cards from a zone, live while the static functions
             # (CR 604.2, 611.3a), read by executor/permits.py.
             ("permit", (Verb.PERMIT,)),
+            # TRIGGER_ADDITIONAL: abilities trigger additional times while the static
+            # functions (CR 603.2d), read as each ability triggers (extra_triggers).
+            ("extra_trigger", (Verb.TRIGGER_ADDITIONAL,)),
         )
         split_verbs = {verb for _kind, verbs in split_kinds for verb in verbs}
         rest = [
@@ -1385,6 +1388,17 @@ class LayerRegistry:
             layer
             for layer in self.records
             if layer.kind == kind and layer.status == "live"
+        ]
+
+    def extra_triggers(self) -> list[LayerRecord]:
+        """The TRIGGER_ADDITIONAL statics that function now (CR 603.2d): their liveness is read
+        at the moment an ability triggers (the binder's ``_additional_times``), not at the last
+        recompute, so a static whose condition just became true ("while you control six or more
+        Shrines") counts, and a phased-out or departed source does not."""
+        return [
+            layer
+            for layer in self.records
+            if layer.kind == "extra_trigger" and self._layer_live(layer)
         ]
 
     # ------------------------------------------- damage policy + protection

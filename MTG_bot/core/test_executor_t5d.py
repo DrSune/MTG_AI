@@ -7,16 +7,14 @@ Rounding-policy (Peer "Round up each time.") and additional-trigger-count
   only; CEIL = -(-a//b), FLOOR/NONE = the standing floor). At the default
   None the key is OMITTED from serialization (``_OMIT_IF_EMPTY``), so a
   tree without it keeps its golden bytes.
-* ``AbilityTriggerEvent`` is the when-event atom of the extra-trigger
-  family — it decomposes as {event: an ability of a permanent
-  matching FILTER triggered}, with the filter over the triggering
-  ability's SOURCE ("another Shrine you control" = SUBTYPE_EQ Shrine +
-  CONTROLLER_IS YOU + FNot(IS_SOURCE)). The effect verb
-  ``TRIGGER_ADDITIONAL`` carries the reusable {count} axis. The engine
-  fans each non-additional firing onto matching subscribers; additional
-  firings never re-arm (CR 603.2d), which is what keeps two carriers or a
-  self-counting carrier from chasing each other forever. The synthetic
-  event is never journalled, so trigger fingerprints stay byte-stable.
+* "That ability triggers an additional time" is a static ability (CR 603.2d,
+  DESIGN_ATOM_ONTOLOGY §19): ``TRIGGER_ADDITIONAL`` with the reusable {count}
+  axis and its ``event``, an ``AbilityTriggerEvent`` whose filter is read over
+  the triggering ability's SOURCE ("another Shrine you control" = SUBTYPE_EQ
+  Shrine + CONTROLLER_IS YOU + FNot(IS_SOURCE)); "while you control six or more
+  Shrines" is the static's condition. The binder counts the live statics as an
+  ability triggers and queues the copies with it; copies are not counted again
+  (the effect "doesn't invoke itself repeatedly"), so two statics add one each.
 """
 
 import unittest
@@ -36,6 +34,7 @@ from MTG_bot.core.ability_tree import (
     QConst,
     Rounding,
     Seq,
+    StaticAbility,
     TriggeredAbility,
     TurnPhaseEvent,
     Verb,
@@ -63,28 +62,27 @@ def shrine_filter() -> FAtom:
     return FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Shrine")
 
 
-def multiplier_effect(count=1) -> Atom:
-    return Atom(
-        verb=Verb.TRIGGER_ADDITIONAL,
-        args=AtomArgs(pairs=(("count", QConst(count)),)),
+def another_shrine_of_yours() -> AbilityTriggerEvent:
+    return AbilityTriggerEvent(
+        filter=FAnd(
+            children=(
+                shrine_filter(),
+                FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
+                FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
+            )
+        )
     )
 
 
-def sanctum_multiplier(count=1) -> TriggeredAbility:
-    """Sanctum of All s2, verbatim shape: event filter "another Shrine
-    you control", condition "six or more Shrines", effect add-count."""
-    return TriggeredAbility(
-        event=AbilityTriggerEvent(
-            filter=FAnd(
-                children=(
-                    shrine_filter(),
-                    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),
-                    FNot(inner=FAtom(pred=FAtomPred.IS_SOURCE)),
-                )
-            )
+def sanctum_multiplier(count=1) -> StaticAbility:
+    """Sanctum of All s2, the compiler's shape: the abilities of "another Shrine you control"
+    trigger ``count`` additional times while you control six or more Shrines."""
+    return StaticAbility(
+        effect=Atom(
+            verb=Verb.TRIGGER_ADDITIONAL,
+            args=AtomArgs(pairs=(("count", QConst(count)), ("event", another_shrine_of_yours()))),
         ),
         condition=at_least(6, quantity=number_you_control(shrine_filter())),
-        effect=multiplier_effect(count),
     )
 
 
@@ -116,7 +114,7 @@ class T5DEngineCase(unittest.TestCase):
         self.p0, self.p1 = self.world.player_order[0], self.world.player_order[1]
         stock_libraries(self.world)  # turns advance: no deck-out (CR 704.5b)
         self.ex = Executor(self.world)
-        # A Shrine's trigger and the carrier's go on the stack together; their order
+        # A Shrine's trigger and its copies go on the stack together; their order
         # (CR 603.3b) does not change the life totals these tests read.
         self.ex.decisions.provider = in_trigger_order
 
@@ -298,10 +296,12 @@ class TestRoundingAxis(unittest.TestCase):
         self.assertIsNone(from_dict("QBin", plain).rounding)
 
     def test_ability_trigger_event_roundtrip(self):
-        ability = sanctum_multiplier()
-        d = to_dict(ability.event)
+        event = another_shrine_of_yours()
+        d = to_dict(event)
         self.assertEqual(d["tag"], "AbilityTriggerEvent")
-        self.assertEqual(from_dict("AbilityTriggerEvent", d), ability.event)
+        self.assertEqual(from_dict("AbilityTriggerEvent", d), event)
+        ability = sanctum_multiplier()
+        self.assertEqual(from_dict("StaticAbility", to_dict(ability)), ability)
 
 
 if __name__ == "__main__":

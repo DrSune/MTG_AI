@@ -16,6 +16,21 @@ PATHS = sorted(P.SUITE.glob("*.json"))
 NAMES = {p.stem for p in PATHS}
 #: Puzzles whose recorded solve took longer are checked from their record only.
 RESOLVE_SECONDS = 5.0
+#: Cards a gate round re-baked, out of the verified pool until they are re-verified: gate round
+#: W3 (DESIGN_ATOM_ONTOLOGY §19) re-mapped Chandra's Flame Wave's "reveal it" to the card found.
+#: A puzzle dealing one cannot be trusted meanwhile, so it is an expected failure, strict: the
+#: card's re-verification turns the test red until its entry goes (BACKLOG, "Scaffolds to
+#: remove").
+AWAITING_REVERIFICATION = frozenset({"Chandra's Flame Wave"})
+
+
+def _param(path):
+    pz = P.load(path)
+    dealt = {c.get("real") for c in pz["cards"] + [c for w in pz["world_prior"] for c in w["cards"]]}
+    waiting = sorted(dealt & AWAITING_REVERIFICATION)
+    marks = [pytest.mark.xfail(strict=True, raises=ValueError,
+                               reason=f"deals {', '.join(waiting)}, awaiting re-verification")] if waiting else []
+    return pytest.param(path, marks=marks, id=path.stem)
 
 
 def test_the_first_wave_has_eight_twin_pairs() -> None:
@@ -24,7 +39,7 @@ def test_the_first_wave_has_eight_twin_pairs() -> None:
     assert cats == sorted(["A"] * 4 + ["B1"] * 2 + ["B2"] * 2 + ["B3"] * 2 + ["C"] * 4 + ["D"] * 2)
 
 
-@pytest.mark.parametrize("path", PATHS, ids=[p.stem for p in PATHS])
+@pytest.mark.parametrize("path", [_param(p) for p in PATHS])
 def test_a_puzzle_is_proven_and_has_its_twin(path) -> None:
     pz = P.load(path)
     assert pz["name"] == path.stem
