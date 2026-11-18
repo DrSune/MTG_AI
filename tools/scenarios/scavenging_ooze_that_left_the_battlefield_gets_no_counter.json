@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "notes": "Printed: '{G}: Exile target card from a graveyard. If it was a creature card, put a +1/+1 counter on this creature and you gain 1 life.' Seat 0 activates it targeting seat 1's Bear card; while the ability waits, the Ooze leaves the battlefield and comes back (two 'move's by other effects). The ability resolves: it exiles the Bear and seat 0 gains 1 life, but the Ooze on the battlefield is a new object (CR 400.7) that the ability does not name (CR 113.7a), so it gets no counter: a 2/2. Before engine wave E3 the ability found any Ooze on the battlefield and put the counter on the new one, a 3/3.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "ooze", "real": "Scavenging Ooze", "zone": "battlefield", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "graveyard", "controller": 1}
+ ],
+ "mana": {"0": {"G": 1}},
+ "steps": [
+  {"op": "activate", "key": "ooze", "idx": 0, "seat": 0, "targets": ["bear"], "hold": true},
+  {"op": "move", "key": "ooze", "to": "graveyard", "hold": true},
+  {"op": "move", "key": "ooze", "to": "battlefield", "hold": true},
+  {"op": "pass"}
+ ],
+ "expect": {
+  "zone": {"bear": "exile", "ooze": "battlefield"},
+  "life": {"0": 21, "1": 20},
+  "counters": {"ooze": {}},
+  "power": {"ooze": 2},
+  "toughness": {"ooze": 2}
+ }
+}

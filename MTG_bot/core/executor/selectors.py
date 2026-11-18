@@ -355,7 +355,17 @@ def enumerate_zone(ctx: ExecCtx, zone_ir: Zone) -> list[Handle]:
         return stack_handles
     state_kind = ZONE_KIND_TO_STATE[kind]
     handles: list[Handle] = []
-    for player in players_for_ref(ref, ctx):
+    players = players_for_ref(ref, ctx)
+    if kind is ZoneKind.BATTLEFIELD and ref is not ControllerRef.ANY:
+        # CR 110.2: a player's side of the battlefield is the permanents they control; the world
+        # files a permanent under its owner's battlefield whoever controls it.
+        return existing(ctx, [
+            card
+            for player in ctx.world.player_order
+            for card in ctx.world.players[player].zone(ZONE_BATTLEFIELD).entries
+            if controller_of(ctx, card) in players
+        ])
+    for player in players:
         entries = ctx.world.players[player].zone(state_kind).entries
         position = zone_ir.position
         if position is ZonePosition.TOP:

@@ -356,12 +356,12 @@ def d3_counters(g: ReplayData) -> Verdict:
         v.note = "zone payload unavailable (catalog rows) — presence unverifiable"
         return v
     pres = build_presence(g.rows)
-    deaths = {r.subject: r for r in g.rows if r.kind == KIND_CREATURE_DIES}
     for handle, events in sorted(placements.items()):
         for clock, kind_name, amount in events:
-            died = deaths.get(handle)
-            after_death = died is not None and clock > died.clock
-            if after_death or not pres.present(handle, clock):
+            # Presence follows every zone change, a death and a return included: a creature that
+            # died and came back is on the battlefield again (M20 seed 122, 2026-11-18: Vampire
+            # Opportunist died, was returned to hand, cast again and given a counter).
+            if not pres.present(handle, clock):
                 v.status = "HIT"
                 v.hits.append(
                     Hit(

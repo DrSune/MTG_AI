@@ -1,0 +1,942 @@
+   94  ACTS-ON-SOURCE ATTACH.equipment ActivatedAbility
+   18  ACTS-ON-SOURCE ATTACH.equipment TriggeredAbility
+    1  ACTS-ON-SOURCE GRANT_ABILITY.target ActivatedAbility
+    8  ACTS-ON-SOURCE GRANT_ABILITY.target TriggeredAbility
+    1  ACTS-ON-SOURCE GRANT_TYPE.target TriggeredAbility
+   32  ACTS-ON-SOURCE MODIFY_PT.target TriggeredAbility
+    3  ACTS-ON-SOURCE MOVE_ZONE.cards ActivatedAbility
+    6  ACTS-ON-SOURCE MOVE_ZONE.cards TriggeredAbility
+    4  ACTS-ON-SOURCE MOVE_ZONE.target TriggeredAbility
+    5  ACTS-ON-SOURCE PUT_COUNTER.target ActivatedAbility
+   58  ACTS-ON-SOURCE PUT_COUNTER.target TriggeredAbility
+    1  ACTS-ON-SOURCE SACRIFICE.target ActivatedAbility
+    3  ACTS-ON-SOURCE SACRIFICE.target TriggeredAbility
+    1  ACTS-ON-SOURCE SET_PT.target TriggeredAbility
+    2  ACTS-ON-SOURCE TAP.target ActivatedAbility
+    2  ACTS-ON-SOURCE UNTAP.target TriggeredAbility
+   14  DEST bf YOU
+    4  PUT_COUNTER ALL zones=[('BATTLEFIELD', 'ANY')] ActivatedAbility -
+    2  PUT_COUNTER ALL zones=[('BATTLEFIELD', 'ANY')] ActivatedAbility VERIFIED
+    5  PUT_COUNTER ALL zones=[('BATTLEFIELD', 'ANY')] SpellAbility -
+    1  PUT_COUNTER ALL zones=[('BATTLEFIELD', 'ANY')] SpellAbility VERIFIED
+    2  PUT_COUNTER ALL zones=[('BATTLEFIELD', 'ANY')] TriggeredAbility -
+    1  PUT_COUNTER ALL zones=[('BATTLEFIELD', 'ANY')] TriggeredAbility VERIFIED
+    1  PUT_COUNTER CHOOSE zones=[('BATTLEFIELD', 'ANY')] ActivatedAbility -
+    3  PUT_COUNTER CHOOSE zones=[('BATTLEFIELD', 'ANY')] ActivatedAbility VERIFIED
+    1  PUT_COUNTER CHOOSE zones=[('BATTLEFIELD', 'ANY')] TriggeredAbility -
+    1  PUT_COUNTER CHOOSE zones=[('BATTLEFIELD', 'ANY')] TriggeredAbility VERIFIED
+    1  PUT_COUNTER ONE_OF zones=[('BATTLEFIELD', 'ANY')] TriggeredAbility VERIFIED
+    7  PUT_COUNTER TARGET zones=[('BATTLEFIELD', 'ANY')] ActivatedAbility -
+    9  PUT_COUNTER TARGET zones=[('BATTLEFIELD', 'ANY')] ActivatedAbility VERIFIED
+    5  PUT_COUNTER TARGET zones=[('BATTLEFIELD', 'ANY')] SpellAbility -
+    7  PUT_COUNTER TARGET zones=[('BATTLEFIELD', 'ANY')] SpellAbility VERIFIED
+   18  PUT_COUNTER TARGET zones=[('BATTLEFIELD', 'ANY')] TriggeredAbility -
+   10  PUT_COUNTER TARGET zones=[('BATTLEFIELD', 'ANY')] TriggeredAbility VERIFIED
+    1  PUT_COUNTER referent=event DelayedTrigger VERIFIED
+    1  PUT_COUNTER referent=event ReplacementAbility VERIFIED
+    1  PUT_COUNTER referent=event TriggeredAbility -
+    1  PUT_COUNTER referent=target ActivatedAbility VERIFIED
+    1  PUT_COUNTER referent=target SpellAbility -
+    1  PUT_COUNTER referent=target SpellAbility VERIFIED
+    2  PUT_COUNTER self-CHOOSE ActivatedAbility -
+    3  PUT_COUNTER self-CHOOSE ActivatedAbility VERIFIED
+    1  PUT_COUNTER self-CHOOSE ReplacementAbility VERIFIED
+   21  PUT_COUNTER self-CHOOSE TriggeredAbility -
+   37  PUT_COUNTER self-CHOOSE TriggeredAbility VERIFIED
+    1  ZCE from YOU self=False TriggeredAbility
+    1  ZCE from YOU self=True TriggeredAbility
+   60  ZCE to YOU self=False TriggeredAbility
+  444  ZCE to YOU self=True TriggeredAbility
+
+== ACTS-ON-SOURCE ATTACH.equipment: 112
+  10E | Leonin Scimitar | - | ActivatedAbility | self-CHOOSE
+  10E | Loxodon Warhammer | - | ActivatedAbility | self-CHOOSE
+  10E | Whispersilk Cloak | - | ActivatedAbility | self-CHOOSE
+  DOM | Blackblade Reforged | - | ActivatedAbility | self-CHOOSE
+  DOM | Forebear's Blade | - | ActivatedAbility | self-CHOOSE
+  DOM | Helm of the Host | - | ActivatedAbility | self-CHOOSE
+  DOM | Jousting Lance | - | ActivatedAbility | self-CHOOSE
+  DOM | Shield of the Realm | - | ActivatedAbility | self-CHOOSE
+  DOM | Short Sword | VERIFIED | ActivatedAbility | self-CHOOSE
+  DOM | Sorcerer's Wand | - | ActivatedAbility | self-CHOOSE
+  ELD | Crystal Slipper | - | ActivatedAbility | self-CHOOSE
+  ELD | Embercleave | - | ActivatedAbility | self-CHOOSE
+  ELD | Giant's Skewer | - | ActivatedAbility | self-CHOOSE
+  ELD | Mace of the Valiant | - | ActivatedAbility | self-CHOOSE
+  ELD | Mantle of Tides | - | ActivatedAbility | self-CHOOSE
+  ELD | Rosethorn Halberd | - | ActivatedAbility | self-CHOOSE
+  ELD | Shining Armor | - | ActivatedAbility | self-CHOOSE
+  ELD | Steelclaw Lance | - | ActivatedAbility | self-CHOOSE
+  FDN | Adventuring Gear | VERIFIED | ActivatedAbility | self-CHOOSE
+  FDN | Basilisk Collar | - | ActivatedAbility | self-CHOOSE
+  FDN | Celestial Armor | - | ActivatedAbility | self-CHOOSE
+  FDN | Celestial Armor | - | TriggeredAbility | self-CHOOSE
+  FDN | Fireshrieker | VERIFIED | ActivatedAbility | self-CHOOSE
+  FDN | Fishing Pole | - | ActivatedAbility | self-CHOOSE
+  FDN | Goldvein Pick | VERIFIED | ActivatedAbility | self-CHOOSE
+  FDN | Leyline Axe | - | ActivatedAbility | self-CHOOSE
+  FDN | Pirate's Cutlass | VERIFIED | ActivatedAbility | self-CHOOSE
+  FDN | Pirate's Cutlass | VERIFIED | TriggeredAbility | self-CHOOSE
+  FDN | Quick-Draw Katana | - | ActivatedAbility | self-CHOOSE
+  FDN | Swiftfoot Boots | - | ActivatedAbility | self-CHOOSE
+  KHM | Bearded Axe | - | ActivatedAbility | self-CHOOSE
+  KHM | Draugr's Helm | - | ActivatedAbility | self-CHOOSE
+  KHM | Draugr's Helm | - | TriggeredAbility | self-CHOOSE
+  KHM | Dwarven Hammer | - | ActivatedAbility | self-CHOOSE
+  KHM | Dwarven Hammer | - | TriggeredAbility | self-CHOOSE
+  KHM | Elven Bow | - | ActivatedAbility | self-CHOOSE
+  KHM | Elven Bow | - | TriggeredAbility | self-CHOOSE
+  KHM | Giant's Amulet | - | ActivatedAbility | self-CHOOSE
+  KHM | Giant's Amulet | - | TriggeredAbility | self-CHOOSE
+  KHM | Goldvein Pick | VERIFIED | ActivatedAbility | self-CHOOSE
+  KHM | Halvar, God of Battle // Sword of the Realms | - | ActivatedAbility | self-CHOOSE
+  KHM | Raven Wings | - | ActivatedAbility | self-CHOOSE
+  KHM | Runed Crown | - | ActivatedAbility | self-CHOOSE
+  KHM | Toralf, God of Fury // Toralf's Hammer | - | ActivatedAbility | self-CHOOSE
+  KHM | Tormentor's Helm | - | ActivatedAbility | self-CHOOSE
+  KHM | Valkyrie's Sword | - | ActivatedAbility | self-CHOOSE
+  KHM | Valkyrie's Sword | - | TriggeredAbility | self-CHOOSE
+  M10 | Gorgon Flail | - | ActivatedAbility | self-CHOOSE
+  M10 | Magebane Armor | - | ActivatedAbility | self-CHOOSE
+  M10 | Whispersilk Cloak | - | ActivatedAbility | self-CHOOSE
+  M11 | Sword of Vengeance | - | ActivatedAbility | self-CHOOSE
+  M11 | Warlord's Axe | - | ActivatedAbility | self-CHOOSE
+  M11 | Whispersilk Cloak | - | ActivatedAbility | self-CHOOSE
+  M12 | Greatsword | - | ActivatedAbility | self-CHOOSE
+  M12 | Kite Shield | - | ActivatedAbility | self-CHOOSE
+  M12 | Swiftfoot Boots | - | ActivatedAbility | self-CHOOSE
+  M12 | Worldslayer | - | ActivatedAbility | self-CHOOSE
+  M13 | Kitesail | - | ActivatedAbility | self-CHOOSE
+  M13 | Ring of Evos Isle | - | ActivatedAbility | self-CHOOSE
+  M13 | Ring of Kalonia | - | ActivatedAbility | self-CHOOSE
+  M13 | Ring of Thune | - | ActivatedAbility | self-CHOOSE
+  M13 | Ring of Valkas | - | ActivatedAbility | self-CHOOSE
+  M13 | Ring of Xathrid | - | ActivatedAbility | self-CHOOSE
+  M14 | Accorder's Shield | - | ActivatedAbility | self-CHOOSE
+  M14 | Fireshrieker | VERIFIED | ActivatedAbility | self-CHOOSE
+  M14 | Haunted Plate Mail | - | ActivatedAbility | self-CHOOSE
+  M15 | Avarice Amulet | - | ActivatedAbility | self-CHOOSE
+  M15 | Brawler's Plate | - | ActivatedAbility | self-CHOOSE
+  M15 | Haunted Plate Mail | - | ActivatedAbility | self-CHOOSE
+  M15 | Hot Soup | - | ActivatedAbility | self-CHOOSE
+  M15 | Rogue's Gloves | - | ActivatedAbility | self-CHOOSE
+  M15 | Shield of the Avatar | - | ActivatedAbility | self-CHOOSE
+  M19 | Marauder's Axe | VERIFIED | ActivatedAbility | self-CHOOSE
+  M19 | Rogue's Gloves | - | ActivatedAbility | self-CHOOSE
+  M19 | Sigiled Sword of Valeron | - | ActivatedAbility | self-CHOOSE
+  M20 | Ancestral Blade | VERIFIED | ActivatedAbility | self-CHOOSE
+  M20 | Ancestral Blade | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Colossus Hammer | VERIFIED | ActivatedAbility | self-CHOOSE
+  M20 | Heart-Piercer Bow | VERIFIED | ActivatedAbility | self-CHOOSE
+  M20 | Marauder's Axe | VERIFIED | ActivatedAbility | self-CHOOSE
+  M20 | Mask of Immolation | VERIFIED | ActivatedAbility | self-CHOOSE
+  M20 | Mask of Immolation | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Wolfrider's Saddle | VERIFIED | ActivatedAbility | self-CHOOSE
+  M20 | Wolfrider's Saddle | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Malefic Scythe | VERIFIED | ActivatedAbility | self-CHOOSE
+  M21 | Short Sword | VERIFIED | ActivatedAbility | self-CHOOSE
+  ORI | Brawler's Plate | - | ActivatedAbility | self-CHOOSE
+  ORI | Helm of the Gods | - | ActivatedAbility | self-CHOOSE
+  ORI | Sigil of Valor | - | ActivatedAbility | self-CHOOSE
+  ORI | Sword of the Animist | - | ActivatedAbility | self-CHOOSE
+  ORI | Throwing Knife | - | ActivatedAbility | self-CHOOSE
+  ORI | Veteran's Sidearm | - | ActivatedAbility | self-CHOOSE
+  THB | Bronze Sword | - | ActivatedAbility | self-CHOOSE
+  THB | Mirror Shield | - | ActivatedAbility | self-CHOOSE
+  THB | Shadowspear | - | ActivatedAbility | self-CHOOSE
+  THB | Wings of Hubris | - | ActivatedAbility | self-CHOOSE
+  ZNR | Cliffhaven Kitesail | - | ActivatedAbility | self-CHOOSE
+  ZNR | Cliffhaven Kitesail | - | TriggeredAbility | self-CHOOSE
+  ZNR | Maul of the Skyclaves | - | ActivatedAbility | self-CHOOSE
+  ZNR | Maul of the Skyclaves | - | TriggeredAbility | self-CHOOSE
+  ZNR | Mind Carver | - | ActivatedAbility | self-CHOOSE
+  ZNR | Mind Carver | - | TriggeredAbility | self-CHOOSE
+  ZNR | Ravager's Mace | - | ActivatedAbility | self-CHOOSE
+  ZNR | Ravager's Mace | - | TriggeredAbility | self-CHOOSE
+  ZNR | Relic Axe | - | ActivatedAbility | self-CHOOSE
+  ZNR | Relic Axe | - | TriggeredAbility | self-CHOOSE
+  ZNR | Scavenged Blade | - | ActivatedAbility | self-CHOOSE
+  ZNR | Scavenged Blade | - | TriggeredAbility | self-CHOOSE
+  ZNR | Skyclave Pick-Axe | - | ActivatedAbility | self-CHOOSE
+  ZNR | Skyclave Pick-Axe | - | TriggeredAbility | self-CHOOSE
+  ZNR | Utility Knife | - | ActivatedAbility | self-CHOOSE
+  ZNR | Utility Knife | - | TriggeredAbility | self-CHOOSE
+
+== ACTS-ON-SOURCE GRANT_ABILITY.target: 9
+  FDN | Courageous Goblin | - | TriggeredAbility | self-CHOOSE
+  FDN | Immersturm Predator | - | ActivatedAbility | self-CHOOSE
+  M21 | Chandra's Pyreling | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Dire Fleet Warmonger | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Mystic Skyfish | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Riddleform | VERIFIED | TriggeredAbility | self-CHOOSE
+  ZNR | Dreadwurm | - | TriggeredAbility | self-CHOOSE
+  ZNR | Scorch Rider | - | TriggeredAbility | self-CHOOSE
+  ZNR | Umara Wizard // Umara Skyfalls | - | TriggeredAbility | self-CHOOSE
+
+== ACTS-ON-SOURCE GRANT_TYPE.target: 1
+  M21 | Riddleform | VERIFIED | TriggeredAbility | self-CHOOSE
+
+== ACTS-ON-SOURCE MODIFY_PT.target: 32
+  FDN | Beast-Kin Ranger | - | TriggeredAbility | self-CHOOSE
+  FDN | Courageous Goblin | - | TriggeredAbility | self-CHOOSE
+  FDN | Crackling Cyclops | - | TriggeredAbility | self-CHOOSE
+  FDN | Crypt Feaster | - | TriggeredAbility | self-CHOOSE
+  FDN | Leonin Vanguard | - | TriggeredAbility | self-CHOOSE
+  FDN | Ruby, Daring Tracker | - | TriggeredAbility | self-CHOOSE
+  M11 | Chandra's Spitfire | VERIFIED | TriggeredAbility | self-CHOOSE
+  M13 | Griffin Protector | VERIFIED | TriggeredAbility | self-CHOOSE
+  M15 | Netcaster Spider | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Chandra's Spitfire | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Griffin Protector | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Lavakin Brawler | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Marauding Raptor | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Netcaster Spider | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Waterkin Shaman | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Alpine Houndmaster | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Burlfist Oak | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Chandra's Pyreling | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Dire Fleet Warmonger | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Ornery Dilophosaur | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Siege Striker | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Snarespinner | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Watcher of the Spheres | VERIFIED | TriggeredAbility | self-CHOOSE
+  THB | Dream Trawler | - | TriggeredAbility | self-CHOOSE
+  WAR | Snarespinner | VERIFIED | TriggeredAbility | self-CHOOSE
+  ZNR | Akoum Hellhound | - | TriggeredAbility | self-CHOOSE
+  ZNR | Brushfire Elemental | - | TriggeredAbility | self-CHOOSE
+  ZNR | Canopy Baloth | - | TriggeredAbility | self-CHOOSE
+  ZNR | Grotag Bug-Catcher | - | TriggeredAbility | self-CHOOSE
+  ZNR | Kazandu Mammoth // Kazandu Valley | - | TriggeredAbility | self-CHOOSE
+  ZNR | Skyclave Geopede | - | TriggeredAbility | self-CHOOSE
+  ZNR | Umara Mystic | - | TriggeredAbility | self-CHOOSE
+
+== ACTS-ON-SOURCE MOVE_ZONE.cards: 9
+  FDN | Angelic Destiny | - | TriggeredAbility | self-CHOOSE
+  FDN | Arcanis the Omnipotent | - | ActivatedAbility | self-CHOOSE
+  FDN | Flamewake Phoenix | - | TriggeredAbility | self-CHOOSE
+  FDN | Gate Colossus | - | TriggeredAbility | self-CHOOSE
+  FDN | Reassembling Skeleton | - | ActivatedAbility | self-CHOOSE
+  M20 | Cavalier of Gales | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Immortal Phoenix | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Sanitarium Skeleton | VERIFIED | ActivatedAbility | self-CHOOSE
+  M21 | Silversmote Ghoul | VERIFIED | TriggeredAbility | self-CHOOSE
+
+== ACTS-ON-SOURCE MOVE_ZONE.target: 4
+  FDN | Mazemind Tome | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Archfiend's Vessel | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Mazemind Tome | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Nine Lives | VERIFIED | TriggeredAbility | self-CHOOSE
+
+== ACTS-ON-SOURCE PUT_COUNTER.target: 63
+  10E | Quirion Dryad | VERIFIED | TriggeredAbility | self-CHOOSE
+  FDN | Ajani's Pridemate | VERIFIED | TriggeredAbility | self-CHOOSE
+  FDN | Alesha, Who Laughs at Fate | - | TriggeredAbility | self-CHOOSE
+  FDN | Brineborn Cutthroat | VERIFIED | TriggeredAbility | self-CHOOSE
+  FDN | Clinquant Skymage | VERIFIED | TriggeredAbility | self-CHOOSE
+  FDN | Erudite Wizard | VERIFIED | TriggeredAbility | self-CHOOSE
+  FDN | Exemplar of Light | - | TriggeredAbility | self-CHOOSE
+  FDN | Fiendish Panda | - | TriggeredAbility | self-CHOOSE
+  FDN | Heroes' Bane | - | ActivatedAbility | self-CHOOSE
+  FDN | High-Society Hunter | VERIFIED | TriggeredAbility | self-CHOOSE
+  FDN | Immersturm Predator | - | TriggeredAbility | self-CHOOSE
+  FDN | Mold Adder | VERIFIED | TriggeredAbility | self-CHOOSE
+  FDN | Nessian Hornbeetle | - | TriggeredAbility | self-CHOOSE
+  FDN | Ravenous Amulet | - | ActivatedAbility | self-CHOOSE
+  FDN | Scavenging Ooze | VERIFIED | ActivatedAbility | self-CHOOSE
+  FDN | Skyknight Squire | - | TriggeredAbility | self-CHOOSE
+  FDN | Stromkirk Noble | - | TriggeredAbility | self-CHOOSE
+  FDN | Twinblade Paladin | VERIFIED | TriggeredAbility | self-CHOOSE
+  FDN | Wildwood Scourge | VERIFIED | TriggeredAbility | self-CHOOSE
+  FDN | Youthful Valkyrie | - | TriggeredAbility | self-CHOOSE
+  IKO | Pyroceratops | - | TriggeredAbility | self-CHOOSE
+  IKO | Sprite Dragon | - | TriggeredAbility | self-CHOOSE
+  M11 | Ajani's Pridemate | VERIFIED | TriggeredAbility | self-CHOOSE
+  M13 | Quirion Dryad | VERIFIED | TriggeredAbility | self-CHOOSE
+  M14 | Scavenging Ooze | VERIFIED | ActivatedAbility | self-CHOOSE
+  M15 | Ajani's Pridemate | VERIFIED | TriggeredAbility | self-CHOOSE
+  M15 | Chasm Skulker | - | TriggeredAbility | self-CHOOSE
+  M15 | Wall of Limbs | - | TriggeredAbility | self-CHOOSE
+  M19 | Ajani's Pridemate | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Ajani, Strength of the Pride | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Bloodthirsty Aerialist | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Brineborn Cutthroat | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Diamond Knight | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Knight of the Ebon Legion | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Overgrowth Elemental | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Savage Gorger | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Starfield Mystic | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Twinblade Paladin | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Vengeful Warchief | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Voracious Hydra | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Woodland Champion | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Adherent of Hope | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Light of Promise | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Lorescale Coatl | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Makeshift Battalion | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Malefic Scythe | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Quirion Dryad | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Sabertooth Mauler | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Scavenging Ooze | VERIFIED | ActivatedAbility | self-CHOOSE
+  M21 | Spellgorger Weird | VERIFIED | TriggeredAbility | self-CHOOSE
+  M21 | Wildwood Scourge | VERIFIED | TriggeredAbility | self-CHOOSE
+  WAR | Ajani's Pridemate | VERIFIED | TriggeredAbility | self-CHOOSE
+  WAR | Jace's Projection | - | TriggeredAbility | self-CHOOSE
+  WAR | Makeshift Battalion | VERIFIED | TriggeredAbility | self-CHOOSE
+  WAR | Spellgorger Weird | VERIFIED | TriggeredAbility | self-CHOOSE
+  ZNR | Cleric of Life's Bond | - | TriggeredAbility | self-CHOOSE
+  ZNR | Emeria Captain | - | TriggeredAbility | self-CHOOSE
+  ZNR | Fearless Fledgling | - | TriggeredAbility | self-CHOOSE
+  ZNR | Prowling Felidar | - | TriggeredAbility | self-CHOOSE
+  ZNR | Relic Amulet | - | TriggeredAbility | self-CHOOSE
+  ZNR | Scion of the Swarm | - | TriggeredAbility | self-CHOOSE
+  ZNR | Territorial Scythecat | - | TriggeredAbility | self-CHOOSE
+  ZNR | Vine Gecko | - | TriggeredAbility | self-CHOOSE
+
+== ACTS-ON-SOURCE SACRIFICE.target: 4
+  FDN | Ball Lightning | VERIFIED | TriggeredAbility | self-CHOOSE
+  FDN | Dropkick Bomber | - | TriggeredAbility | self-CHOOSE
+  M10 | Ball Lightning | VERIFIED | TriggeredAbility | self-CHOOSE
+  M20 | Diviner's Lockbox | VERIFIED | ActivatedAbility | self-CHOOSE
+
+== ACTS-ON-SOURCE SET_PT.target: 1
+  M21 | Riddleform | VERIFIED | TriggeredAbility | self-CHOOSE
+
+== ACTS-ON-SOURCE TAP.target: 2
+  FDN | Immersturm Predator | - | ActivatedAbility | self-CHOOSE
+  M21 | Seasoned Hallowblade | VERIFIED | ActivatedAbility | self-CHOOSE
+
+== ACTS-ON-SOURCE UNTAP.target: 2
+  FDN | Slumbering Cerberus | - | TriggeredAbility | self-CHOOSE
+  M21 | Sabertooth Mauler | VERIFIED | TriggeredAbility | self-CHOOSE
+
+== ETBSTATE: 43
+  DOM | Academy Drake | - | cond=FAtom(pred=<FAtomPred.WAS_KICKED: 'WAS_KICKED'>, string_value=None, color=None, colors=(), count=Non | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=2)),)
+  DOM | Baloth Gorger | - | cond=FAtom(pred=<FAtomPred.WAS_KICKED: 'WAS_KICKED'>, string_value=None, color=None, colors=(), count=Non | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=3)),)
+  DOM | Stronghold Confessor | - | cond=FAtom(pred=<FAtomPred.WAS_KICKED: 'WAS_KICKED'>, string_value=None, color=None, colors=(), count=Non | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=2)),)
+  DOM | Untamed Kavu | - | cond=FAtom(pred=<FAtomPred.WAS_KICKED: 'WAS_KICKED'>, string_value=None, color=None, colors=(), count=Non | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=3)),)
+  ELD | Steelbane Hydra | - | cond=None | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QX()),)
+  ELD | Stonecoil Serpent | - | cond=None | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QX()),)
+  FDN | Gnarlid Colony | VERIFIED | cond=FAtom(pred=<FAtomPred.WAS_KICKED: 'WAS_KICKED'>, string_value=None, color=None, colors=(), count=Non | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=2)),)
+  FDN | Goblin Boarders | VERIFIED | cond=FAnd(children=(FAtom(pred=<FAtomPred.TURN_OF: 'TURN_OF'>, string_value=None, color=None, colors=(),  | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=1)),)
+  FDN | Heroes' Bane | - | cond=None | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=4)),)
+  FDN | Prime Speaker Zegana | - | cond=None | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QProp(referent=Selector(count=QUnbounded(), mode=<Se
+  FDN | Wildwood Scourge | VERIFIED | cond=None | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QX()),)
+  IKO | Ivy Elemental | - | cond=None | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QX()),)
+  M10 | Protean Hydra | - | cond=None | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QX()),)
+  M11 | Protean Hydra | - | cond=None | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QX()),)
+  M12 | Blood Ogre | - | cond=FAtom(pred=<FAtomPred.EVENT_THIS_TURN: 'EVENT_THIS_TURN'>, string_value=None, color=None, colors=(), | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=1)),)
+  M12 | Bloodlord of Vaasgoth | - | cond=FAtom(pred=<FAtomPred.EVENT_THIS_TURN: 'EVENT_THIS_TURN'>, string_value=None, color=None, colors=(), | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=3)),)
+  M12 | Bloodrage Vampire | - | cond=FAtom(pred=<FAtomPred.EVENT_THIS_TURN: 'EVENT_THIS_TURN'>, string_value=None, color=None, colors=(), | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=1)),)
+  M12 | Carnage Wurm | - | cond=FAtom(pred=<FAtomPred.EVENT_THIS_TURN: 'EVENT_THIS_TURN'>, string_value=None, color=None, colors=(), | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=3)),)
+  M12 | Duskhunter Bat | - | cond=FAtom(pred=<FAtomPred.EVENT_THIS_TURN: 'EVENT_THIS_TURN'>, string_value=None, color=None, colors=(), | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=1)),)
+  M12 | Furyborn Hellkite | - | cond=FAtom(pred=<FAtomPred.EVENT_THIS_TURN: 'EVENT_THIS_TURN'>, string_value=None, color=None, colors=(), | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=6)),)
+  M12 | Gorehorn Minotaurs | - | cond=FAtom(pred=<FAtomPred.EVENT_THIS_TURN: 'EVENT_THIS_TURN'>, string_value=None, color=None, colors=(), | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=2)),)
+  M12 | Lurking Crocodile | - | cond=FAtom(pred=<FAtomPred.EVENT_THIS_TURN: 'EVENT_THIS_TURN'>, string_value=None, color=None, colors=(), | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=1)),)
+  M12 | Primordial Hydra | - | cond=None | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QX()),)
+  M12 | Stormblood Berserker | - | cond=FAtom(pred=<FAtomPred.EVENT_THIS_TURN: 'EVENT_THIS_TURN'>, string_value=None, color=None, colors=(), | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=2)),)
+  M12 | Vampire Outcasts | - | cond=FAtom(pred=<FAtomPred.EVENT_THIS_TURN: 'EVENT_THIS_TURN'>, string_value=None, color=None, colors=(), | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=2)),)
+  M13 | Primordial Hydra | - | cond=None | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QX()),)
+  M14 | Vastwood Hydra | - | cond=None | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QX()),)
+  M15 | Genesis Hydra | - | cond=None | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QX()),)
+  M19 | Hungering Hydra | - | cond=None | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QX()),)
+  M20 | Barkhide Troll | VERIFIED | cond=None | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=1)),)
+  M20 | Squad Captain | VERIFIED | cond=None | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QCount(selector=Selector(count=QUnbounded(), mode=<S
+  M20 | Voracious Hydra | VERIFIED | cond=None | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QX()),)
+  M21 | Malefic Scythe | VERIFIED | cond=None | counters=((<CounterKind.SOUL: 'SOUL'>, QConst(value=1)),)
+  M21 | Wildwood Scourge | VERIFIED | cond=None | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QX()),)
+  ORI | Hangarback Walker | - | cond=None | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QX()),)
+  WAR | Ugin's Conjurant | - | cond=None | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QX()),)
+  ZNR | Cragplate Baloth | - | cond=FAtom(pred=<FAtomPred.WAS_KICKED: 'WAS_KICKED'>, string_value=None, color=None, colors=(), count=Non | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=4)),)
+  ZNR | Ghastly Gloomhunter | - | cond=FAtom(pred=<FAtomPred.WAS_KICKED: 'WAS_KICKED'>, string_value=None, color=None, colors=(), count=Non | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=2)),)
+  ZNR | Gnarlid Colony | VERIFIED | cond=FAtom(pred=<FAtomPred.WAS_KICKED: 'WAS_KICKED'>, string_value=None, color=None, colors=(), count=Non | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=2)),)
+  ZNR | Moss-Pit Skeleton | - | cond=FAtom(pred=<FAtomPred.WAS_KICKED: 'WAS_KICKED'>, string_value=None, color=None, colors=(), count=Non | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=3)),)
+  ZNR | Shatterskull Charger | - | cond=FAtom(pred=<FAtomPred.WAS_KICKED: 'WAS_KICKED'>, string_value=None, color=None, colors=(), count=Non | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=1)),)
+  ZNR | Skyclave Sentinel | - | cond=FAtom(pred=<FAtomPred.WAS_KICKED: 'WAS_KICKED'>, string_value=None, color=None, colors=(), count=Non | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=2)),)
+  ZNR | Skyclave Shade | - | cond=FAtom(pred=<FAtomPred.WAS_KICKED: 'WAS_KICKED'>, string_value=None, color=None, colors=(), count=Non | counters=((<CounterKind.PLUS_1_PLUS_1: 'PLUS_1_PLUS_1'>, QConst(value=2)),)
+
+== FATOM bf zone: 2
+  M20 | Brought Back | VERIFIED | SpellAbility | MOVED_TO_ZONE_THIS_TURN.from_zone=YOU | who=ControllerRef.YOU
+  M21 | Barrin, Tolarian Archmage | VERIFIED | TriggeredAbility | MOVED_TO_ZONE_THIS_TURN.from_zone=YOU | who=ControllerRef.YOU
+
+== PUT_COUNTER on source (ActivatedAbility): 5
+  FDN | Heroes' Bane | -
+  FDN | Ravenous Amulet | -
+  FDN | Scavenging Ooze | VERIFIED
+  M14 | Scavenging Ooze | VERIFIED
+  M21 | Scavenging Ooze | VERIFIED
+
+== PUT_COUNTER on source (ReplacementAbility): 1
+  M21 | Nine Lives | VERIFIED
+
+== PUT_COUNTER on source (TriggeredAbility): 58
+  10E | Quirion Dryad | VERIFIED
+  FDN | Ajani's Pridemate | VERIFIED
+  FDN | Alesha, Who Laughs at Fate | -
+  FDN | Brineborn Cutthroat | VERIFIED
+  FDN | Clinquant Skymage | VERIFIED
+  FDN | Erudite Wizard | VERIFIED
+  FDN | Exemplar of Light | -
+  FDN | Fiendish Panda | -
+  FDN | High-Society Hunter | VERIFIED
+  FDN | Immersturm Predator | -
+  FDN | Mold Adder | VERIFIED
+  FDN | Nessian Hornbeetle | -
+  FDN | Skyknight Squire | -
+  FDN | Stromkirk Noble | -
+  FDN | Twinblade Paladin | VERIFIED
+  FDN | Wildwood Scourge | VERIFIED
+  FDN | Youthful Valkyrie | -
+  IKO | Pyroceratops | -
+  IKO | Sprite Dragon | -
+  M11 | Ajani's Pridemate | VERIFIED
+  M13 | Quirion Dryad | VERIFIED
+  M15 | Ajani's Pridemate | VERIFIED
+  M15 | Chasm Skulker | -
+  M15 | Wall of Limbs | -
+  M19 | Ajani's Pridemate | VERIFIED
+  M20 | Ajani, Strength of the Pride | VERIFIED
+  M20 | Bloodthirsty Aerialist | VERIFIED
+  M20 | Brineborn Cutthroat | VERIFIED
+  M20 | Diamond Knight | VERIFIED
+  M20 | Knight of the Ebon Legion | VERIFIED
+  M20 | Overgrowth Elemental | VERIFIED
+  M20 | Savage Gorger | VERIFIED
+  M20 | Starfield Mystic | VERIFIED
+  M20 | Twinblade Paladin | VERIFIED
+  M20 | Vengeful Warchief | VERIFIED
+  M20 | Voracious Hydra | VERIFIED
+  M20 | Woodland Champion | VERIFIED
+  M21 | Adherent of Hope | VERIFIED
+  M21 | Light of Promise | VERIFIED
+  M21 | Lorescale Coatl | VERIFIED
+  M21 | Makeshift Battalion | VERIFIED
+  M21 | Malefic Scythe | VERIFIED
+  M21 | Quirion Dryad | VERIFIED
+  M21 | Sabertooth Mauler | VERIFIED
+  M21 | Spellgorger Weird | VERIFIED
+  M21 | Wildwood Scourge | VERIFIED
+  WAR | Ajani's Pridemate | VERIFIED
+  WAR | Jace's Projection | -
+  WAR | Makeshift Battalion | VERIFIED
+  WAR | Spellgorger Weird | VERIFIED
+  ZNR | Cleric of Life's Bond | -
+  ZNR | Emeria Captain | -
+  ZNR | Fearless Fledgling | -
+  ZNR | Prowling Felidar | -
+  ZNR | Relic Amulet | -
+  ZNR | Scion of the Swarm | -
+  ZNR | Territorial Scythecat | -
+  ZNR | Vine Gecko | -
+
+== SAC actor: 1
+  M21 | Havoc Jester | VERIFIED | TriggeredAbility | actor=FAtom(pred=<FAtomPred.CONTROLLER_IS: 'CONTROLLER_IS'>, string_value=None, color=None, colors=(), count=None, counter_kin
+
+== ZCE from: 2
+  M20 | Starfield Mystic | VERIFIED | TriggeredAbility | from=YOU | self=False
+  M21 | Nine Lives | VERIFIED | TriggeredAbility | from=YOU | self=True
+
+== ZCE to: 504
+  10E | Angel of Mercy | - | TriggeredAbility | to=YOU | self=True
+  10E | Aven Cloudchaser | - | TriggeredAbility | to=YOU | self=True
+  10E | Gravedigger | VERIFIED | TriggeredAbility | to=YOU | self=True
+  10E | Kavu Climber | - | TriggeredAbility | to=YOU | self=True
+  10E | Llanowar Sentinel | - | TriggeredAbility | to=YOU | self=True
+  10E | Siege-Gang Commander | - | TriggeredAbility | to=YOU | self=True
+  10E | Venerable Monk | - | TriggeredAbility | to=YOU | self=True
+  10E | Viridian Shaman | - | TriggeredAbility | to=YOU | self=True
+  DOM | Academy Journeymage | - | TriggeredAbility | to=YOU | self=True
+  DOM | Cloudreader Sphinx | - | TriggeredAbility | to=YOU | self=True
+  DOM | Ghitu Chronicler | - | TriggeredAbility | to=YOU | self=True
+  DOM | Keldon Raider | VERIFIED | TriggeredAbility | to=YOU | self=True
+  DOM | Merfolk Trickster | - | TriggeredAbility | to=YOU | self=True
+  DOM | Navigator's Compass | - | TriggeredAbility | to=YOU | self=True
+  DOM | Siege-Gang Commander | - | TriggeredAbility | to=YOU | self=True
+  DOM | Yavimaya Sapherd | - | TriggeredAbility | to=YOU | self=True
+  DOM | Zhalfirin Void | - | TriggeredAbility | to=YOU | self=True
+  ELD | Charmed Sleep | - | TriggeredAbility | to=YOU | self=True
+  ELD | Corridor Monitor | - | TriggeredAbility | to=YOU | self=True
+  ELD | Glass Casket | - | TriggeredAbility | to=YOU | self=True
+  ELD | Golden Egg | - | TriggeredAbility | to=YOU | self=True
+  ELD | Harmonious Archon | - | TriggeredAbility | to=YOU | self=True
+  ELD | Inquisitive Puppet | - | TriggeredAbility | to=YOU | self=True
+  ELD | Kenrith's Transformation | - | TriggeredAbility | to=YOU | self=True
+  ELD | Lost Legion | - | TriggeredAbility | to=YOU | self=True
+  ELD | Prophet of the Peak | - | TriggeredAbility | to=YOU | self=True
+  ELD | Rowan's Stalwarts | - | TriggeredAbility | to=YOU | self=True
+  ELD | Thornwood Falls | VERIFIED | TriggeredAbility | to=YOU | self=True
+  ELD | Tome Raider | - | TriggeredAbility | to=YOU | self=True
+  ELD | Wind-Scarred Crag | VERIFIED | TriggeredAbility | to=YOU | self=True
+  ELD | Witching Well | - | TriggeredAbility | to=YOU | self=True
+  FDN | Adventuring Gear | VERIFIED | TriggeredAbility | to=YOU | self=False
+  FDN | Affectionate Indrik | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Ambush Wolf | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Angel of Finality | - | TriggeredAbility | to=YOU | self=True
+  FDN | Apothecary Stomper | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Arahbo, the First Fang | - | TriggeredAbility | to=YOU | self=False
+  FDN | Arbiter of Woe | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Archway Angel | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Banishing Light | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Beast-Kin Ranger | - | TriggeredAbility | to=YOU | self=False
+  FDN | Bigfin Bouncer | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Billowing Shriekmass | - | TriggeredAbility | to=YOU | self=True
+  FDN | Bloodfell Caves | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Bloodtithe Collector | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Blossoming Sands | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Burglar Rat | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Burrog Befuddler | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Campus Guide | - | TriggeredAbility | to=YOU | self=True
+  FDN | Cat Collector | - | TriggeredAbility | to=YOU | self=True
+  FDN | Celestial Armor | - | TriggeredAbility | to=YOU | self=True
+  FDN | Cloudblazer | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Corsair Captain | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Crow of Dark Tidings | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Dazzling Angel | VERIFIED | TriggeredAbility | to=YOU | self=False
+  FDN | Dismal Backwater | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Dragon Trainer | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Dreadwing Scavenger | - | TriggeredAbility | to=YOU | self=True
+  FDN | Dwynen's Elite | - | TriggeredAbility | to=YOU | self=True
+  FDN | Elfsworn Giant | - | TriggeredAbility | to=YOU | self=False
+  FDN | Elvish Regrower | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Exclusion Mage | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Felidar Retreat | - | TriggeredAbility | to=YOU | self=False
+  FDN | Felidar Savior | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Fierce Empath | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Garruk's Uprising | VERIFIED | TriggeredAbility | to=YOU | self=False
+  FDN | Garruk's Uprising | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Gate Colossus | - | TriggeredAbility | to=YOU | self=False
+  FDN | Gateway Sneak | - | TriggeredAbility | to=YOU | self=False
+  FDN | Good-Fortune Unicorn | - | TriggeredAbility | to=YOU | self=False
+  FDN | Gorehorn Raider | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Guarded Heir | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Gutless Plunderer | - | TriggeredAbility | to=YOU | self=True
+  FDN | Hare Apparent | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Helpful Hunter | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Hinterland Sanctifier | - | TriggeredAbility | to=YOU | self=False
+  FDN | Hoarding Dragon | - | TriggeredAbility | to=YOU | self=True
+  FDN | Icewind Elemental | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Impact Tremors | VERIFIED | TriggeredAbility | to=YOU | self=False
+  FDN | Inspiring Overseer | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Jungle Hollow | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Lathliss, Dragon Queen | - | TriggeredAbility | to=YOU | self=False
+  FDN | Massacre Wurm | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Mentor of the Meek | - | TriggeredAbility | to=YOU | self=False
+  FDN | Meteor Golem | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Micromancer | - | TriggeredAbility | to=YOU | self=True
+  FDN | Mischievous Pup | - | TriggeredAbility | to=YOU | self=True
+  FDN | New Horizons | - | TriggeredAbility | to=YOU | self=True
+  FDN | Nullpriest of Oblivion | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Pelakka Wurm | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Pirate's Cutlass | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Prayer of Binding | - | TriggeredAbility | to=YOU | self=True
+  FDN | Prideful Parent | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Prime Speaker Zegana | - | TriggeredAbility | to=YOU | self=True
+  FDN | Primeval Bounty | - | TriggeredAbility | to=YOU | self=False
+  FDN | Rampaging Baloths | - | TriggeredAbility | to=YOU | self=False
+  FDN | Rapacious Dragon | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Reclamation Sage | - | TriggeredAbility | to=YOU | self=True
+  FDN | Regal Caracal | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Resolute Reinforcements | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Rugged Highlands | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Rune-Scarred Demon | - | TriggeredAbility | to=YOU | self=True
+  FDN | Scoured Barrens | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Shipwreck Dowser | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Skeleton Archer | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Skyknight Squire | - | TriggeredAbility | to=YOU | self=False
+  FDN | Skyship Buccaneer | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Solemn Simulacrum | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Soul-Guide Lantern | - | TriggeredAbility | to=YOU | self=True
+  FDN | Spitfire Lagac | VERIFIED | TriggeredAbility | to=YOU | self=False
+  FDN | Springbloom Druid | - | TriggeredAbility | to=YOU | self=True
+  FDN | Starlight Snare | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Stasis Snare | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Storm Fleet Spy | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Sun-Blessed Healer | - | TriggeredAbility | to=YOU | self=True
+  FDN | Swiftwater Cliffs | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Tatyova, Benthic Druid | VERIFIED | TriggeredAbility | to=YOU | self=False
+  FDN | Temple of Abandon | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Temple of Deceit | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Temple of Enlightenment | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Temple of Epiphany | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Temple of Malady | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Temple of Malice | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Temple of Mystery | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Temple of Plenty | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Temple of Silence | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Temple of Triumph | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Terror of Mount Velus | - | TriggeredAbility | to=YOU | self=True
+  FDN | Thornwood Falls | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Tragic Banshee | - | TriggeredAbility | to=YOU | self=True
+  FDN | Tranquil Cove | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Vampire Soulcaller | - | TriggeredAbility | to=YOU | self=True
+  FDN | Vampire Spawn | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Viashino Pyromancer | - | TriggeredAbility | to=YOU | self=True
+  FDN | Vile Entomber | - | TriggeredAbility | to=YOU | self=True
+  FDN | Volley Veteran | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Voracious Greatshark | - | TriggeredAbility | to=YOU | self=True
+  FDN | Wind-Scarred Crag | VERIFIED | TriggeredAbility | to=YOU | self=True
+  FDN | Youthful Valkyrie | - | TriggeredAbility | to=YOU | self=False
+  IKO | Bastion of Remembrance | - | TriggeredAbility | to=YOU | self=True
+  IKO | Bloodfell Caves | VERIFIED | TriggeredAbility | to=YOU | self=True
+  IKO | Blossoming Sands | VERIFIED | TriggeredAbility | to=YOU | self=True
+  IKO | Capture Sphere | VERIFIED | TriggeredAbility | to=YOU | self=True
+  IKO | Colossification | - | TriggeredAbility | to=YOU | self=True
+  IKO | Daysquad Marshal | - | TriggeredAbility | to=YOU | self=True
+  IKO | Dismal Backwater | VERIFIED | TriggeredAbility | to=YOU | self=True
+  IKO | Frost Lynx | VERIFIED | TriggeredAbility | to=YOU | self=True
+  IKO | Honey Mammoth | - | TriggeredAbility | to=YOU | self=True
+  IKO | Jungle Hollow | VERIFIED | TriggeredAbility | to=YOU | self=True
+  IKO | Lurking Deadeye | - | TriggeredAbility | to=YOU | self=True
+  IKO | Nightsquad Commando | - | TriggeredAbility | to=YOU | self=True
+  IKO | Rugged Highlands | VERIFIED | TriggeredAbility | to=YOU | self=True
+  IKO | Scoured Barrens | VERIFIED | TriggeredAbility | to=YOU | self=True
+  IKO | Sleeper Dart | - | TriggeredAbility | to=YOU | self=True
+  IKO | Swiftwater Cliffs | VERIFIED | TriggeredAbility | to=YOU | self=True
+  IKO | Thornwood Falls | VERIFIED | TriggeredAbility | to=YOU | self=True
+  IKO | Tranquil Cove | VERIFIED | TriggeredAbility | to=YOU | self=True
+  IKO | Wind-Scarred Crag | VERIFIED | TriggeredAbility | to=YOU | self=True
+  KHM | Berg Strider | - | TriggeredAbility | to=YOU | self=True
+  KHM | Bind the Monster | - | TriggeredAbility | to=YOU | self=True
+  KHM | Draugr's Helm | - | TriggeredAbility | to=YOU | self=True
+  KHM | Dwarven Hammer | - | TriggeredAbility | to=YOU | self=True
+  KHM | Elderleaf Mentor | - | TriggeredAbility | to=YOU | self=True
+  KHM | Elven Bow | - | TriggeredAbility | to=YOU | self=True
+  KHM | Giant's Amulet | - | TriggeredAbility | to=YOU | self=True
+  KHM | Guardian Gladewalker | - | TriggeredAbility | to=YOU | self=True
+  KHM | Jarl of the Forsaken | - | TriggeredAbility | to=YOU | self=True
+  KHM | Rampage of the Valkyries | - | TriggeredAbility | to=YOU | self=True
+  KHM | Ravenous Lindwurm | - | TriggeredAbility | to=YOU | self=True
+  KHM | Renegade Reaper | - | TriggeredAbility | to=YOU | self=True
+  KHM | Rune of Flight | - | TriggeredAbility | to=YOU | self=True
+  KHM | Rune of Might | - | TriggeredAbility | to=YOU | self=True
+  KHM | Rune of Mortality | - | TriggeredAbility | to=YOU | self=True
+  KHM | Rune of Speed | - | TriggeredAbility | to=YOU | self=True
+  KHM | Rune of Sustenance | - | TriggeredAbility | to=YOU | self=True
+  KHM | Sarulf's Packmate | - | TriggeredAbility | to=YOU | self=True
+  KHM | Valkyrie's Sword | - | TriggeredAbility | to=YOU | self=True
+  M10 | Captain of the Watch | - | TriggeredAbility | to=YOU | self=True
+  M10 | Elvish Visionary | - | TriggeredAbility | to=YOU | self=True
+  M10 | Gravedigger | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M10 | Howling Banshee | - | TriggeredAbility | to=YOU | self=True
+  M10 | Siege-Gang Commander | - | TriggeredAbility | to=YOU | self=True
+  M10 | Sparkmage Apprentice | - | TriggeredAbility | to=YOU | self=True
+  M11 | Aether Adept | - | TriggeredAbility | to=YOU | self=True
+  M11 | Augury Owl | - | TriggeredAbility | to=YOU | self=True
+  M11 | Gravedigger | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M11 | Howling Banshee | - | TriggeredAbility | to=YOU | self=True
+  M11 | Manic Vandal | - | TriggeredAbility | to=YOU | self=True
+  M11 | Obstinate Baloth | - | TriggeredAbility | to=YOU | self=True
+  M11 | Tireless Missionaries | - | TriggeredAbility | to=YOU | self=True
+  M12 | Aether Adept | - | TriggeredAbility | to=YOU | self=True
+  M12 | Dark Favor | - | TriggeredAbility | to=YOU | self=True
+  M12 | Divine Favor | - | TriggeredAbility | to=YOU | self=True
+  M12 | Gravedigger | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M12 | Manic Vandal | - | TriggeredAbility | to=YOU | self=True
+  M12 | Solemn Simulacrum | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M13 | Archaeomancer | - | TriggeredAbility | to=YOU | self=True
+  M13 | Attended Knight | - | TriggeredAbility | to=YOU | self=True
+  M13 | Augur of Bolas | - | TriggeredAbility | to=YOU | self=True
+  M13 | Bond Beetle | - | TriggeredAbility | to=YOU | self=True
+  M13 | Captain of the Watch | - | TriggeredAbility | to=YOU | self=True
+  M13 | Dark Favor | - | TriggeredAbility | to=YOU | self=True
+  M13 | Divine Favor | - | TriggeredAbility | to=YOU | self=True
+  M13 | Elvish Visionary | - | TriggeredAbility | to=YOU | self=True
+  M13 | Griffin Protector | VERIFIED | TriggeredAbility | to=YOU | self=False
+  M13 | Ground Seal | - | TriggeredAbility | to=YOU | self=True
+  M13 | Mindclaw Shaman | - | TriggeredAbility | to=YOU | self=True
+  M13 | Thragtusk | - | TriggeredAbility | to=YOU | self=True
+  M13 | Yeva's Forcemage | - | TriggeredAbility | to=YOU | self=True
+  M14 | Archaeomancer | - | TriggeredAbility | to=YOU | self=True
+  M14 | Banisher Priest | - | TriggeredAbility | to=YOU | self=True
+  M14 | Briarpack Alpha | - | TriggeredAbility | to=YOU | self=True
+  M14 | Claustrophobia | - | TriggeredAbility | to=YOU | self=True
+  M14 | Dark Favor | - | TriggeredAbility | to=YOU | self=True
+  M14 | Divine Favor | - | TriggeredAbility | to=YOU | self=True
+  M14 | Lifebane Zombie | - | TriggeredAbility | to=YOU | self=True
+  M14 | Verdant Haven | - | TriggeredAbility | to=YOU | self=True
+  M15 | Divine Favor | - | TriggeredAbility | to=YOU | self=True
+  M15 | Frost Lynx | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M15 | Gravedigger | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M15 | Hornet Queen | - | TriggeredAbility | to=YOU | self=True
+  M15 | Kinsbaile Skirmisher | - | TriggeredAbility | to=YOU | self=True
+  M15 | Meteorite | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M15 | Necrogen Scudder | - | TriggeredAbility | to=YOU | self=True
+  M15 | Radiant Fountain | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M15 | Shaman of Spring | - | TriggeredAbility | to=YOU | self=True
+  M15 | Tireless Missionaries | - | TriggeredAbility | to=YOU | self=True
+  M15 | Verdant Haven | - | TriggeredAbility | to=YOU | self=True
+  M19 | Aviation Pioneer | - | TriggeredAbility | to=YOU | self=True
+  M19 | Cavalry Drillmaster | - | TriggeredAbility | to=YOU | self=True
+  M19 | Exclusion Mage | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M19 | Gallant Cavalry | - | TriggeredAbility | to=YOU | self=True
+  M19 | Gift of Paradise | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M19 | Goblin Instigator | - | TriggeredAbility | to=YOU | self=True
+  M19 | Gravedigger | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M19 | Hieromancer's Cage | - | TriggeredAbility | to=YOU | self=True
+  M19 | Horizon Scholar | - | TriggeredAbility | to=YOU | self=True
+  M19 | Knightly Valor | - | TriggeredAbility | to=YOU | self=True
+  M19 | Meteor Golem | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M19 | Omenspeaker | - | TriggeredAbility | to=YOU | self=True
+  M19 | Pelakka Wurm | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M19 | Pendulum of Patterns | - | TriggeredAbility | to=YOU | self=True
+  M19 | Plague Mare | - | TriggeredAbility | to=YOU | self=True
+  M19 | Rhox Oracle | - | TriggeredAbility | to=YOU | self=True
+  M19 | Riddlemaster Sphinx | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M19 | Salvager of Secrets | - | TriggeredAbility | to=YOU | self=True
+  M19 | Skeleton Archer | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M19 | Skyscanner | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M19 | Sparktongue Dragon | - | TriggeredAbility | to=YOU | self=True
+  M19 | Volley Veteran | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M19 | Waterknot | - | TriggeredAbility | to=YOU | self=True
+  M20 | Ancestral Blade | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Angelic Gift | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Battalion Foot Soldier | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Bishop of Wings | VERIFIED | TriggeredAbility | to=YOU | self=False
+  M20 | Bloodfell Caves | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Blossoming Sands | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Boneclad Necromancer | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Cavalier of Dawn | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Cavalier of Flame | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Cavalier of Gales | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Cavalier of Night | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Cavalier of Thorns | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Cloudkin Seer | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Corpse Knight | VERIFIED | TriggeredAbility | to=YOU | self=False
+  M20 | Dawning Angel | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Dismal Backwater | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Dread Presence | VERIFIED | TriggeredAbility | to=YOU | self=False
+  M20 | Dungeon Geists | - | TriggeredAbility | to=YOU | self=True
+  M20 | Ethereal Elk | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Faerie Miscreant | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Fathom Fleet Cutthroat | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Ferocious Pup | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Field of the Dead | VERIFIED | TriggeredAbility | to=YOU | self=False
+  M20 | Frost Lynx | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Gift of Paradise | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Glaring Aegis | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Goblin Ringleader | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Goldmane Griffin | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Golos, Tireless Pilgrim | - | TriggeredAbility | to=YOU | self=True
+  M20 | Gorging Vulture | - | TriggeredAbility | to=YOU | self=True
+  M20 | Gravedigger | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Griffin Protector | VERIFIED | TriggeredAbility | to=YOU | self=False
+  M20 | Gruesome Scourger | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Haazda Officer | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Hanged Executioner | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Healer of the Glade | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Howling Giant | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Impassioned Orator | VERIFIED | TriggeredAbility | to=YOU | self=False
+  M20 | Inspiring Captain | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Jungle Hollow | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Keldon Raider | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Lotus Field | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Marauding Raptor | VERIFIED | TriggeredAbility | to=YOU | self=False
+  M20 | Mask of Immolation | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Master Splicer | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Meteor Golem | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Octoprophet | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Omnath, Locus of the Roil | VERIFIED | TriggeredAbility | to=YOU | self=False
+  M20 | Omnath, Locus of the Roil | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Overgrowth Elemental | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Rapacious Dragon | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Riddlemaster Sphinx | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Risen Reef | VERIFIED | TriggeredAbility | to=YOU | self=False
+  M20 | Rugged Highlands | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Sage's Row Denizen | VERIFIED | TriggeredAbility | to=YOU | self=False
+  M20 | Savannah Sage | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Scampering Scorcher | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Scholar of the Ages | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Scoured Barrens | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Season of Growth | VERIFIED | TriggeredAbility | to=YOU | self=False
+  M20 | Skeleton Archer | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Sleep Paralysis | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Sorin's Guide | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Swiftwater Cliffs | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Temple of Epiphany | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Temple of Malady | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Temple of Mystery | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Temple of Silence | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Temple of Triumph | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Thornwood Falls | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Tomebound Lich | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Tranquil Cove | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Undead Servant | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Voracious Hydra | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Waterkin Shaman | VERIFIED | TriggeredAbility | to=YOU | self=False
+  M20 | Wind-Scarred Crag | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Wolfkin Bond | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Wolfrider's Saddle | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Woodland Champion | VERIFIED | TriggeredAbility | to=YOU | self=False
+  M20 | Yanling's Harbinger | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Yarok's Fenlurker | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M20 | Yarok's Wavecrasher | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Alpine Houndmaster | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Archfiend's Vessel | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Aven Gagglemaster | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Barrin, Tolarian Archmage | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Basri's Acolyte | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Basri's Lieutenant | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Bloodfell Caves | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Blossoming Sands | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Bone Pit Brute | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Capture Sphere | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Carrion Grub | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Chandra's Firemaw | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Chrome Replicator | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Crypt Lurker | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Daybreak Charger | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Dismal Backwater | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Faith's Fetters | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Fierce Empath | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Gale Swooper | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Garruk's Uprising | VERIFIED | TriggeredAbility | to=YOU | self=False
+  M21 | Garruk's Uprising | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Garruk's Warsteed | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Goremand | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Idol of Endurance | - | TriggeredAbility | to=YOU | self=True
+  M21 | Jungle Hollow | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Kinetic Augur | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Kitesail Freebooter | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Liliana's Standard Bearer | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Llanowar Visionary | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Massacre Wurm | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Meteorite | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Niambi, Esteemed Speaker | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Pridemalkin | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Pursued Whale | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Radiant Fountain | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Rambunctious Mutt | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Roaming Ghostlight | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Rousing Read | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Rugged Highlands | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Scoured Barrens | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Setessan Training | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Shipwreck Dowser | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Skeleton Archer | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Skyscanner | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Solemn Simulacrum | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Storm Caller | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Stormwing Entity | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Swiftwater Cliffs | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Teferi's Tutelage | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Teferi's Wavecaster | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Temple of Epiphany | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Temple of Malady | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Temple of Mystery | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Temple of Silence | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Temple of Triumph | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Terror of the Peaks | VERIFIED | TriggeredAbility | to=YOU | self=False
+  M21 | Thieves' Guild Enforcer | VERIFIED | TriggeredAbility | to=YOU | self=False
+  M21 | Thornwood Falls | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Tranquil Cove | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Trufflesnout | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Turret Ogre | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Valorous Steed | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Wall of Runes | VERIFIED | TriggeredAbility | to=YOU | self=True
+  M21 | Watcher of the Spheres | VERIFIED | TriggeredAbility | to=YOU | self=False
+  M21 | Wind-Scarred Crag | VERIFIED | TriggeredAbility | to=YOU | self=True
+  ORI | Alchemist's Vial | - | TriggeredAbility | to=YOU | self=True
+  ORI | Ampryn Tactician | - | TriggeredAbility | to=YOU | self=True
+  ORI | Aspiring Aeronaut | - | TriggeredAbility | to=YOU | self=True
+  ORI | Aven Battle Priest | - | TriggeredAbility | to=YOU | self=True
+  ORI | Claustrophobia | - | TriggeredAbility | to=YOU | self=True
+  ORI | Elemental Bond | - | TriggeredAbility | to=YOU | self=False
+  ORI | Elvish Visionary | - | TriggeredAbility | to=YOU | self=True
+  ORI | Faerie Miscreant | - | TriggeredAbility | to=YOU | self=True
+  ORI | Ghirapur Gearcrafter | - | TriggeredAbility | to=YOU | self=True
+  ORI | Heavy Infantry | - | TriggeredAbility | to=YOU | self=True
+  ORI | Knightly Valor | - | TriggeredAbility | to=YOU | self=True
+  ORI | Llanowar Empath | - | TriggeredAbility | to=YOU | self=True
+  ORI | Meteorite | VERIFIED | TriggeredAbility | to=YOU | self=True
+  ORI | Priest of the Blood Rite | - | TriggeredAbility | to=YOU | self=True
+  ORI | Rabid Bloodsucker | - | TriggeredAbility | to=YOU | self=True
+  ORI | Stratus Walk | - | TriggeredAbility | to=YOU | self=True
+  ORI | Thopter Engineer | - | TriggeredAbility | to=YOU | self=True
+  ORI | Undead Servant | VERIFIED | TriggeredAbility | to=YOU | self=True
+  ORI | Whirler Rogue | - | TriggeredAbility | to=YOU | self=True
+  ORI | Yeva's Forcemage | - | TriggeredAbility | to=YOU | self=True
+  THB | Ashiok's Forerunner | - | TriggeredAbility | to=YOU | self=True
+  THB | Banishing Light | VERIFIED | TriggeredAbility | to=YOU | self=True
+  THB | Elspeth's Devotee | - | TriggeredAbility | to=YOU | self=True
+  THB | Hero of the Nyxborn | - | TriggeredAbility | to=YOU | self=True
+  THB | Hyrax Tower Scout | - | TriggeredAbility | to=YOU | self=True
+  THB | Omen of the Sea | - | TriggeredAbility | to=YOU | self=True
+  THB | Rumbling Sentry | - | TriggeredAbility | to=YOU | self=True
+  THB | Setessan Training | VERIFIED | TriggeredAbility | to=YOU | self=True
+  THB | Temple of Abandon | VERIFIED | TriggeredAbility | to=YOU | self=True
+  THB | Temple of Deceit | VERIFIED | TriggeredAbility | to=YOU | self=True
+  THB | Temple of Enlightenment | VERIFIED | TriggeredAbility | to=YOU | self=True
+  THB | Temple of Malice | VERIFIED | TriggeredAbility | to=YOU | self=True
+  THB | Temple of Plenty | VERIFIED | TriggeredAbility | to=YOU | self=True
+  THB | Thaumaturge's Familiar | - | TriggeredAbility | to=YOU | self=True
+  THB | Woe Strider | - | TriggeredAbility | to=YOU | self=True
+  WAR | Augur of Bolas | - | TriggeredAbility | to=YOU | self=True
+  WAR | Bulwark Giant | - | TriggeredAbility | to=YOU | self=True
+  WAR | Centaur Nurturer | - | TriggeredAbility | to=YOU | self=True
+  WAR | Guild Globe | - | TriggeredAbility | to=YOU | self=True
+  WAR | Iron Bully | - | TriggeredAbility | to=YOU | self=True
+  WAR | Kiora, Behemoth Beckoner | - | TriggeredAbility | to=YOU | self=False
+  WAR | Mana Geode | - | TriggeredAbility | to=YOU | self=True
+  WAR | Merfolk Skydiver | - | TriggeredAbility | to=YOU | self=True
+  WAR | New Horizons | - | TriggeredAbility | to=YOU | self=True
+  WAR | Prison Realm | - | TriggeredAbility | to=YOU | self=True
+  WAR | Prison Realm | - | TriggeredAbility | to=YOU | self=True
+  WAR | Teyo's Lightshield | - | TriggeredAbility | to=YOU | self=True
+  WAR | Turret Ogre | VERIFIED | TriggeredAbility | to=YOU | self=True
+  WAR | Vraska's Finisher | - | TriggeredAbility | to=YOU | self=True
+  WAR | Wall of Runes | VERIFIED | TriggeredAbility | to=YOU | self=True
+  ZNR | Akoum Hellhound | - | TriggeredAbility | to=YOU | self=False
+  ZNR | Angelheart Protector | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Ardent Electromancer | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Brushfire Elemental | - | TriggeredAbility | to=YOU | self=False
+  ZNR | Bubble Snare | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Canopy Baloth | - | TriggeredAbility | to=YOU | self=False
+  ZNR | Canyon Jerboa | - | TriggeredAbility | to=YOU | self=False
+  ZNR | Cascade Seer | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Cliffhaven Kitesail | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Confounding Conundrum | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Cunning Geysermage | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Dauntless Survivor | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Drana's Silencer | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Dreadwurm | - | TriggeredAbility | to=YOU | self=False
+  ZNR | Emeria Captain | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Fearless Fledgling | - | TriggeredAbility | to=YOU | self=False
+  ZNR | Joraga Visionary | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Journey to Oblivion | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Kabira Outrider | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Kazandu Mammoth // Kazandu Valley | - | TriggeredAbility | to=YOU | self=False
+  ZNR | Kazandu Nectarpot | - | TriggeredAbility | to=YOU | self=False
+  ZNR | Kitesail Cleric | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Lithoform Blight | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Lotus Cobra | - | TriggeredAbility | to=YOU | self=False
+  ZNR | Makindi Ox | - | TriggeredAbility | to=YOU | self=False
+  ZNR | Malakir Blood-Priest | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Maul of the Skyclaves | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Mind Carver | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Murasa Sproutling | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Nissa of Shadowed Boughs | - | TriggeredAbility | to=YOU | self=False
+  ZNR | Nullpriest of Oblivion | VERIFIED | TriggeredAbility | to=YOU | self=True
+  ZNR | Oran-Rief Ooze | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Phylath, World Sculptor | - | TriggeredAbility | to=YOU | self=False
+  ZNR | Prowling Felidar | - | TriggeredAbility | to=YOU | self=False
+  ZNR | Ravager's Mace | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Relic Axe | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Roost of Drakes | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Ruin Crab | - | TriggeredAbility | to=YOU | self=False
+  ZNR | Scavenged Blade | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Scorch Rider | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Scute Swarm | - | TriggeredAbility | to=YOU | self=False
+  ZNR | Shepherd of Heroes | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Skyclave Cleric // Skyclave Basilica | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Skyclave Geopede | - | TriggeredAbility | to=YOU | self=False
+  ZNR | Skyclave Pick-Axe | - | TriggeredAbility | to=YOU | self=False
+  ZNR | Skyclave Pick-Axe | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Spare Supplies | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Spitfire Lagac | - | TriggeredAbility | to=YOU | self=False
+  ZNR | Squad Commander | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Tajuru Paragon | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Tazeem Roilmage | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Territorial Scythecat | - | TriggeredAbility | to=YOU | self=False
+  ZNR | Thundering Sparkmage | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Turntimber Ascetic | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Utility Knife | - | TriggeredAbility | to=YOU | self=True
+  ZNR | Valakut Exploration | - | TriggeredAbility | to=YOU | self=False

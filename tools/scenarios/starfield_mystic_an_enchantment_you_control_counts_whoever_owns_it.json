@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "notes": "Printed: 'Whenever an enchantment you control is put into a graveyard from the battlefield, put a +1/+1 counter on this creature.' On the battlefield a player's side is control, not ownership (CR 110.2), and a leaves-the-battlefield trigger looks back at the object as it last existed there (CR 603.6c, 603.10a). Seat 1's Opp Charm is under seat 0's control when it goes to the graveyard: seat 0 controls it, so the Mystic gets one counter. Seat 0's own My Charm is under seat 1's control when it goes to the graveyard: seat 0 does not control it, so no counter. One counter in all, the Mystic is 3/3. The tree's trigger reads from_zone=Zone(BATTLEFIELD, YOU); before engine wave E3 the binder matched it against the zone's owner (binding._zone_matches), which a control change does not move, and gave none. From verification wave 4's open fault H05 (2026-11-17).",
+ "cards": [
+  {"key": "mystic", "real": "Starfield Mystic", "zone": "battlefield", "controller": 0},
+  {"key": "mycharm", "name": "My Charm", "type": "Enchantment", "zone": "battlefield", "controller": 0},
+  {"key": "ocharm", "name": "Opp Charm", "type": "Enchantment", "zone": "battlefield", "controller": 1}
+ ],
+ "steps": [
+  {"op": "gain_control", "key": "mycharm", "seat": 1},
+  {"op": "gain_control", "key": "ocharm", "seat": 0},
+  {"op": "move", "key": "mycharm", "to": "graveyard"},
+  {"op": "move", "key": "ocharm", "to": "graveyard"}
+ ],
+ "expect": {
+  "zone": {"mycharm": "graveyard", "ocharm": "graveyard"},
+  "counters": {"mystic": {"PLUS_1_PLUS_1": 1}},
+  "power": {"mystic": 3},
+  "toughness": {"mystic": 3}
+ }
+}

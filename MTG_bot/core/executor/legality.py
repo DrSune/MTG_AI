@@ -2167,6 +2167,7 @@ def resolve_activated(executor: Executor, obj) -> str:
     controller's coordinates, with the targets bound and every X the announced X
     (CR 107.3a). Returns "resolved"; the caller settles afterwards."""
     from MTG_bot.core.executor.query import activation_target_slots, designates
+    from MTG_bot.core.executor.returns import moved_since
     from MTG_bot.core.executor.stack import recheck_targets
 
     ability, source, seat = obj.node, obj.source, obj.controller
@@ -2190,6 +2191,14 @@ def resolve_activated(executor: Executor, obj) -> str:
         bindings["target"] = sorted(legal_now)
         if kept is not None:
             slot_designations = kept
+    if source.namespace == "card" and (
+        source not in executor.world.cards
+        or moved_since(executor.journal, source, obj.declared_clock)
+    ):
+        # CR 113.7a, 400.7: a source that has changed zones since the activation is a new object
+        # the ability does not name ("put a +1/+1 counter on this creature" puts none on it);
+        # the trigger lane's register (binding.TriggerBinder._gone).
+        bindings["gone"] = [source]
     executor.apply_effect(
         ability.effect,
         source=source,

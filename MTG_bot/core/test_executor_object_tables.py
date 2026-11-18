@@ -11,7 +11,10 @@ decides what becomes of it when the card changes zones.
 
 from __future__ import annotations
 
+import dataclasses
+import json
 from collections import deque
+from pathlib import Path
 
 import pytest
 
@@ -19,6 +22,7 @@ from MTG_bot.core.executor import Executor, GameOver
 from MTG_bot.core.executor.games import (
     TURN_CAP,
     RandomPolicy,
+    Supply,
     _play,
     _setup_game,
     deal_decks,
@@ -27,9 +31,14 @@ from MTG_bot.core.executor.games import (
 from MTG_bot.core.identity import Handle
 from MTG_bot.core.state import GameWorld
 
+#: The cards the games are dealt from, by set (oracle ids): the verified pools as they stood on
+#: 2026-11-18. Recorded, so that a verification wave's stamps, which change the live verified
+#: pool, no longer move what a seed's game does (KNOWLEDGE/2026-11-17/212 §3, cause B; the seeds
+#: had to be picked again twice on 2026-11-17).
+CARDS: dict[str, list[str]] = json.loads(Path(__file__).with_suffix(".json").read_text())
 #: The games, by set and seed: a greedy cover of the 39 containers 40 random games per set filled
-#: on 2026-11-17, after verification wave 4's stamps (reports/guards_400_7_2026-11-17/seeds.py).
-#: Engine changes and verification waves move what a seed's game does; MIN_FILLED says when the
+#: on the recorded cards on 2026-11-18 (reports/engine_wave_e3_2026-11-18/seeds.py). Engine changes
+#: and changes to these cards' trees still move what a seed's game does; MIN_FILLED says when the
 #: cover has worn too thin to trust.
 GAMES = {"M21": (9, 2, 16), "M20": (7, 18), "FDN": (22,)}
 MIN_FILLED = 34
@@ -88,6 +97,12 @@ def tables(root: object, found: set[str], names: set[str]) -> None:
                 found.add(key)
 
 
+def recorded_supply(code: str) -> Supply:
+    """The set's compiled pool, dealing the recorded cards (:data:`CARDS`) whatever is verified
+    now."""
+    return dataclasses.replace(get_supply("all", code), deckable=tuple(CARDS[code]))
+
+
 @pytest.fixture(scope="module")
 def walked() -> tuple[set[str], set[str]]:
     """The containers holding a card's handle at any point a game loop stops at (every priority
@@ -105,7 +120,7 @@ def walked() -> tuple[set[str], set[str]]:
         return False
 
     for code, seeds in GAMES.items():
-        supply = get_supply("verified", code)
+        supply = recorded_supply(code)
         for seed in seeds:
             game = _setup_game(seed, supply, deal_decks(seed, 1409, supply, "stress" if seed % 3 else "coherent"))
             last[0] = (-1, -1)

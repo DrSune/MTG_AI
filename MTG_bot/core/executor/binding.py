@@ -132,10 +132,17 @@ from MTG_bot.core.executor.events import (
     KIND_ZONE_CHANGE,
     GameEvent,
 )
-from MTG_bot.core.executor.quantity import ExecCtx, departure_lki, eval_filter, resolve
+from MTG_bot.core.executor.quantity import (
+    ExecCtx,
+    departed_lki,
+    departure_lki,
+    eval_filter,
+    resolve,
+)
 from MTG_bot.core.executor.selectors import (
     ZONE_KIND_TO_STATE,
     controller_matches,
+    controller_of,
     filter_bound_player_refs,
     players_for_ref,
 )
@@ -608,20 +615,7 @@ class TriggerBinder:
         self.detach(handle, leaving=False)
         for idx, ability in triggers:
             self.attached[(handle, idx)] = ability
-        # Loyalty: the frozen CardState has no loyalty field, so
-        # the printed CardIdentity.loyalty is seeded into the counters map
-        # (CounterKind.LOYALTY) at battlefield registration — the one path
-        # covering BOTH first attach and re-entry (the lifecycle re-registers
-        # through here). setdefault, so a mid-turn re-attach never overwrites
-        # a loyalty the game already changed.
-        state = self.executor.world.cards.get(handle)
-        if state is not None and state.identity.loyalty is not None:
-            try:
-                printed = int(state.identity.loyalty)
-            except ValueError:  # pragma: no cover - printed loyalty is numeric
-                printed = 0
-            if printed:
-                state.counters.setdefault(CounterKind.LOYALTY.name, printed)
+        self.seed_loyalty(handle)
         # ORDER MATTERS: replacements.attach_source opens with its own
         # detach_source sweep (its idempotence rule), which would expire
         # the PreventionRecords that layers.attach_source registers for a
@@ -631,6 +625,23 @@ class TriggerBinder:
         self.executor.replacements.attach_source(handle, record)
         self.executor.layers.attach_source(handle, record)
         return len(triggers)
+
+    def seed_loyalty(self, handle: Handle) -> None:
+        """CR 306.5b: a planeswalker enters with as many loyalty counters as its printed loyalty.
+        The frozen CardState has no loyalty field, so the printed CardIdentity.loyalty is seeded
+        into the counters map (CounterKind.LOYALTY) as the permanent enters, after the counters of
+        its last zone ceased (``Executor._on_zone_changes``), and at registration (:meth:`_register`:
+        a card put onto the battlefield without entering, and the cast lane, which journals the
+        seed in the spell's put). setdefault, so a mid-turn re-attach never overwrites a loyalty the
+        game already changed."""
+        state = self.executor.world.cards.get(handle)
+        if state is not None and state.identity.loyalty is not None:
+            try:
+                printed = int(state.identity.loyalty)
+            except ValueError:  # pragma: no cover - printed loyalty is numeric
+                printed = 0
+            if printed:
+                state.counters.setdefault(CounterKind.LOYALTY.name, printed)
 
     def detach(self, handle: Handle, *, leaving: bool = True) -> int:
         """Battlefield departure: drop the handle's live bindings (the
@@ -1398,14 +1409,14 @@ class TriggerBinder:
         controller: Handle,
     ) -> bool:
         from_state, to_state, owner_before, owner_after = event.zone_move
+        assert event.subject is not None  # a zone move always names its subject
         ctx = self._ctx(source, controller, event)
-        if not self._zone_matches(node.from_zone, from_state, owner_before, ctx):
+        if not self._zone_matches(node.from_zone, from_state, owner_before, event.subject, ctx):
             return False
-        if not self._zone_matches(node.to_zone, to_state, owner_after, ctx):
+        if not self._zone_matches(node.to_zone, to_state, owner_after, event.subject, ctx):
             return False
         if node.subject is None:
             return True
-        assert event.subject is not None  # a zone move always names its subject
         return eval_filter(node.subject, event.subject, ctx)
 
     def _zone_matches(
@@ -1413,13 +1424,21 @@ class TriggerBinder:
         zone_ir: Zone,
         state_kind: str | None,
         zone_owner: Handle | None,
+        subject: Handle,
         ctx: ExecCtx,
     ) -> bool:
         """One ZoneChangeEvent endpoint vs the journalled move. A created
         object's ``from`` (None) matches ANY — an ETB from nowhere is an ETB
         from anywhere. STACK/PLAYER endpoints name no card zone and never
         match. OWNER scopes to the card's owner, who in this frozen model
-        is exactly the zone owner."""
+        is exactly the zone owner. A card's other zones are its owner's
+        (CR 400.3), but on the battlefield a player's side is control (CR
+        110.2): "an enchantment you control is put into a graveyard from the
+        battlefield" is judged by the controller the object had as it left
+        (CR 603.6c, 603.10a), "enters under your control" by the one it
+        entered under (CR 603.6a), as the subject filter's CONTROLLER_IS reads
+        them (``quantity.eval_filter``: the last known information, else the
+        control overlay)."""
         if zone_ir.kind is not ZoneKind.ANY:
             want = ZONE_KIND_TO_STATE.get(zone_ir.kind)
             if want is None or state_kind is None or want != state_kind:
@@ -1429,6 +1448,11 @@ class TriggerBinder:
             return True
         if ref is ControllerRef.OWNER:
             return True  # zone owner IS the card's owner here
+        if state_kind == ZONE_BATTLEFIELD:
+            lki = departed_lki(subject, ctx)
+            return controller_matches(
+                ref, lki.controller if lki is not None else controller_of(ctx, subject), ctx
+            )
         if zone_owner is None:
             return False
         return controller_matches(ref, zone_owner, ctx)
@@ -1444,8 +1468,15 @@ class TriggerBinder:
         ):
             return False
         assert owner_before is not None  # a battlefield move has an owner
+        assert event.subject is not None  # and names its subject
         ctx = self._ctx(source, controller, event)
-        return node.actor is None or eval_filter(node.actor, owner_before, ctx)
+        # CR 701.21a: a player sacrifices only a permanent they control, so who sacrificed it is
+        # the controller it had as it left (its last known information), not its owner, whose
+        # graveyard it went to: Havoc Jester's "Whenever you sacrifice a permanent" sees a stolen
+        # creature its thief sacrificed.
+        lki = departure_lki(event.subject, event, self.executor)
+        actor = lki.controller if lki is not None else owner_before
+        return node.actor is None or eval_filter(node.actor, actor, ctx)
 
     def _match_counter(
         self,
@@ -1766,6 +1797,40 @@ class TriggerBinder:
             or moved_since(self.executor.journal, h, since)
         ]
 
+    def _source_gone(self, obj) -> list[Handle]:
+        """CR 113.7a, 400.7: the ability's source, when it has become a new object since the
+        ability triggered; the effect puts no counter on it (``verbs`` PUT_COUNTER: a creature that
+        left the battlefield and came back while its "put a +1/+1 counter on this creature"
+        waited gets none). A trigger that looks back (CR 603.10a) saw its source as it was before
+        its event, so a move in that event counts (WAR Rising Populace dying in the wrath it
+        triggers on); any other saw it as it is after its event, so only a later move does (FDN
+        Skyknight Squire returned together with the creature it triggers on). A source the event
+        register names is judged as the event's object (:meth:`_gone`, CR 400.7d)."""
+        from MTG_bot.core.executor.returns import moved_since
+
+        source, event = obj.source, obj.ctx.event
+        if (
+            source.namespace != "card"
+            or source in (obj.ctx.binding_handles("event") or ())
+            or not isinstance(event, GameEvent)
+            or event.clock <= 0
+        ):
+            return []
+        if source not in self.world.cards:
+            return [source]  # a token that ceased to exist (CR 704.5d)
+        journal = self.executor.journal
+        if looks_back(obj.node.event, event):
+            since = (event.batch or event.clock) - 1
+        else:
+            since = event.clock
+            for row in reversed(journal.events):  # the last row of the event (GameEvent.batch)
+                if not event.batch or row.clock <= since:
+                    break
+                if row.batch == event.batch:
+                    since = row.clock
+                    break
+        return [source] if moved_since(journal, source, since) else []
+
     def resolve(self, obj) -> str:
         """CR 608.2: a triggered ability on the stack resolves (``stack.resolve_top``).
         Its intervening "if" is checked again (CR 603.4): false, it is removed and does
@@ -1777,7 +1842,7 @@ class TriggerBinder:
         propagates. May-offers ask the executor's decision stream."""
         if not self._condition_holds(obj.node, obj.event, obj.source, obj.ctx):
             return "removed"
-        obj.ctx.bindings["gone"] = self._gone(obj.ctx)
+        obj.ctx.bindings["gone"] = self._gone(obj.ctx) + self._source_gone(obj)
         kept: list[Handle] | None = None
         if obj.slot_designations and obj.declared_targets:
             # CR 608.2b, slot by slot, as a spell's targets are (stack.recheck_targets): an

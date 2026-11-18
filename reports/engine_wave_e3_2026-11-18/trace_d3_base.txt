@@ -1,0 +1,19 @@
+  18  ENTERS WITH old counters: Chandra, Novice Pyromancer from stack {'LOYALTY': 5}   e.g. M20:4
+  11  ENTERS WITH old counters: Basri, Devoted Paladin from stack {'LOYALTY': 4}   e.g. M21:1
+  10  ENTERS WITH old counters: Sorin, Imperious Bloodlord from stack {'LOYALTY': 4}   e.g. M20:4
+   9  ENTERS WITH old counters: Basri Ket from stack {'LOYALTY': 3}   e.g. M21:3
+   8  ENTERS WITH old counters: Liliana, Waker of the Dead from stack {'LOYALTY': 4}   e.g. M21:36
+   8  ENTERS WITH old counters: Vivien, Nature's Avenger from stack {'LOYALTY': 3}   e.g. M20:16
+   8  ENTERS WITH old counters: Chandra, Flame's Fury from stack {'LOYALTY': 4}   e.g. M20:27
+   7  ENTERS WITH old counters: Ugin, the Spirit Dragon from stack {'LOYALTY': 7}   e.g. M21:3
+   7  ENTERS WITH old counters: Garruk, Unleashed from stack {'LOYALTY': 4}   e.g. M21:9
+   6  ENTERS WITH old counters: Mu Yanling, Sky Dancer from stack {'LOYALTY': 2}   e.g. M20:18
+   6  ENTERS WITH old counters: Ajani, Strength of the Pride from stack {'LOYALTY': 5}   e.g. M20:33
+   5  ENTERS WITH old counters: Garruk, Savage Herald from stack {'LOYALTY': 5}   e.g. M21:7
+   5  ENTERS WITH old counters: Vivien Reid from stack {'LOYALTY': 5}   e.g. FDN:46
+   4  ENTERS WITH old counters: Liliana, Death Mage from stack {'LOYALTY': 4}   e.g. M21:0
+   4  ENTERS WITH old counters: Teferi, Master of Time from stack {'LOYALTY': 3}   e.g. M21:4
+   3  ENTERS WITH old counters: Sorin, Vampire Lord from stack {'LOYALTY': 4}   e.g. M20:4
+   3  ENTERS WITH old counters: Mu Yanling, Celestial Wind from stack {'LOYALTY': 5}   e.g. M20:4
+   2  ENTERS WITH old counters: Ajani, Inspiring Leader from stack {'LOYALTY': 5}   e.g. M20:24
+   1  ENTERS WITH old counters: Teferi, Timeless Voyager from stack {'LOYALTY': 4}   e.g. M21:89

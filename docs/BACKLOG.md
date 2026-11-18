@@ -126,13 +126,27 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   creature. The new object should be untouched, while information about the source (its power for
   "deals damage equal to its power") comes from its last known information (CR 608.2h), which
   `departed_lki` drops on re-entry (`__init__.py`). Not reachable without a flicker effect in the
-  dealt pools. The same holds for a chosen colour or creature type (ontology R9, gate round 9): a
-  source that left answers from its last known choice (`LastKnown.choices`), but Icon of
-  Ancestry's look, bounced and re-cast choosing Goblin in response, reads Goblin. The same drop
-  reaches the binder (2026-11-13): an object exiled and returned by two instructions of one
-  resolution has lost its last known information before the binder matches its departure, so a
-  look-back trigger there reads the controller and the granted abilities, keywords and types of
-  the new object.
+  dealt pools.
+  - Since engine wave E3 (2026-11-18) the counter placement honours it: a source that changed
+    zones since its ability was activated or triggered is in the `gone` register computed as the
+    ability begins to resolve (`TriggerBinder._gone`, `legality.resolve_activated`; CR 113.7a), and
+    PUT_COUNTER puts nothing on it (pack `scavenging_ooze_that_left_the_battlefield_gets_no_counter`:
+    the Ooze left and came back in response, a 3/3 before). "This creature" is a selector over a
+    zone filtered on IS_SOURCE, which the new object passes, so the other verbs still act on it:
+    in the 19 sets ATTACH (Equip) 112 trees, MODIFY_PT 32, MOVE_ZONE 13, GRANT_ABILITY 9,
+    SACRIFICE 4, TAP and UNTAP 4, SET_PT and GRANT_TYPE 1 each
+    (`reports/engine_wave_e3_2026-11-18/census_base.txt`). The side is the card's (Immortal
+    Phoenix's "return it to its owner's hand" taking a new Phoenix is stronger). The general rule
+    (every verb skips a `gone` source) needs CR 400.7e first: an Aura's leaves-the-battlefield
+    ability finds the Aura put into its owner's graveyard with its host or for being unattached,
+    a move after the event it triggered on (M21 Angelic Destiny, verified).
+  - The same holds for a chosen colour or creature type (ontology R9, gate round 9): a
+    source that left answers from its last known choice (`LastKnown.choices`), but Icon of
+    Ancestry's look, bounced and re-cast choosing Goblin in response, reads Goblin. The same drop
+    reaches the binder (2026-11-13): an object exiled and returned by two instructions of one
+    resolution has lost its last known information before the binder matches its departure, so a
+    look-back trigger there reads the controller and the granted abilities, keywords and types of
+    the new object.
 - **B-54 [2026-10-29, first mapping batch] `legal_casts` offers a spell whose required target has
   no legal candidate** (CR 601.2c), and casting it raises. The bench router hides such rows; the
   probe now skips them.
@@ -280,9 +294,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
   with the fix that journals the counters a permanent enters with, CR 122.6). CR 306.5b: its
   loyalty counters are put on it as it enters. A cast planeswalker's seed
   (`TriggerBinder._register`'s setdefault) lands inside the CAST boundary, so the diff writes its
-  COUNTER_PLACED row; one put onto the battlefield by an effect is seeded during the binder's
-  lifecycle, after its boundary closed, and writes none. No verified trigger reads a loyalty
-  placement. Fix: seed the loyalty in `Executor._apply_etb_state`'s journalled placement.
+  COUNTER_PLACED row; one put onto the battlefield by an effect is seeded by the entry hook
+  (`Executor._on_zone_changes`, right after the counters of its last zone ceased; engine wave E3,
+  2026-11-18), after its boundary closed, and writes none. No verified trigger reads a loyalty
+  placement. Fix: seed the loyalty in `Executor._apply_etb_state`'s journalled placement, and let
+  the cast lane and the land drop attach the record after the entry hook so the cast's seed is
+  not written twice.
   - Graded 2026-11-17 (the CR 400.7 audit, 212 §3): WEAKER, latent. A verified card can make the
     missing row (M20 Brought Back returns a planeswalker that died this turn; M21 Ugin's -10,
     unverified on main a7b7ac35, puts one from a hand), but the only verified watchers of a
@@ -589,7 +606,12 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
     `cards/integration`: 10.
   - The classes:
     - d1: life moved without a journal row;
-    - d3: a +1/+1 counter placed on a card already off the battlefield (CR 400.7);
+    - d3, triaged 2026-11-18 (engine wave E3): a detector artefact. It flagged every placement
+      after the card's last death, so a creature that died, came back (Soul Salvage, Macabre
+      Waltz, Zombify) and was then given a counter on the battlefield looked like a phantom. All
+      3 hits in 450 soak games on main fa284327 were that (M20 seed 122, FDN 260 and 283), none a
+      real placement off the battlefield; presence alone decides now (`detectors.d3_counters`).
+      The two rules gaps 208 §9 read into it are fixed anyway (KNOWLEDGE 212 §6, E3);
     - d5: P/T recompute mismatch (Goblin Wizard, Thieves' Guild Enforcer, Quirion Dryad, Palladium
       Myr);
     - d6: an end-of-turn grant or lose layer still bound to a card that left (related to B-50 and
@@ -605,6 +627,19 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 ## Card onboarding and gates
 
 ### Compiler and ontology
+
+- **Zone(BATTLEFIELD, YOU) means "you own it" in MOVED_TO_ZONE_THIS_TURN** (2026-11-18, the
+  class-D audit of engine wave E3; an IR question, not changed there). Since E3 a battlefield zone
+  scoped to a player is read by control everywhere a permanent's side is meant (trigger and
+  replacement endpoints, selectors: CR 110.2). MOVED_TO_ZONE_THIS_TURN still reads its endpoints'
+  zone owners (`quantity.py`), and its two trees need that: M21 Barrin, Tolarian Archmage ("a
+  permanent was put into your hand from the battlefield": from Zone(BATTLEFIELD, YOU) to your hand)
+  and M20 Brought Back ("permanent cards in your graveyard that were put there from the
+  battlefield": from Zone(BATTLEFIELD, YOU)), both verified. Their from-zone's YOU repeats the
+  destination's owner; neither card asks who controlled the permanent. Read by control, a card you
+  own that died under an opponent's control would no longer count (weaker). The one-meaning fix:
+  write those from-zones Zone(BATTLEFIELD, ANY) (re-verify both), then read control on a
+  battlefield endpoint here too.
 
 - **Orphaned sentences on a permanent's cast carrier** (2026-11-14, found by G0's `carrier`
   lint, KNOWLEDGE/2026-11-14/207 §5.1). 26 partly compiled cards hold an effect on a permanent

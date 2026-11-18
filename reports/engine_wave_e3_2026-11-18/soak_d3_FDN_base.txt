@@ -1,0 +1,2 @@
+seed 260: d3 ['phantom placement: PLUS_1_PLUS_1 x1 on card:117 at clock 646 while not on the battlefield (counters that cost resources must move before resolving)']; real off-battlefield placements []
+seed 283: d3 ['phantom placement: PLUS_1_PLUS_1 x1 on card:64 at clock 663 while not on the battlefield (counters that cost resources must move before resolving)']; real off-battlefield placements []

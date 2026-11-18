@@ -1261,55 +1261,65 @@ class Executor:
         the journal's emit order.
 
         A permanent leaving the battlefield is a new object in its new zone
-        (CR 400.7): its last-known information is snapshotted, then what was
-        keyed on it ends (durations, P/T changes, layer, prevention and
-        control records, marked damage, its place in combat) and it is
-        untapped. A card moving anywhere but the battlefield loses its
-        counters (CR 122.2). A permanent entering gets its compiled entered
-        state (CR 614.1c).
+        (CR 400.7): the last-known information of every one that left is
+        snapshotted first, then what was keyed on each ends (durations, P/T
+        changes, layer, prevention and control records, marked damage, its
+        place in combat) and it is untapped. A card that changes zones loses its counters (CR 122.2),
+        and then a permanent entering gets its entered state: its printed
+        loyalty and its compiled EtBState (CR 306.5b, 614.1c).
 
         CR 610.3: the rows a MOVE_ZONE "until" staged in this
         boundary get their entry clocks first; then every row anchored on a
         permanent that left the battlefield here ends, and those objects
         return together after the whole batch is processed (610.3d)."""
         self.returns.complete(events)
-        due: list[ReturnRow] = []
-        for event in events:
-            if event.kind != KIND_ZONE_CHANGE or event.subject is None:
-                continue
-            from_state = event.zone_move[0]
-            if (
-                from_state == ZONE_BATTLEFIELD
+        moves = [e for e in events if e.kind == KIND_ZONE_CHANGE and e.subject is not None]
+
+        def departed(event: GameEvent) -> bool:
+            return (
+                event.zone_move[0] == ZONE_BATTLEFIELD
                 and event.zone_move[1] != ZONE_BATTLEFIELD
                 and event.subject in self.world.cards
-            ):
-                state = self.world.cards[event.subject]
-                power, toughness = self.ledger.effective_pt(
-                    state.identity, event.subject, state.counters
-                )
-                self.departed_lki[event.subject] = LastKnown(
-                    power,
-                    toughness,
-                    dict(state.counters),
-                    self.layers.keywords(event.subject),
-                    self.controller_of(event.subject),  # before the control entries end
-                    self._op_seq,
-                    # before _remove_from_combat below
-                    self.attacked.get(event.subject) if event.subject in self.attackers else None,
-                    # before the choices are dropped below
-                    tuple(
-                        (quality, self.name_choices[(event.subject, quality)])
-                        for quality in (None, *CHOSEN_QUALITIES)
-                        if (event.subject, quality) in self.name_choices
-                    ),
-                    self.layers.type_overlay(event.subject),
-                    self.layers.granted_abilities(event.subject),
-                    state.identity,
-                    # before the binder's leave-detach prunes the table
-                    tuple(sorted(a for a, host in self.attachments.items() if host == event.subject)),
-                    state.tapped,  # before it is untapped below
-                    event.clock,
-                )
+            )
+
+        # CR 603.10a: every permanent the boundary moved off the battlefield is snapshotted as it
+        # last existed there before anything anchored on any of them ends: an Aura's "You control
+        # enchanted creature" that leaves with its creature, or an anthem leaving with the
+        # creature it pumps, still counts for that creature.
+        for event in filter(departed, moves):
+            assert event.subject is not None  # the moves name their subjects
+            state = self.world.cards[event.subject]
+            power, toughness = self.ledger.effective_pt(
+                state.identity, event.subject, state.counters
+            )
+            self.departed_lki[event.subject] = LastKnown(
+                power,
+                toughness,
+                dict(state.counters),
+                self.layers.keywords(event.subject),
+                self.controller_of(event.subject),  # before the control entries end
+                self._op_seq,
+                # before _remove_from_combat below
+                self.attacked.get(event.subject) if event.subject in self.attackers else None,
+                # before the choices are dropped below
+                tuple(
+                    (quality, self.name_choices[(event.subject, quality)])
+                    for quality in (None, *CHOSEN_QUALITIES)
+                    if (event.subject, quality) in self.name_choices
+                ),
+                self.layers.type_overlay(event.subject),
+                self.layers.granted_abilities(event.subject),
+                state.identity,
+                # before the binder's leave-detach prunes the table
+                tuple(sorted(a for a, host in self.attachments.items() if host == event.subject)),
+                state.tapped,  # before it is untapped below
+                event.clock,
+            )
+        due: list[ReturnRow] = []
+        for event in moves:
+            assert event.subject is not None
+            from_state = event.zone_move[0]
+            if departed(event):
                 # CR 400.7: the object in its new zone is a new object, so the P/T
                 # effects applied to the old one end here (a dead creature card is
                 # printed: Carrion Grub); grants, preventions and control end below.
@@ -1317,15 +1327,19 @@ class Executor:
                 # are cut. The snapshot above answers for the old object.
                 self.ledger.forget(event.subject)
                 self.layers.forget_materialized(event.subject)
-            if event.zone_move[1] != ZONE_BATTLEFIELD and event.subject in self.world.cards:
+            if event.subject in self.world.cards:
                 # CR 122.2: "Counters on an object are not retained if that
                 # object moves from one zone to another ... they simply cease to
-                # exist." The journal row above was emitted first, so a dies row's
-                # was-P/T still folds them. A battlefield entry keeps what its
-                # entry stamped (the loyalty seed, EtBState counters).
+                # exist." So in every move, onto the battlefield too: a counter an
+                # effect put on a card in a graveyard or in exile does not come
+                # back with it (CR 400.7). The journal row above was emitted
+                # first, so a dies row's was-P/T still folds them. What the new
+                # permanent enters with is stamped below, after this.
                 self.world.cards[event.subject].counters.clear()
             if from_state != ZONE_BATTLEFIELD:
                 if event.zone_move[1] == ZONE_BATTLEFIELD:
+                    # CR 306.5b: a planeswalker enters with its printed loyalty.
+                    self.binder.seed_loyalty(event.subject)
                     # The compiled EtBState node ("enters the battlefield
                     # tapped", "enters with a soul counter", "As this
                     # enchantment enters, choose a card name"). CR 614.1c:
@@ -1482,10 +1496,12 @@ class Executor:
         tapped flag and any initial counters (CR 614.1c — part of the entering state, not
         a trigger; entering tapped is no tapping, so no TAP event is emitted, while the
         counters are put on it, CR 122.6, a journalled placement). A card whose
-        record is not registered has no declared entered state."""
+        record is not registered has no declared entered state. Its "you" is the player it
+        enters under (CR 110.2), who may not own it."""
         record = self.binder.records.get(self.world.cards[card].identity.oracle_id)
         if record is None:
             return
+        controller = self.controller_of(card)
         etb = [node for node in record.abilities if isinstance(node, EtBState)]
         # CR 614.12a: a choice an "As this enters" effect requires is made before the permanent
         # enters, so before anything of its entering state reads it, in whatever order the
@@ -1514,7 +1530,7 @@ class Executor:
                 ctx = ctx_for(
                     self,
                     source=card,
-                    controller=self.world.controller_of(card),
+                    controller=controller,
                     x_value=self.etb_x.get(card),
                 )
                 if not eval_filter(node.condition, card, ctx):
@@ -1545,7 +1561,7 @@ class Executor:
             qctx = ctx_for(
                 self,
                 source=card,
-                controller=self.world.controller_of(card),
+                controller=controller,
                 x_value=self.etb_x.get(card, 0),
             )
             n = effect_number(quantity, qctx)

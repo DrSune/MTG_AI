@@ -806,10 +806,11 @@ class ReplacementRegistry:
         """One ZoneChangeEvent endpoint vs the about-to-happen move — the
         binding-side ``_zone_matches`` convention, so the trigger lane and
         the replacement lane read endpoints alike: ANY matches, and a zone's
-        controller ref scopes the player whose zone it is (``zone_player``:
-        a card's own zones are its owner's, CR 400.3, so "an opponent's
-        graveyard" is the graveyard of the moving card's owner; OWNER is that
-        player by construction)."""
+        controller ref scopes ``zone_player``: a card's own zones are its
+        owner's (CR 400.3), so "an opponent's graveyard" is the graveyard of
+        the moving card's owner (OWNER is that player by construction); on
+        the battlefield it is the player who controls the permanent, or whose
+        control it would enter under (CR 110.2)."""
         if zone_ir is None or zone_ir.kind is ZoneKind.ANY:
             return True
         want = ZONE_KIND_TO_STATE.get(zone_ir.kind)
@@ -828,7 +829,8 @@ class ReplacementRegistry:
         replaced_seq: frozenset[int] = frozenset(),
     ) -> ReplacementRecord | None:
         """The replacement for ``card`` moving from the zone it is in into
-        ``to_player``'s ``to_state`` zone, or None: the one interceptor the
+        ``to_player``'s ``to_state`` zone (onto the battlefield: under
+        ``to_player``'s control), or None: the one interceptor the
         zone moves consult before they happen (CR 614.1a, 614.6), wherever
         the card is ("If a card would be put into a graveyard from
         anywhere", CR 614.1a). The moves that ask: every verb that moves a
@@ -840,9 +842,9 @@ class ReplacementRegistry:
         token's creation do not ask yet (BACKLOG). A match consumes the move:
         the card stays where it is, and the record's action runs after the
         move with the card bound as ``event``, as part of the same event
-        (``Executor.replace_move``). A zone's player is its owner (the
-        trigger lane's convention), so an endpoint reads the owner of the
-        zone the card leaves or joins, never a permanent's controller.
+        (``Executor.replace_move``). An endpoint reads its player as the
+        trigger lane does: the owner of the zone the card leaves or joins,
+        and on the battlefield the controller (:meth:`_endpoint_matches`).
 
         Two event shapes: a ZoneChangeEvent by its endpoints and subject
         (Containment Priest's enter: ANY -> BATTLEFIELD; FDN Dryad Militant's
@@ -865,6 +867,7 @@ class ReplacementRegistry:
         resolved)."""
         src = self.world.zone_of(card)
         dies = src.kind == ZONE_BATTLEFIELD and to_state == ZONE_GRAVEYARD
+        from_player = self.executor.controller_of(card) if src.kind == ZONE_BATTLEFIELD else src.controller
         for rec in sorted(self.replacements, key=lambda r: r.seq):
             event = rec.event
             if not isinstance(event, ZoneChangeEvent) and not (
@@ -886,7 +889,7 @@ class ReplacementRegistry:
                     continue
             elif not (
                 self._endpoint_matches(event.to_zone, to_state, to_player, rec_ctx)
-                and self._endpoint_matches(event.from_zone, src.kind, src.controller, rec_ctx)
+                and self._endpoint_matches(event.from_zone, src.kind, from_player, rec_ctx)
                 and (event.subject is None or eval_filter(event.subject, card, rec_ctx))
             ):
                 continue

@@ -116,7 +116,8 @@ _ANY_COLOR_VOCAB = ("W", "U", "B", "R", "G")
 
 def _replaced_moves(ctx: ExecCtx, moves: Sequence[tuple[Handle, Handle, str]]) -> set[Handle]:
     """Replacement before apply for the moves of one event, each ``(card, player, kind)``:
-    ``card`` into ``player``'s ``kind`` zone from wherever it is (CR 614.1a, 614.6: Containment
+    ``card`` into ``player``'s ``kind`` zone (onto the battlefield: under ``player``'s control)
+    from wherever it is (CR 614.1a, 614.6: Containment
     Priest's enter, FDN Dryad Militant's "into a graveyard from anywhere", Scorching Dragonfire's
     death by any cause). Every card is asked before any of them moves, so a replacement whose
     source moves in the same event applies to all of them (a wrath that destroys Leyline of the
@@ -436,8 +437,11 @@ def _v_move_zone(ctx: ExecCtx, atom: Atom) -> None:
     dests = {card: move_destination(ctx, dest_ir, dest_kind, card) for card in order}
     # Replacement before apply for the moves themselves: a replaced enter never makes a
     # permanent (no placement, no tapped_on_enter stamp: Containment Priest), a replaced move
-    # into a graveyard never reaches it (Dryad Militant).
-    replaced = _replaced_moves(ctx, [(card, dests[card][0], dest_kind) for card in order])
+    # into a graveyard never reaches it (Dryad Militant). A permanent's side is the player it
+    # would enter under.
+    replaced = _replaced_moves(
+        ctx, [(card, dests[card][1] or dests[card][0], dest_kind) for card in order]
+    )
     for card in order:
         if card in replaced:
             continue
@@ -1072,7 +1076,12 @@ def _v_put_counter(ctx: ExecCtx, atom: Atom) -> None:
     kind = atom.args.get("counter_kind")
     assert isinstance(kind, CounterKind)
     n = amount(ctx, atom, "count")
-    cards = role_handles(ctx, atom, "target")
+    # CR 400.7: an object the ability named that has become a new object since gets nothing
+    # (TriggerBinder._gone, legality.resolve_activated): Scavenging Ooze that left the
+    # battlefield while its ability waited. An effect that names a card in a graveyard or in
+    # exile does put counters on it there.
+    gone = ctx.binding_handles("gone") or ()
+    cards = [card for card in role_handles(ctx, atom, "target") if card not in gone]
     for card in cards:
         # Blightbeetle: a card that can't have these counters put on it gets none (and no
         # replacement modifies a placement that does not happen).

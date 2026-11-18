@@ -230,6 +230,22 @@ def test_d3_fires_after_death() -> None:
     assert v.status == "HIT" and "phantom" in v.hits[0].detail
 
 
+def test_d3_clean_after_a_death_and_a_return() -> None:
+    """A creature that died and came back is on the battlefield: a counter put on it then is no
+    phantom (the detector used to flag every placement after the card's last death)."""
+    died = [
+        D.Row(1, 8, D.KIND_ZONE_CHANGE, "card:1", P0, "DIED", (D.BATTLEFIELD, "graveyard", P0, P0)),
+        D.Row(2, 9, D.KIND_CREATURE_DIES, "card:1", P0, "DIED", (D.BATTLEFIELD, P0, "Creature", 2, 2)),
+    ]
+    g = game([
+        _enter("card:1", 0, 0),
+        *died,
+        D.Row(3, 10, D.KIND_ZONE_CHANGE, "card:1", P0, "MOVE", ("graveyard", D.BATTLEFIELD, P0, P0)),
+        D.Row(4, 11, D.KIND_COUNTER_PLACED, "card:1", P0, "PUT", ("PLUS_1_PLUS_1", 1)),
+    ])
+    assert D.d3_counters(g).status == "clean"
+
+
 def test_d3_fires_before_entry() -> None:
     g = game(
         [

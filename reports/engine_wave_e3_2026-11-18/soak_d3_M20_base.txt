@@ -1,0 +1,1 @@
+seed 122: d3 ['phantom placement: PLUS_1_PLUS_1 x1 on card:113 at clock 500 while not on the battlefield (counters that cost resources must move before resolving)']; real off-battlefield placements []
