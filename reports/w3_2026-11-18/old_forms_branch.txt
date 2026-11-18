@@ -1,4 +1,4 @@
-the state as a counter placement (old Nine Lives): refused: CounterPlacedEvent: a filter testing how many counters of its own kind the object has is a state trigger's (St
+the state as a counter placement (old Nine Lives): refused: CounterPlacedEvent: a filter testing how many counters of its own kind the object has is no placement's: "when
 the carrier trigger (old Sanctum of All): refused: AbilityTriggerEvent: a test that reads no subject (a count, a turn) is the static's condition, never a conjunc
 an ability triggering as a delayed trigger's event: refused: DelayedTrigger: event must be an EventSpec a delayed trigger can match, got AbilityTriggerEvent
 an ability triggering as a prevention's event: refused: Atom: PREVENT_EFFECT's event cannot be a AbilityTriggerEvent: only TRIGGER_ADDITIONAL reads an ability trigger

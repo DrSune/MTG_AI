@@ -1,0 +1,233 @@
+REVEAL_RESULT	M21	-	whole	Alpine Houndmaster
+REVEAL_RESULT	M21	-	whole	Alpine Houndmaster
+REVEAL_RESULT	M21	-	whole	Basri's Aegis
+REVEAL_RESULT	M21	-	whole	Basri's Aegis
+REVEAL_RESULT	M21	-	whole	Basri's Aegis
+REVEAL_RESULT	M21	-	whole	Chandra's Firemaw
+REVEAL_RESULT	M21	-	whole	Chandra's Firemaw
+REVEAL_RESULT	M21	-	whole	Chandra's Firemaw
+REVEAL_TOP	M21	-	whole	Conspicuous Snoop
+REVEAL_TOP	M21	-	whole	Conspicuous Snoop
+REVEAL_RESULT	M21	-	whole	Cultivate
+REVEAL_HAND	M21	-	whole	Duress
+REVEAL_RESULT	M21	-	whole	Fierce Empath
+LOOK_TOP	M21	-	whole	Garruk's Harbinger
+REVEAL_RESULT	M21	-	whole	Garruk's Harbinger
+REVEAL_RESULT	M21	-	whole	Garruk's Warsteed
+REVEAL_RESULT	M21	-	whole	Garruk's Warsteed
+REVEAL_RESULT	M21	-	whole	Garruk's Warsteed
+REVEAL_TOP	M21	V	whole	Garruk, Savage Herald
+REVEAL_HAND	M21	-	whole	Kitesail Freebooter
+REVEAL_RESULT	M21	-	whole	Liliana's Scorn
+REVEAL_RESULT	M21	-	whole	Liliana's Scorn
+REVEAL_RESULT	M21	-	whole	Liliana's Scorn
+SCRY	M21	-	whole	Mazemind Tome
+STATE	M21	-	whole	Mazemind Tome
+STATE	M21	-	whole	Nine Lives
+SCRY	M21	V	whole	Opt
+LOOK_TOP	M21	V	whole	Radha, Heart of Keld
+SCRY	M21	V	whole	Riddleform
+EXTRA	M21	-	whole	Sanctum of All
+LOOK_TOP	M21	-	whole	See the Truth
+SCRY	M21	V	whole	Spined Megalodon
+SCRY	M21	V	whole	Stormwing Entity
+REVEAL_RESULT	M21	-	whole	Teferi's Wavecaster
+REVEAL_RESULT	M21	-	whole	Teferi's Wavecaster
+REVEAL_RESULT	M21	-	whole	Teferi's Wavecaster
+SCRY	M21	V	whole	Temple of Epiphany
+SCRY	M21	V	whole	Temple of Malady
+SCRY	M21	V	whole	Temple of Mystery
+SCRY	M21	V	whole	Temple of Silence
+SCRY	M21	V	whole	Temple of Triumph
+SCRY	M21	V	whole	Track Down
+REVEAL_TOP	M21	V	whole	Track Down
+REVEAL_UNTIL	M21	V	whole	Transmogrify
+LOOK_TOP	M21	V	whole	Waker of Waves
+SCRY	M21	V	whole	Wall of Runes
+EXTRA_CAUSE	ZNR	-	whole	Ancient Greenwarden
+SCRY	ZNR	-	whole	Cascade Seer
+SCRY	ZNR	-	whole	Deliberate
+SCRY	ZNR	-	whole	Inordinate Rage
+SCRY	ZNR	-	part	Jace, Mirror Mage
+SCRY	ZNR	-	whole	Merfolk Falconer
+REVEAL_HAND	ZNR	-	part	Pelakka Predation // Pelakka Caverns
+LOOK_TOP	ZNR	-	part	Skyclave Plunder
+REVEAL_TOP	ZNR	-	part	Tajuru Paragon
+LOOK_TOP	M20	V	whole	Anticipate
+REVEAL_RESULT	M20	-	whole	Battalion Foot Soldier
+LOOK_TOP	M20	-	whole	Brightwood Tracker
+REVEAL_RESULT	M20	-	whole	Brightwood Tracker
+SCRY	M20	V	whole	Cavalier of Gales
+REVEAL_TOP	M20	V	whole	Cavalier of Thorns
+REVEAL_RESULT	M20	-	whole	Chandra's Flame Wave
+REVEAL_RESULT	M20	-	whole	Chandra's Flame Wave
+REVEAL_RESULT	M20	-	whole	Chandra's Flame Wave
+SCRY	M20	V	whole	Devout Decree
+REVEAL_TOP	M20	V	whole	Diviner's Lockbox
+LOOK_TOP	M20	V	whole	Drawn from Dreams
+REVEAL_HAND	M20	-	whole	Duress
+REVEAL_RESULT	M20	-	whole	Ethereal Elk
+REVEAL_RESULT	M20	-	whole	Ethereal Elk
+REVEAL_RESULT	M20	-	whole	Ethereal Elk
+REVEAL_TOP	M20	V	whole	Goblin Ringleader
+SCRY	M20	V	whole	Gods Willing
+REVEAL_RESULT	M20	-	whole	Goldmane Griffin
+REVEAL_RESULT	M20	-	whole	Goldmane Griffin
+REVEAL_RESULT	M20	-	whole	Goldmane Griffin
+LOOK_TOP	M20	-	whole	Icon of Ancestry
+REVEAL_RESULT	M20	-	whole	Icon of Ancestry
+LOOK_TOP	M20	V	whole	Mystic Forge
+SCRY	M20	V	whole	Octoprophet
+LOOK_TOP	M20	V	whole	Risen Reef
+SCRY	M20	V	whole	Season of Growth
+REVEAL_RESULT	M20	-	whole	Sorin's Guide
+REVEAL_RESULT	M20	-	whole	Sorin's Guide
+REVEAL_RESULT	M20	-	whole	Sorin's Guide
+SCRY	M20	V	whole	Temple of Epiphany
+SCRY	M20	V	whole	Temple of Malady
+SCRY	M20	V	whole	Temple of Mystery
+SCRY	M20	V	whole	Temple of Silence
+SCRY	M20	V	whole	Temple of Triumph
+REVEAL_HAND	M20	-	whole	Thought Distortion
+REVEAL_UNTIL	M20	V	whole	Vivien, Nature's Avenger
+REVEAL_RESULT	M20	-	whole	Yanling's Harbinger
+REVEAL_RESULT	M20	-	whole	Yanling's Harbinger
+REVEAL_RESULT	M20	-	whole	Yanling's Harbinger
+EXTRA_CAUSE	M20	-	whole	Yarok, the Desecrated
+LOOK_TOP	KHM	-	part	Glimpse the Cosmos
+LOOK_TOP	KHM	-	part	Strategic Planning
+REVEAL_HAND	10E	-	part	Distress
+LOOK_TOP	10E	-	part	Telling Time
+REVEAL_HAND	M10	-	whole	Duress
+REVEAL_TOP	M10	-	part	Vampire Nocturnus
+SCRY	M11	-	whole	Augury Owl
+SCRY	M11	-	whole	Crystal Ball
+REVEAL_RESULT	M11	-	whole	Cultivate
+REVEAL_HAND	M11	-	whole	Duress
+SCRY	M11	-	whole	Preordain
+REVEAL_HAND	M12	-	part	Distress
+REVEAL_TOP	M12	-	whole	Garruk's Horde
+LOOK_TOP	M13	-	part	Augur of Bolas
+REVEAL_HAND	M13	-	whole	Duress
+REVEAL_HAND	M13	-	part	Mindclaw Shaman
+REVEAL_TOP	M13	-	part	Vampire Nocturnus
+REVEAL_HAND	M14	-	whole	Duress
+REVEAL_TOP	M14	-	whole	Garruk's Horde
+LOOK_TOP	M14	-	part	Glimpse the Future
+REVEAL_HAND	M14	-	part	Lifebane Zombie
+SCRY	ORI	-	part	Anchor to the Aether
+SCRY	ORI	-	whole	Lightning Javelin
+SCRY	ORI	-	whole	Llanowar Empath
+REVEAL_TOP	ORI	-	whole	Llanowar Empath
+REVEAL_HAND	ORI	-	part	Nightsnare
+SCRY	ORI	-	part	Nissa's Revelation
+REVEAL_TOP	ORI	-	part	Nissa's Revelation
+REVEAL_TOP	ORI	-	part	Nissa, Vastwood Seer // Nissa, Sage Animist
+SCRY	ORI	-	whole	Sigiled Starfish
+SCRY	ORI	-	whole	Titan's Strength
+LOOK_TOP	M19	V	whole	Anticipate
+REVEAL_HAND	M19	-	whole	Duress
+SCRY	M19	-	whole	Horizon Scholar
+SCRY	M19	-	whole	Omenspeaker
+LOOK_TOP	M19	-	whole	Vivien Reid
+REVEAL_RESULT	M19	-	whole	Vivien Reid
+LOOK_TOP	DOM	-	part	Adventurous Impulse
+SCRY	DOM	-	whole	Cloudreader Sphinx
+LOOK_TOP	DOM	-	part	Dark Bargain
+REVEAL_HAND	DOM	-	part	Divest
+EXTRA_CAUSE	DOM	-	whole	Naban, Dean of Iteration
+SCRY	DOM	V	whole	Opt
+LOOK_TOP	DOM	-	part	Precognition Field
+SCRY	DOM	-	whole	Zhalfirin Void
+LOOK_TOP	WAR	-	part	Augur of Bolas
+LOOK_TOP	WAR	-	part	Bolas's Citadel
+LOOK_TOP	WAR	-	part	Bond of Flourishing
+SCRY	WAR	-	whole	Jaya's Greeting
+SCRY	WAR	-	whole	Mana Geode
+SCRY	WAR	-	part	No Escape
+SCRY	WAR	-	whole	Prison Realm
+SCRY	WAR	-	part	Ral, Storm Conduit
+SCRY	WAR	-	part	Samut's Sprint
+SCRY	WAR	-	part	Samut, Tyrant Smasher
+REVEAL_HAND	WAR	-	part	Toll of the Invasion
+LOOK_TOP	WAR	-	part	Vivien, Champion of the Wilds
+SCRY	WAR	V	whole	Wall of Runes
+REVEAL_RESULT	FDN	-	whole	Campus Guide
+REVEAL_UNTIL	FDN	-	whole	Consuming Aberration
+SCRY	FDN	V	whole	Devout Decree
+REVEAL_HAND	FDN	-	whole	Duress
+REVEAL_RESULT	FDN	-	whole	Expedition Map
+REVEAL_RESULT	FDN	-	whole	Fierce Empath
+LOOK_TOP	FDN	-	whole	Gutless Plunderer
+LOOK_TOP	FDN	-	whole	Loot, Exuberant Explorer
+REVEAL_RESULT	FDN	-	whole	Loot, Exuberant Explorer
+SCRY	FDN	-	whole	Mazemind Tome
+STATE	FDN	-	whole	Mazemind Tome
+REVEAL_RESULT	FDN	-	whole	Micromancer
+SCRY	FDN	V	whole	Opt
+REVEAL_HAND	FDN	-	whole	Pilfer
+REVEAL_UNTIL	FDN	V	whole	Spinner of Souls
+LOOK_TOP	FDN	-	whole	Squad Rallier
+REVEAL_RESULT	FDN	-	whole	Squad Rallier
+SCRY	FDN	V	whole	Temple of Abandon
+SCRY	FDN	V	whole	Temple of Deceit
+SCRY	FDN	V	whole	Temple of Enlightenment
+SCRY	FDN	V	whole	Temple of Epiphany
+SCRY	FDN	V	whole	Temple of Malady
+SCRY	FDN	V	whole	Temple of Malice
+SCRY	FDN	V	whole	Temple of Mystery
+SCRY	FDN	V	whole	Temple of Plenty
+SCRY	FDN	V	whole	Temple of Silence
+SCRY	FDN	V	whole	Temple of Triumph
+LOOK_TOP	FDN	-	whole	Vivien Reid
+REVEAL_RESULT	FDN	-	whole	Vivien Reid
+LOOK_TOP	FDN	-	part	Vizier of the Menagerie
+SCRY	ELD	-	part	Castle Vantress
+REVEAL_HAND	ELD	-	part	Covetous Urge
+SCRY	ELD	-	whole	Inquisitive Puppet
+SCRY	ELD	-	whole	Lost Legion
+REVEAL_HAND	ELD	-	part	Memory Theft
+SCRY	ELD	V	whole	Opt
+SCRY	ELD	-	whole	Prophet of the Peak
+REVEAL_RESULT	ELD	-	whole	Rowan's Stalwarts
+REVEAL_RESULT	ELD	-	whole	Rowan's Stalwarts
+REVEAL_RESULT	ELD	-	whole	Rowan's Stalwarts
+REVEAL_HAND	ELD	-	part	Specter's Shriek
+SCRY	ELD	-	part	Witching Well
+REVEAL_HAND	THB	-	part	Agonizing Remorse
+REVEAL_RESULT	THB	-	whole	Ashiok's Forerunner
+REVEAL_RESULT	THB	-	whole	Ashiok's Forerunner
+REVEAL_RESULT	THB	-	whole	Ashiok's Forerunner
+SCRY	THB	-	whole	Chain to Memory
+REVEAL_RESULT	THB	-	whole	Elspeth's Devotee
+REVEAL_RESULT	THB	-	whole	Elspeth's Devotee
+REVEAL_RESULT	THB	-	whole	Elspeth's Devotee
+SCRY	THB	-	whole	Fateful End
+SCRY	THB	-	part	Inspire Awe
+SCRY	THB	-	whole	Memory Drain
+SCRY	THB	-	part	Mischievous Chimera
+SCRY	THB	-	part	Omen of the Sea
+SCRY	THB	-	whole	Portent of Betrayal
+SCRY	THB	-	whole	Rumbling Sentry
+SCRY	THB	V	whole	Temple of Abandon
+SCRY	THB	V	whole	Temple of Deceit
+SCRY	THB	V	whole	Temple of Enlightenment
+SCRY	THB	V	whole	Temple of Malice
+SCRY	THB	V	whole	Temple of Plenty
+SCRY	THB	-	whole	Thaumaturge's Familiar
+SCRY	THB	-	whole	Witness of Tomorrows
+LOOK_TOP	IKO	-	part	Adventurous Impulse
+LOOK_TOP	IKO	V	whole	Anticipate
+LOOK_TOP	IKO	-	part	Dark Bargain
+REVEAL_HAND	IKO	-	part	Memory Leak
+LOOK_TOP	IKO	-	part	Vivien, Monsters' Advocate
+
+# EXTRA: 1 atoms or abilities, 1 cards
+# EXTRA_CAUSE: 3 atoms or abilities, 3 cards
+# LOOK_TOP: 34 atoms or abilities, 28 cards
+# REVEAL_HAND: 24 atoms or abilities, 16 cards
+# REVEAL_RESULT: 56 atoms or abilities, 26 cards
+# REVEAL_TOP: 15 atoms or abilities, 12 cards
+# REVEAL_UNTIL: 4 atoms or abilities, 4 cards
+# SCRY: 83 atoms or abilities, 62 cards
+# STATE: 3 atoms or abilities, 2 cards

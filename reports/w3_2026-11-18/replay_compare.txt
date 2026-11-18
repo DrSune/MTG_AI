@@ -1,0 +1,4 @@
+M21: deckable 266 / 266; taken out 14; games 200; identical digests 200, journals 200, event logs 79, masked 200; crashes 0 / 0; CPU seconds 74.6 / 75.9
+M20: deckable 276 / 276; taken out 10; games 200; identical digests 200, journals 200, event logs 72, masked 200; crashes 0 / 0; CPU seconds 65.6 / 67.0
+FDN: deckable 256 / 256; taken out 5; games 200; identical digests 200, journals 200, event logs 78, masked 200; crashes 0 / 0; CPU seconds 79.5 / 81.8
+games that differ: 0 of 600

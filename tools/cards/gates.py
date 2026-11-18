@@ -31,6 +31,7 @@ from probe import Probe
 
 from MTG_bot.core.ability_tree import (
     DESIGNATED_PLAYER_REFS,
+    RESULT_REFERENT,
     Ability,
     ActivatedAbility,
     Atom,
@@ -333,9 +334,11 @@ def _reveal_dead_roles(ability: Any) -> set[str]:
     card for any count >= 1, so it leaves count dead. Several REVEALs qualify when each sits in its
     own option of one "choose one" (a count-1 Choose: the executor runs exactly one option, so at
     most one REVEAL runs; query.choose_options reads no option's contents). A REVEAL of named
-    ``cards`` (a hand, or the ``result`` of the instruction before: DESIGN_ATOM_ONTOLOGY §19) has
-    no output but its row, so ``mutants`` holds its ``cards`` dead wherever it stands; it is no
-    look here."""
+    ``cards`` (a hand, or the ``result`` of the instruction before: DESIGN_ATOM_ONTOLOGY §19) is
+    no look here: it opens no window, and its outputs are its row and, for the cards found, the
+    ``result`` register written again with the same cards, which only a bare Conditional after it
+    reads as fresh. So ``mutants`` holds a hand's ``cards`` dead, and the cards found's in an
+    ability with no Conditional."""
     if not isinstance(ability, (TriggeredAbility, ActivatedAbility, SpellAbility)):
         return set()
     nodes = list(walk(ability))
@@ -766,12 +769,18 @@ def mutants(card: CardRecord) -> Iterator[tuple[str, str, CardRecord]]:
         dead |= _static_disclosures(ability, (1, i))
         dead |= _one_card_picks(ability, (1, i))
         roles = _reveal_dead_roles(ability)
+        judged = any(isinstance(n, Conditional) for n in walk(ability))
         for path, node in _paths(ability, (1, i)):
             if isinstance(node, Atom) and node.verb is Verb.REVEAL:
-                # a reveal of named cards writes no window and no register: its row is its only
-                # output, and nothing that plays reads it (_reveal_dead_roles)
-                dead |= ({(*path, "args", "cards")} if node.args.get("cards") is not None
-                         else {(*path, "args", role) for role in roles})
+                cards = node.args.get("cards")
+                if cards is None:
+                    dead |= {(*path, "args", role) for role in roles}
+                elif cards != RESULT_REFERENT or not judged:
+                    # a reveal of named cards opens no window: a hand's only output is its row,
+                    # which nothing that plays reads; the cards found are also `result` again,
+                    # which only a Conditional reads (_reveal_dead_roles). A scaffold until
+                    # memory reads the rows (BACKLOG).
+                    dead |= {(*path, "args", "cards")}
     for path, node in _paths(root):
         cands: list[tuple[str, Any]] = []
         at = path  # where the candidates are rebuilt; the zone swap of an arranged move rebuilds the move

@@ -359,9 +359,8 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
   resolves. Anything else that qualifies the trigger is part of its event and goes in the
   event's filter, which is read once: "with two or more creatures" (Tide Skimmer), "this
   creature and at least two other creatures attack" (Makeshift Battalion), "during an
-  opponent's turn" (Brineborn Cutthroat), "while you control six or more Shrines" (Sanctum of
-  All), and a state trigger's threshold, "When there are four or more page counters on this
-  artifact" (Mazemind Tome, CR 603.8). A count or turn test that does not read the subject
+  opponent's turn" (Brineborn Cutthroat). A state trigger's threshold and Sanctum of All's six
+  Shrines are no event's (the next two rules). A count or turn test that does not read the subject
   (TURN_OF, a comparison of a `quantity`, ...: `ability_tree.reads_no_subject`) has one slot per event:
   `subject` on a ZoneChangeEvent, `filter` on an event that has one, `source` on an
   AbilityActivatedEvent, else `actor` (TurnPhase, CardDrawn, LifeGained, LifeLost and Sacrifice
@@ -369,6 +368,29 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
   actor=<you>)` for Brineborn Cutthroat. `tools/audit/test_ontology_conformance.py` flags one in
   another slot, and a card whose trigger conditions and intervening "if"s differ in number
   (either way).
+- **A state trigger** (CR 603.8, ontology W3). "When there are four or more page counters on this
+  artifact, exile it" (Mazemind Tome; Nine Lives) is `TriggeredAbility(event=StateTrigger(
+  filter=FAtom(pred=FAtomPred.HAS_COUNTER, counter_kind=CounterKind.PAGE, count=QConst(4))),
+  condition=None, effect=...)`: the state is the filter, read over the object with the ability, so
+  no IS_SOURCE in it. No intervening "if", no target, no "it" of an event (a state has none), and
+  never a CounterPlacedEvent that tests its own count (it triggered on every counter while the
+  first waited, and never again once countered). `parse` the sentence.
+- **"That ability triggers an additional time"** (CR 603.2d, ontology W3) is a static, never a
+  trigger of its own: `StaticAbility(effect=A(Verb.TRIGGER_ADDITIONAL, {'count': QConst(1),
+  'event': AbilityTriggerEvent(filter=<the permanent whose ability triggers>, cause=<when printed>)}),
+  condition=<"while you control six or more Shrines">)`. The cause is the entering that made it
+  trigger, a ZoneChangeEvent into the battlefield (Yarok, Naban, Ancient Greenwarden); the
+  static's own test goes in its condition, never in the event's filter. `parse` Sanctum of All's
+  or Yarok's sentence.
+- **Reveals** (CR 701.20a, ontology W3; the draft namespace has `reveal_hand`, `reveal_result`).
+  "Target opponent reveals their hand" is `reveal_hand(ControllerRef.TARGET_OPPONENT)`. "Reveal
+  it", "reveal them", "reveal those cards" after a search or a move is `reveal_result()`. "You may
+  reveal a creature card from among them and put it into your hand" is the pick, then
+  `reveal_result()` (`templates_b4.reveal_one_from_among`; divergence D34). A REVEAL of the top
+  of a library takes `controller` and `count`. Never a `count` of `QUnbounded()` for a hand, and
+  never a top-`count` REVEAL after a look or a search: it named the library's top card, not the
+  card found. LOOK_AT reads the top of a library only; a look at a hand has no encoding yet
+  (BACKLOG).
 - **"You may X. When you do, Y"** (a reflexive trigger, CR 603.12) is
   `Seq(OptionalEffect(X), Conditional(MAY_DONE, DelayedTrigger(duration=None, event=None,
   condition=None, effect=Y)))`: the "If you do" gate around a DelayedTrigger with no duration

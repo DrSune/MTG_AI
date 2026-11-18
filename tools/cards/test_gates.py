@@ -25,6 +25,7 @@ from run_scenarios import ScenarioRunner, run_pack
 from MTG_bot.core.ability_tree import (
     ActivatedAbility,
     AtomArgs,
+    Conditional,
     ControllerRef,
     Cost,
     DurationPermanent,
@@ -39,6 +40,7 @@ from MTG_bot.core.ability_tree import (
     QUnbounded,
     Selector,
     SelectorMode,
+    Seq,
     StaticAbility,
     TargetingEvent,
     TriggeredAbility,
@@ -46,6 +48,7 @@ from MTG_bot.core.ability_tree import (
     Zone,
     ZoneKind,
     reveal_hand,
+    reveal_result,
 )
 from MTG_bot.core.compiler.ingest import ingest_pool
 from MTG_bot.core.executor.binding import _required_target_keys
@@ -744,9 +747,9 @@ OPPONENTS_HAND = reveal_hand(ControllerRef.OPPONENT).args.get("cards")
 def test_a_reveal_of_the_card_picked_is_dead() -> None:
     """Garruk's Harbinger: "look at that many cards ... You may reveal a creature card ... from
     among them and put it into your hand. Put the rest on the bottom." The reveal follows the
-    pick's move and shows its ``result`` (DESIGN_ATOM_ONTOLOGY §19): it writes no window and no
-    register, so nothing that plays reads it, and its ``cards`` offers no mutant; revealing
-    another hand plays the same game."""
+    pick's move and shows its ``result`` (DESIGN_ATOM_ONTOLOGY §19): it opens no window and writes
+    ``result`` again with the same cards, which no Conditional here reads, so nothing that plays
+    reads it, and its ``cards`` offers no mutant; revealing another hand plays the same game."""
     harb = _card("Garruk's Harbinger")
     offered = _where(harb)
     assert not {w for _op, w in offered if w.startswith(HARBINGER_REVEAL)}
@@ -791,6 +794,28 @@ def test_a_reveal_of_the_card_found_is_dead() -> None:
         reveal = WARSTEED_OPTION.format(option, 1)
         assert _game(pack, _mutant(ws, f"{reveal}/cards", OPPONENTS_HAND)) == real, option
     assert gates._reveal_dead_roles(ws.abilities[0]) == set()
+
+
+def test_a_conditional_after_a_reveal_reads_only_the_cards_found() -> None:
+    """A bare Conditional after a reveal judges the ``result`` that a reveal of the cards found
+    writes again (verbs._look, run_atom's ``result_fresh``); a hand's reveal writes nothing it
+    reads. So a hand reveal's ``cards`` stays dead with a Conditional after it (its zone's
+    controller mutant would reveal another hand and play the same game), and the cards found's is
+    lifted there, where the IR admits no other ``cards`` (only RESULT_REFERENT after a finder): G3
+    has no mutant of it to offer, today."""
+    ws = _card("Garruk's Warsteed")
+    creature = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
+    search = A(Verb.SEARCH, cards=Selector(QConst(1), SelectorMode.CHOOSE, creature,
+                                           zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU),)),
+               destination=Zone(ZoneKind.HAND, ControllerRef.YOU))
+    judged = Conditional(pred=creature, then_effect=A(Verb.GAIN_LIFE, controller=ControllerRef.YOU,
+                                                      amount=QConst(1)))
+    for reveal in (reveal_hand(ControllerRef.OPPONENT), reveal_result()):
+        for tail in ((), (judged,)):
+            ability = TriggeredAbility(event=ws.abilities[0].event, condition=None,
+                                       effect=Seq(steps=(search, reveal, *tail)))
+            card = dataclasses.replace(ws, abilities=(ability,))
+            assert not {w for _op, w in _where(card) if w.startswith("1/0/effect/steps/1/")}, (reveal, tail)
 
 
 CULTIVATE_SEARCH = "1/0/effect/steps/0/args/destination"

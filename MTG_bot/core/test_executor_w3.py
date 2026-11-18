@@ -101,8 +101,8 @@ class NineLivesCase(unittest.TestCase):
             "Nine Lives", 9, types=("Enchantment",), colors=("W",), mana_cost_raw="{1}{W}{W}",
             mana_value=3,
             sentences=(
-                "If a source would deal damage to you, prevent that damage and put an incarnation "
-                "counter on this enchantment.",
+                ("If a source would deal damage to you, prevent that damage and put an incarnation "
+                 "counter on this enchantment."),
                 "When there are nine or more incarnation counters on this enchantment, exile it.",
             ),
         )}
@@ -358,8 +358,9 @@ class TestReveals(unittest.TestCase):
 
     def test_a_reveal_names_each_owners_zone(self) -> None:
         """A reveal's cards are grouped by the zone holding them, its owner named (CR 400.3)."""
-        from MTG_bot.core.ability_tree import reveal_result  # not on main: imported here, so the
-        # module imports there and its other tests run (reports/w3_2026-11-18/engine_tests_on_main.txt)
+        # not on main: imported here, so the module imports there and its other tests run
+        # (reports/w3_2026-11-18/engine_tests_on_main.txt)
+        from MTG_bot.core.ability_tree import reveal_result
 
         r = _runner([_card("mine", 0, zone="hand"), _card("theirs", 1, zone="graveyard")])
         mine, theirs = r.handles["mine"], r.handles["theirs"]

@@ -26,6 +26,7 @@ from __future__ import annotations
 import pytest
 
 from MTG_bot.core.ability_tree import (
+    QX,
     RESULT_REFERENT,
     AbilityTriggerEvent,
     ActivatedAbility,
@@ -53,7 +54,6 @@ from MTG_bot.core.ability_tree import (
     QProp,
     QPropField,
     QUnbounded,
-    QX,
     ReplacementAbility,
     Selector,
     SelectorMode,
@@ -103,7 +103,10 @@ TOP = Zone(ZoneKind.LIBRARY, ControllerRef.YOU, ZonePosition.TOP)
 HAND_YOU = Zone(ZoneKind.HAND, ControllerRef.YOU)
 
 
-def extra(event=None, count=QConst(1)) -> Atom:
+ONCE = QConst(1)
+
+
+def extra(event=None, count=ONCE) -> Atom:
     return A(Verb.TRIGGER_ADDITIONAL, count=count,
              event=event if event is not None else AbilityTriggerEvent(filter=YOURS, cause=ENTERING))
 

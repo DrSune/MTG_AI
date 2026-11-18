@@ -47,6 +47,8 @@ selector  := {mode, count, filter, zone∪zones → ONE set (R0), referent}
 filter    := FAnd(children) | FOr(children) | FNot(inner) | FAtom(pred, slots)
 compare   := FAtom(QTY_GE, count, field | quantity, who?)   # "N or less": FNot at N + 1 (R12, §16)
 event     := ZoneChange | CastSpell | … (18 classes, census §5)
+           | StateTrigger(filter)                      # a state (CR 603.8): a Triggered's event only (W3, §19)
+           | AbilityTriggerEvent(filter, cause?)       # an ability triggering: TRIGGER_ADDITIONAL's, in a static only (W3)
 quantity  := QConst | QX | QUnbounded | QCount(sel) | QPartyCount(sel)
            | QDistinct(sel, field) | QProp | QBin | QThisTurn | QAtLeast | QAtMost
 ```
@@ -166,6 +168,10 @@ IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 | 2026-11-18, round B3 (§18; gate round B3 FIX-THEN-GO, fixed) | COPY x `source` CopyOf x `cards` (the permanents that become copies, over the battlefield; Masterful Replication's "each other" is FNot(IS_ANY_TARGET) in it, that filter's first use there) x `duration` (DurationEot only) | M20 Masterful Replication (record) | **low-volume**: 1 record |
 | 2026-11-18, round B3 (§18; gate round B3 FIX-THEN-GO, fixed) | QProp(`event`, ORDINAL): the triggering cast's place among the turn's casts its event describes, in a cast trigger's effect | FDN Thousand-Year Storm (B20-storm-copies) | **low-volume**: 1 tree |
 | 2026-11-18, round B3 (§18; gate round B3 FIX-THEN-GO, fixed) | Selector filter x FNot(IS_RESULT) ("all other <objects>" after an instruction that wrote `result`), in a resolving instruction's role, a later Seq step | FDN Abyssal Harvester (record) | **low-volume**: 1 record |
+| 2026-11-18, round W3 (§19; gate round W3 pending) | TriggeredAbility `event` x StateTrigger(`filter`, read over the object with the ability): no `condition`, no `once_per_event`, no read of the event, no designation, never granted | M21 Nine Lives, M21 and FDN Mazemind Tome (compiler, `templates_b2a._exile_at_counters`) | **low-volume**: 3 trees, 2 cards; M11, M13 and M19 Phylactery Lich print the form, unparsed (its counter kind; F38) (NUMBERS.md 2026-11-18, `reports/w3_2026-11-18/census.txt`) |
+| 2026-11-18, round W3 (§19; gate round W3 pending) | StaticAbility x TRIGGER_ADDITIONAL (`count` a QConst of at least 1, `event` AbilityTriggerEvent(`filter`)) [x the static's `condition`] | M21 Sanctum of All (B5b-sanctum-all-extra-trigger: six Shrines the condition) | **low-volume**: 1 tree |
+| 2026-11-18, round W3 (§19; gate round W3 pending) | AbilityTriggerEvent x `cause` (an object entering the battlefield: a ZoneChangeEvent into it [x `subject` a land or a subtype] [x into YOU's]) | B5b-entering-extra-trigger: M20 Yarok, the Desecrated (his record is the compiler's tree), DOM Naban, Dean of Iteration, ZNR Ancient Greenwarden | **low-volume**: 3 trees |
+| 2026-11-18, round W3 (§19; gate round W3 pending) | REVEAL x `cards`, alone: ALL of one hand (`reveal_hand(who)`), or the `result` register whole (`reveal_result()`, after a step that found, looked at or moved cards) | hand: Duress (8 printings), Kitesail Freebooter, Thought Distortion, FDN Pilfer (record) and 12 more cards, partly compiled; `result`: every "search ..., reveal it" (49 atoms) and "reveal a ... card from among them and put it ..." (7, D34) | hand 24 atoms on 16 cards, `result` 56 on 26 (NUMBERS.md 2026-11-18, `census.txt`) |
 
 ## 6. Identity + conformance
 
@@ -853,7 +859,42 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     unchecked; values fixed as the effect begins; spell copies carry the token mark; the copy's
     clock and the target-by-target new-target asks; 704.5p's reach; what the network does not see
     of an exception).
-- BINDING STATE: rounds 1–13 and B3 complete (each with its gate round's fixes); further ontology changes
+- W3 round W3 (state triggers, an ability triggering an additional time, what a reveal shows;
+  2026-11-18; §19; branch `worktree-agent-a3637301ad1c4f789` on main 0b7f9c22; a fresh-eyes
+  review of 62cd34d8 before the gate, no FATAL, 1 MAJOR in six parts, 2 MINOR and 5 NIT, fixed in
+  bf2ca5b4 or logged, each fix with a test red at 62cd34d8). **Gate round W3: pending.** The draft
+  entry's parts follow, as written for the gate.
+  - The change. A state trigger is `TriggeredAbility(event=StateTrigger(filter))`, its state read
+    over the object with the ability at each priority check (CR 603.8, 117.5); it does not
+    trigger again while an instance waits or is on the stack, and triggers again once that
+    instance has left it. "That ability triggers an additional time" is a static,
+    `TRIGGER_ADDITIONAL(count, event=AbilityTriggerEvent(filter, cause?))`, whose copies the
+    binder counts as the ability triggers and queues with it (CR 603.2d); the carrier trigger and
+    its order option are gone. REVEAL names its cards: the top `count` of a library, or `cards`
+    alone, a whole hand (`reveal_hand`) or the `result` register (`reveal_result`); the record is
+    one row per atom naming each zone's owner, zone and cards and who saw them, and a SCRY row
+    names each card and its end for the scryer, with the counts public (CR 701.20a, 701.22a).
+    M20 Yarok is mapped here (the cause is an EventSpec the matcher reads, orthogonal to B17's
+    axes), with DOM Naban and ZNR Ancient Greenwarden.
+  - Why. Each old form changed play or lied in the record: Nine Lives queued an exile trigger per
+    counter at nine or more, and a countered one never came back (STRONGER once Sublime Epiphany
+    is stamped); Sanctum of All's carrier went on the stack between the original and its copy;
+    Duress's row named the target's library and a graveyard search's "reveal it" the next draw,
+    which memory v1 would have read as knowledge.
+  - Rejected: a `state` field, a binder guard over the old placement trigger, the state as a
+    condition; the carrier kept, a replacement, the Shrines in the event's filter, a Yarok-only
+    flag, Yarok left to B17; a `zone` role on REVEAL, a verb per source, journal events for the
+    rows now, the reveal before the pick (§19).
+  - Blast radius: 50 compiler trees in 17 sets, 60 with records applied; 36 verified cards out
+    (14 M21, 10 M20, 5 FDN, 7 reprints), 0 in; 3 newly whole; 600 seeded heuristic games with
+    identical digests and journal dumps, the raw logs identical once the rewritten rows' payloads
+    are masked; -2.2% games per CPU-second.
+  - For the gate: §19's ten assumptions, each with what goes wrong in play if it is wrong (the
+    priority-check timing, the instance's object, the live statics, the permanent's ability, the
+    gathered cause, causes other than entering, the row's order, the public scry counts, the
+    pick's reveal after its move, the fresh `result`).
+- BINDING STATE: rounds 1–13 and B3 complete (each with its gate round's fixes); round W3 built,
+  its gate round pending; further ontology changes
   require a NEW gated round (any R-item that reclassifies a field or opens a normalization is
   Type-1).
 
@@ -2822,3 +2863,224 @@ triggered abilities, the "copy target permanent spell" template, "enters as a co
 exceptions, other durations and the "becomes a copy" template, casting copies; the review's NIT
 11 and one rare engine residue; the gate's m3, m6, n3 and n6; the exceptions the network does not
 see.
+
+## 19. Round W3 — state triggers, an ability triggering an additional time, and what a reveal shows (2026-11-18; gate round W3 pending)
+
+KNOWLEDGE 215's three IR changes, one gate round (215 §5's wave W3, third in §6's order): F23
+(CR 603.8, state triggers), F24 (CR 603.2d, "that ability triggers an additional time") and F63
+with F51 (what the journal records of a reveal, a look and a scry). Branch
+`worktree-agent-a3637301ad1c4f789` on main
+0b7f9c22: 62cd34d8 (the change), bf2ca5b4 (the fresh-eyes review's fixes), then the docs and the
+evidence. Scripts and outputs: `reports/w3_2026-11-18/`.
+
+**Why now.** F23 turns STRONGER the day Sublime Epiphany is stamped: a countered exile trigger
+left Nine Lives on the battlefield for good, where its ruling has it trigger again at once (215
+puts W3 before that stamp). F24 put a trigger of the carrier on the stack between the original
+and its copy: players got priority between them, the order ask offered the carrier, and the copy
+was queued only when the carrier resolved. F63 made the record lie about what players saw: Duress
+journalled the target's whole library as revealed, and "reveal it" after a graveyard search named
+the library's top card, the next draw. Nothing plays from those rows today, but memory v1 would
+read them as knowledge (PLAN_NETWORK_READINESS J1-J2), so they are fixed before it.
+
+**W3-1 `StateTrigger`** (`ability_tree.py:2255`; the TriggeredAbility checks :4400;
+`binding.TriggerBinder.check_states` :1588, called from `Executor._priority_check`
+`executor/__init__.py:2020`; the synthetic event kind `KIND_STATE`, `events.py:127`):
+- The form: `TriggeredAbility(event=StateTrigger(filter), condition=None, effect)`. The state is
+  the filter, read over the object with the ability, as a static's condition is: "nine or more
+  incarnation counters on this enchantment" is `FAtom(HAS_COUNTER, INCARNATION, count=9)`. A test
+  that reads no subject is a state of the game ("you control no permanents with phylactery
+  counters"). Why a class in the event slot and not a new field: every consumer dispatches on the
+  event's class already, and a second slot beside `event` would need refusing whenever both are
+  set; `condition` keeps its one meaning, the intervening "if" (CR 603.4).
+- The engine: each time a player would receive priority (CR 117.5), after the state-based
+  actions, every bound state trigger whose state holds triggers, unless an instance of it waits
+  or is on the stack (CR 603.8). An instance blocks only while its object has not changed zones
+  since it triggered (CR 400.7: a new object's ability is a new ability). Once the instance
+  leaves the stack (resolved, countered, exiled by an effect ending the turn) the next check
+  triggers it again while the state holds. Its event is a STATE row that names the ability and
+  no object.
+- Refused, each because it says nothing or says it twice: the universal filter (always holds);
+  IS_SOURCE anywhere in the filter (said already; under FNot it never holds, in an FOr it always
+  does); an intervening "if"; `once_per_event` (a state has no occurrences); a read of the event
+  register (there is no event); a TARGET or a designated player in the effect (with no legal
+  target it is removed as it goes on the stack, CR 603.3d, and the state triggers it again at
+  once: a loop no card of the 19 sets prints); a grant (the binder checks bound abilities only);
+  a StateTrigger anywhere but a triggered ability's event (a delayed trigger, a replacement, a
+  verb's event, an EVENT_THIS_TURN history, a cause); and the old form, a CounterPlacedEvent whose
+  filter tests the count of its own counter kind (the state written as a placement; the message
+  also names Midnight Clock's "when the twelfth counter is put on", a crossing, not a state).
+- Cards: M21 Nine Lives, M21 and FDN Mazemind Tome (`templates_b2a._exile_at_counters` :824). M11,
+  M13 and M19 Phylactery Lich fit the form but need a phylactery counter kind and an "as this
+  enters" counter on another permanent (215's F38): unparsed.
+
+**W3-2 "Triggers an additional time" is a static** (the Atom checks :3445; `AbilityTriggerEvent`
+:2211; `extra_trigger_fault` :4935; the Seq refusal :3570; `binding._queue` :1029,
+`_additional_times` :1081, `_causes` :1114; `layers.extra_triggers` :1393;
+`verbs._v_trigger_additional` :670 is a guard that raises):
+- The form: `StaticAbility(effect=TRIGGER_ADDITIONAL(count, event=AbilityTriggerEvent(filter,
+  cause?)), condition?)`. `count` is a printed number of at least 1. `filter` is read over the
+  permanent whose ability triggers, in the static's coordinates (YOU its controller, IS_SOURCE its
+  object). `cause`, when printed, is an object entering the battlefield (a ZoneChangeEvent into
+  it), matched against the event the ability triggered on; a gathered trigger's cause is each
+  object it gathered. The static's condition ("while you control six or more Shrines") is read
+  by the static's liveness as the ability triggers.
+- The engine: as an ability triggers, the binder sums the counts of the live statics that
+  describe it and queues that many copies with the original (CR 603.2d: "determine how many times
+  it should trigger"). The copies are not counted again (such an effect "doesn't invoke itself
+  repeatedly"); a reflexive copy reads the same resolution and a gathered one the same objects.
+  The trigger order ask offers one option for an ability and its copies (`_resolution_order`, as
+  before). The ability must be a permanent's: its source is on the battlefield as it triggers.
+- Refused: the old carrier trigger (a TriggeredAbility whose event is an AbilityTriggerEvent); an
+  AbilityTriggerEvent as a delayed trigger's, a replacement's or any other verb's event;
+  TRIGGER_ADDITIONAL with another event, with a count that is no printed number of at least 1,
+  anywhere but a card's, token's, emblem's or copy's own static (never resolving, granted or
+  optional), or twice over one event in a Seq ("two additional times" is one count); a test that
+  reads no subject in the filter (the six Shrines are the static's condition, its one home); a
+  cause that is no object entering.
+- Cards: M21 Sanctum of All (no cause; `templates_b5b._additional_time` :2463,
+  B5b-sanctum-all-extra-trigger :3331) and, with a cause, M20 Yarok, the Desecrated, DOM Naban,
+  Dean of Iteration and ZNR Ancient Greenwarden (B5b-entering-extra-trigger :3343: "If a
+  permanent|land|<subtype> [you control] entering causes a triggered ability of a permanent you
+  control to trigger, ...").
+- **Yarok is mapped here, not left to B17.** The brief asked to map him if the trigger-cause axis
+  fits cleanly, or to write the IR question for B17. It fits: the cause is an EventSpec the
+  existing matcher reads (`_match_node`), the same object every trigger's event already is, and
+  it is orthogonal to B17's axes (how often a trigger fires, ONCE and RESOLVEDCOUNT). His record's
+  `needs_atom` note is replaced by the compiler's tree (unverified), and Naban and Ancient
+  Greenwarden compile whole with him.
+
+**W3-3 What a reveal, a look and a scry record** (REVEAL's roles :5911; `_look_roles_fault`
+:4012; the Seq refusal :3586; `_finds` :4812; `RESULT_REFERENT` :6896, `reveal_hand` :6902,
+`reveal_result` :6912; `verbs._seen` :1689, `_look` :1709, `_v_scry` :1630):
+- REVEAL names the cards it shows: the top `count` of `controller`'s library (with `until`, from
+  the top down to the `count`th match), or `cards` alone: all of one hand ("target opponent
+  reveals their hand": `reveal_hand(who)`), or the `result` register whole ("reveal it", "reveal
+  those cards": `reveal_result()`, the cards the instruction before found, moved or looked at).
+  LOOK_AT stays the top `count`. Why one role for a hand and the cards found: both answer "which
+  cards", and a `zone` role would say only where (a search's card is in the library or the
+  graveyard). The `result` form writes the register again with the same cards, so "reveal it.
+  If it's a creature card" judges the card found, as the old top-card reveal left it.
+- The record (`verbs._seen`): one row per atom, `(i, verb, ((owner, zone, cards), ...),
+  viewers)`, a group per player's zone, the cards in the order shown (a library's top first),
+  `viewers` "ALL" for a reveal (CR 701.20a) and the looker for a look. A SCRY row names each card
+  and the end it went to, the scryer's alone (CR 701.22a), with a fifth, public field: how many
+  went to the top and how many to the bottom. One row per atom even when nothing is shown: a
+  later random order is seeded by the event count (`_library_order`).
+- "You may reveal a creature card from among them and put it into your hand" is the pick, then the
+  reveal of `result` (`templates_b4.reveal_one_from_among` :933): the card picked, revealed after
+  its move. The order is a divergence from print (ATOM_DIVERGENCES D34): the pick is the move's
+  ONE_OF, the only way the IR designates a card of a look.
+- Refused: the old count over the whole library (QUnbounded), which encoded a hand and a search's
+  cards alike; `cards` beside another role; any other `cards` (a filtered hand, a chosen card, a
+  library, a graveyard, two zones, the event's object, a filtered `result`); a top-`count` REVEAL
+  after a look or a search (the old pick and the old named-search forms, which named the top
+  card); `reveal_result` with no step before it that found cards.
+- Not changed: how many options Duress's and Kitesail Freebooter's choose asks list (W-D's lane;
+  the owner's ruling, options are never merged).
+
+**Alternatives rejected.**
+- A `state` field on TriggeredAbility (a second slot); the old placement trigger kept with a
+  binder guard keyed on the waiting instance (it keeps the state written as an event, and a
+  countered instance still never triggers again, F23's STRONGER half); the state as `condition`
+  under a dummy event (an intervening "if" is checked as an event occurs, CR 603.4, and a state
+  trigger has none).
+- The carrier trigger kept, its copy queued at once (still an object on the stack and an option
+  in the order ask); a replacement effect (CR 603.2d says how many times it triggers, nothing is
+  replaced); the six Shrines in the AbilityTriggerEvent's filter (a second home for the static's
+  condition); a Yarok-only flag (Naban and Ancient Greenwarden print the same cause); Yarok left to
+  B17 (above).
+- A `zone` role on REVEAL (it names where, not which cards); a verb per source of revealed cards
+  (a second encoding of revealing); journal events (GameEvents) for the rows now (their order
+  against zone moves is memory v1's J3/J4 work, PLAN_NETWORK_READINESS); the reveal before the
+  pick (the IR has no designation of a looked-at card but the move's ONE_OF).
+
+**Blast radius** (`reports/w3_2026-11-18/`, each script's docstring has its command):
+- Trees (`tree_dump.py` on main 0b7f9c22 and on the branch, `tree_diff.py`, `tree_diff.txt`): 50
+  compiler trees in 17 sets change, 60 with records applied, exactly the cards of W3-1 to W3-3;
+  the review's fixes change none. Newly whole: DOM Naban, M20 Yarok, ZNR Ancient Greenwarden;
+  fewer unparsed sentences: 10E and M12 Distress, DOM Divest. The census (`census.py`,
+  `census.txt`, records applied): StateTrigger 3 trees (2 cards), TRIGGER_ADDITIONAL statics 4 (3
+  with a cause), REVEAL of a hand 24 atoms (16 cards), of `result` 56 (26 cards: 49 after a
+  search, 7 after a pick), of the top 15 and with `until` 4; LOOK_AT 34; SCRY 83.
+- Verified cards: 36 leave the verified pool (re-baked; each re-verification restamps it), 0 join.
+  M21 (14): Alpine Houndmaster, Basri's Aegis, Chandra's Firemaw, Cultivate, Duress, Fierce
+  Empath, Garruk's Harbinger, Garruk's Warsteed, Kitesail Freebooter, Liliana's Scorn, Mazemind
+  Tome, Nine Lives, Sanctum of All, Teferi's Wavecaster. M20 (10): Battalion Foot Soldier,
+  Brightwood Tracker, Chandra's Flame Wave, Duress, Ethereal Elk, Goldmane Griffin, Icon of
+  Ancestry, Sorin's Guide, Thought Distortion, Yanling's Harbinger. FDN (5): Duress, Fierce Empath,
+  Mazemind Tome, Pilfer, Vivien Reid. Reprints (7): Duress in M10, M11, M13, M14 and M19, M11
+  Cultivate, M19 Vivien Reid. The deal pools: M21 280 to 266, M20 286 to 276, FDN 261 to 256.
+- Records re-mapped through `cardtool.py` (13, needs_atom removed, no `verified` block): FDN Pilfer,
+  Campus Guide, Expedition Map, Micromancer, Vivien Reid, Squad Rallier, Loot, Exuberant
+  Explorer; M19 Vivien Reid; M20 Thought Distortion, Chandra's Flame Wave, Battalion Foot Soldier,
+  Brightwood Tracker, Icon of Ancestry; and Yarok's record. `record_check.txt`: in each, only the
+  reveals changed.
+- Games (`replay.py`, `compare.py`, `replay_compare.txt`): 600 seeded heuristic games on the
+  verified pools (200 each of M21, M20, FDN; the cards whose trees changed taken out on both
+  sides): **600/600 identical replay digests and journal dumps**; the raw event logs are identical
+  in 229 and in all 600 once the REVEAL, LOOK_AT and SCRY payloads are masked (the rows this
+  round rewrote; one row per atom on both sides). No game differs, so there is no first differing
+  journal row to explain. 0 crashes on either side.
+- Speed: CPU seconds 219.7 on main, 224.7 on the branch (M21 74.6 / 75.9, M20 65.6 / 67.0, FDN
+  79.5 / 81.8): 2.73 against 2.67 games per CPU-second, **-2.2%**, inside the ±5% gate. The cost
+  is the state check at every priority check and the extra-trigger lookup at every trigger.
+- Evidence that each new test fails before its change: `engine_tests_on_main.txt` (18 of 22
+  engine tests fail on main, the 4 controls pass), `packs_on_main.txt` (7 of 8 new packs fail on
+  main), `old_forms_main.txt` against `old_forms_branch.txt` (every refused old form validates on
+  main), `review_fixes_at_62cd34d8.txt` (the 13 tests of the review's fixes fail at 62cd34d8).
+- Scaffolds (BACKLOG): G3 holds a REVEAL's `cards` dead where no Conditional can read the
+  register it writes (nothing that plays reads the rows); the two puzzles that deal Chandra's
+  Flame Wave, the planning suite's B3 twin pair (`b3_counter_the_minor_spell`,
+  `b3_hold_for_the_threat`), are strict expected failures until its re-verification
+  (`tools/puzzles/test_suite.py` `AWAITING_REVERIFICATION`), and a readout cannot build them
+  meanwhile (their verified supply lacks the card): re-verify it before the next planning readout.
+  The V4' CHOOSE baseline holds the `RESULT_REFERENT` nodes (rewritten with `--write-v4-baseline`).
+
+**What the network sees.** Nothing it reads changed: its features show a card in a hidden zone
+only as an offered option or a scried card (`tools/selfplay/features.py`), and no input reads the
+event rows; `tools/selfplay/` is not edited. The rows are now true for memory v1: a revealed hand
+is the hand, shown to all; a scry's cards are the scryer's and its counts everyone's.
+`tools/selfplay/search.py`'s `reshuffle_libraries` docstring still says the journal does not record
+which cards a scry kept; it does now, and the whole-library shuffle stays right until memory reads
+the rows (BACKLOG). `tools/selfplay/packages.py`'s `AbilityTriggerEvent` row is dead (no trigger has
+that event now), so package mode no longer reads Sanctum of All as a consumer of Shrines (BACKLOG).
+
+**Assumptions, and what goes wrong in play if one is wrong.**
+1. A state is checked when a player would receive priority (CR 117.5), not inside a resolution.
+   CR 603.8 says a state trigger triggers "as soon as the game state matches"; a state that holds
+   only in the middle of one resolution would be missed: weaker than printed. Assumed rare: for
+   Nine Lives or the Tome it needs their counters put on and taken off within one resolution.
+2. An instance blocks only its own object: a Nine Lives that left and came back triggers for
+   itself while the old instance waits, and the old one finds no "it" to exile (CR 400.7). If the
+   rulings meant the old instance to block the new object, a returned Nine Lives would be exiled
+   once more than printed.
+3. The extra-trigger statics are read live as the ability triggers, including one whose object
+   entered in the same event (Yarok entering beside a creature doubles its trigger: CR 603.6a,
+   603.10, Panharmonicon's ruling). A static whose object left in that event is not read (no
+   look-back), which no card of the 19 sets needs.
+4. The doubled ability is a permanent's, its source on the battlefield as it triggers: a dies
+   trigger of a Shrine would not be doubled by Sanctum of All (weaker than printed). No Shrine of
+   the 19 sets has one.
+5. A gathered trigger is caused by every object it gathered (Naban with a Human and a Wizard
+   entering together). If only one object counted, Naban would double too often; Yarok and
+   Ancient Greenwarden read any permanent or land, so they are unaffected.
+6. A cause is an object entering. Other causes (Teysa Karlov's "a creature dying") need the
+   copies counted for a look-back trigger whose source has left; they come with their cards.
+7. A reveal row names each zone's owner (CR 400.3) and the cards in the order shown, a library's
+   top first. A hand's order means nothing, so a consumer must not read it as knowledge; if one
+   did, a memory would learn an order no player sees.
+8. A scry's counts are public: the table sees how many cards go to each end. If that is wrong,
+   memory would know a little more than a player at a real table.
+9. The pick is revealed after its move (D34). Within one resolution nothing is observable between
+   them: no choice follows, no player gets priority, and nothing in the 19 sets triggers on such
+   a reveal (WAR God-Eternal Kefnet's trigger reads only its own reveal of a card drawn) or on a
+   card put into a hand from a library.
+10. "Reveal it" after a search writes `result` again with the same cards: a bare Conditional after
+    it judges the card found. If the register were meant to stay stale, the old top-card form was
+    wrong in the same way, and no card of the 19 sets prints such a Conditional yet.
+
+**Limits, logged** (BACKLOG): Phylactery Lich (its counter kind; F38); Midnight Clock's crossing; a
+look at a hand (Peek, Thrull Surgeon, Agonizing Memories, Sorcerous Spyglass, The Raven's
+Warning: LOOK_AT takes the top of a library only); other causes (Teysa Karlov); a granted or a
+targeted state trigger; the rows as journal events, ordered against zone moves (memory v1's
+J3/J4); the stale `search.py` docstring and the dead `packages.py` row.
