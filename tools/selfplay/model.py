@@ -105,7 +105,14 @@ class PolicyValueNet(nn.Module):
         and window; id 0, none, a zero term) and its target pointer; the forecast heads on each
         card token (when, verb and window logits and the target's "none" logit; the target's
         pointer to the entities), at zero: they start forecasting uniformly, as the policy's last
-        layer starts."""
+        layer starts.
+
+        Why linear heads: an older network made a planner gets every planner layer at zero
+        (``upgraded``), and a zero linear layer still learns (its gradient is the hidden state
+        times the error), where a zero two-layer head would never move (each layer's gradient
+        passes through the other's zeros). Why a bilinear pointer for the target: the policy's
+        options point at entities the same way, so the target needs no card vocabulary and fits
+        any number of entities."""
         d = self.d
         self.plan_when = nn.Embedding(len(PL.WHEN) + 1, d)
         self.plan_verb = nn.Embedding(len(PL.VERBS) + 1, d)

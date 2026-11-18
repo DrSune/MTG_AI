@@ -105,7 +105,9 @@ def window(executor: Any, me: Handle) -> int:
 
 def uses_of(executor: Any, ask: Any, token: str) -> list[tuple[Handle, int, Handle | None]]:
     """The uses an answer makes, each (object, verb, target or None); a target ask's answer is
-    not one (``Tracker.end`` gives it to the use it aims)."""
+    not one (``Tracker.end`` gives it to the use it aims). Only the seat's own decisions: a mana
+    ability is no menu row (the engine pays, BACKLOG "Automatic payment"), so a land that only
+    pays is never used, and a forced choice the engine fills without asking is no use either."""
     kind = ask.kind
     if kind in ("act", "priority"):
         typ, h1, h2 = FT._OPTS[token][:3]
@@ -125,7 +127,9 @@ def uses_of(executor: Any, ask: Any, token: str) -> list[tuple[Handle, int, Hand
 
 def plannable(executor: Any, me: Handle, handles: list[Handle],
               feats: dict[str, np.ndarray]) -> np.ndarray:
-    """Which card rows of an encoding are objects the seat can plan with (the module docstring)."""
+    """Which card rows of an encoding are objects the seat can plan with (the module docstring).
+    The permitted ones are the engine's own answer, whatever the timing or the mana now
+    (``permits.playable``: about 15 µs a decision, measured over six games)."""
     ci = feats["cards_i"]
     zone, ctrl = ci[:, 1], ci[:, 2]
     mask = (ctrl == 1) & ((zone == _HAND) | (zone == _BATTLEFIELD))
@@ -204,6 +208,9 @@ class Tracker:
         self._seq = 0
 
     def _sync(self, executor: Any) -> None:
+        """Read the journal rows since the last call into ``entry``. Incremental, because the
+        engine's own reading of CR 400.7 (``returns.moved_since``) scans the journal back from
+        its end at every call, and a decision asks it of every entity; the journal only grows."""
         events = executor.journal.events
         for i in range(self.read, len(events)):
             event = events[i]
@@ -216,7 +223,10 @@ class Tracker:
         return self.ids.setdefault((h, self.entry.get(h, 0)), len(self.ids))
 
     def begin(self, executor: Any, ask: Any) -> None:
-        """A decision of the seat: its turn, step, sequence and window (recorded when ``keep``)."""
+        """A decision of the seat: its turn, step, sequence and window (recorded when ``keep``).
+        The opponent's actions are the engine's own count of each player's priority actions in
+        the step (``Executor.step_actions``, CR 117.3c: a cast, an activation, a land), public as
+        the actions are, reset with each step."""
         if not self.keep:
             return
         world = executor.world
@@ -244,7 +254,9 @@ class Tracker:
 
     def forecast(self, forecast: np.ndarray) -> None:
         """The network's forecast at this decision ([cards, 4], ``plan_of``): the read-back of
-        the next one."""
+        the next one. It replaces the last one whole: the seat's latest forecast is its latest
+        decision's, over the objects plannable there, and plan-following's read-back
+        (``result``) is built the same way from that decision's labels."""
         self.plan = plan_of(self.keys, self.mask, forecast)
         if self.keep:
             self.decisions[-1].sample = True
