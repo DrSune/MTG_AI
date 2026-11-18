@@ -395,6 +395,25 @@ guard):
   - B3 (copy) can be built beside W1. Both touch verbs.py, so the second to merge rebases.
   - F29 and F40 are B3's own merge conditions. Sublime Epiphany's stamp alone waits for W3's F23.
 
+**Amended 2026-11-18, after the red team (KNOWLEDGE/2026-11-18/216 §4: GO, four minor notes) and by
+the coordinator.**
+- **E1. W2 follows W1 because they share files, not because WEAKER ranks lower.** SYSTEM_MAP §3
+  ranks a weaker-than-printed fault with the stronger ones. W2's packs are acceptance lines of the
+  same bug hunt as W1's.
+- **E2. The five stale entries** (F01, F15, F49, F64, K1). The red team grepped F49's one reader
+  (`replacements.py:911`) and did not run any closing check. So W0 removes each entry only after
+  running its closing check and its control, with the wave's fresh-eyes reviewer confirming.
+- **E3. F63 with F51 has one owner: W3, as an IR change in a gate round.** A reveal's zone is a tree
+  concept. PLAN_NETWORK_READINESS's J1-J2 point here (PLAN_LONG_RUN, "Who owns what").
+- **E4. The network read records each fault's rate per 1,000 resolutions as well as per game**, so a
+  run with longer games compares.
+- **W3 is built beside W1, not after W2** (the coordinator; a change to the order above).
+  - Why: W3's F23 is the last engine piece M21 needs (Sublime Epiphany), and the M20 rounds B6, B8
+    and B17 wait on W3's `binding.py` work. The owner put M21 and M20 before everything else.
+  - The cost: W1 and W3 both touch `binding.py` and `verbs.py`, in different functions. The
+    second of them to merge rebases, as B3 did beside E3.
+  - W2 still follows W1, and W-D still follows W2.
+
 ## 7. Logic check against the project's goals
 
 | Goal | How the plan serves it | What could go wrong, and why the design survives it |

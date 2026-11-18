@@ -46,6 +46,19 @@ Memorisation must be avoided, including through how decks are dealt.
 list). Card names are visible 90% of the time, and the network reads whether a targeted effect helps
 or hurts mostly from names (184 §16), so more name masking is planned.
 
+**Correction, 2026-11-18** (KNOWLEDGE/2026-11-18/216 C4). Names are **never** masked in PPO
+training, and have not been since 2026-11-03.
+- 183 §4 item 1 found that PPO ran the network in train mode, with name dropout. The PPO ratio then
+  compared the acting policy with a dropout-perturbed one.
+- The fix (16805b39) ran PPO in eval mode (`ppo.py:126`).
+- Name dropout acts only in train mode (`model._names`), which now means the BC phase and
+  distillation. So every run from r25 on has seen names 100% of the time in its PPO updates.
+- `--name-dropout 0.1` is still saved in every config, where it reads as if it acted.
+- The masking planned here is moved to where the ratio stays exact: at encoding, in the actor. A
+  seeded per-decision mask is written into the recorded observation, so the trainer sees exactly
+  what the actor saw.
+- It is arm N of PLAN_LONG_RUN's multi-arm A/B, read on the masked-names probe and on L.
+
 ## 3. Memory across decisions (open)
 
 Owner: should the network know what it decided earlier? A carried-over representation of what it

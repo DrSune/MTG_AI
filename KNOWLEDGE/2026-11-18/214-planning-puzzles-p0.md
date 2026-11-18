@@ -252,6 +252,10 @@ single-world A2, C1, C2.
 - The B and D holds are P1's target (the plan module through the opponent's turn) and, for the
   search, a matter of its worlds: the simulator's beliefs (`--search-worlds sim`) instead of
   uniform re-samples.
+  - **Corrected 2026-11-18** (KNOWLEDGE/2026-11-18/216 P3): P1's *hypothesis*, not its target.
+    The holds tested here are decided by visible facts (open Islands, the land count) that the
+    policy already sees. The planner adds no input about them and no better value, so no
+    mechanism predicts it moves them. DESIGN_PLANNER §5 registers the falsifier.
 - A's sequencing is the case for PLAN_PLANNING §3's O2 (consequence previews), built only if
   training does not fix it: this is its first measurement.
 

@@ -28,6 +28,9 @@ whole system. Each section points to its detailed home; this file holds no desig
   is why the gates are blind and planted.
 - **The policy** is trained by PPO from game results (6). The planner's side losses (hindsight,
   plan-following) shape it, and the search's targets later pull on it (9).
+  - PPO runs the network in eval mode, so card names are always visible in its updates. Name
+    dropout acts only in the BC phase (KNOWLEDGE/2026-11-18/216 C4).
+  - Masking for generalisation is planned at encoding, as an A/B arm (PLAN_LONG_RUN).
 - **The value** is trained by the results. It is read by PPO (as a baseline), by the search (at
   its leaves), by the plan critic, and by the Teacher's signals.
 - **The critic** is trained by game results grouped by card and deck, played by the current pilot.
@@ -80,6 +83,8 @@ The guard is the **weakness scan**, the exploit scan's mirror:
   observation, or a genuinely weak card. Only the last is left alone.
 - **Order:** this scan runs in every bug hunt before a long run (PLAN_LONG_RUN, tier 3). A
   weaker-than-printed fault ranks with the stronger ones in the fix waves, not after them.
+- **Owner, build step and flags:** PLAN_LONG_RUN's "weakness scan" (216 L4). The coordinator
+  owns it; an agent builds `tools/audit/weakness_scan.py` before the bug hunt.
 
 **An observation gap** (the network cannot see X) makes every decision that depends on X a guess.
 The network learns the average and loses the situational skill. This is why every gap reachable in

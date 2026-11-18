@@ -1444,7 +1444,9 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--layers", type=int, default=6)
     p.add_argument("--heads", type=int, default=8)
     p.add_argument("--ff", type=int, default=1024)
-    p.add_argument("--name-dropout", type=float, default=0.1)
+    p.add_argument("--name-dropout", type=float, default=0.1,
+                   help="acts in the BC phase only: PPO runs the network in eval mode, so it "
+                        "never drops a name (KNOWLEDGE 216 C4)")
     # BC
     p.add_argument("--bc-games", type=int, default=0)
     p.add_argument("--bc-epochs", type=int, default=4)
