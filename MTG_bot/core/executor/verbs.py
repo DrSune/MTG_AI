@@ -1650,13 +1650,16 @@ def _v_scry(ctx: ExecCtx, atom: Atom) -> None:
     top_run = _arrange(ctx, player, tops, "TOP")
     lib.entries = bottom_run + lib.entries[: len(lib.entries) - n] + top_run
     # CR 701.22a: the scryer looks at the cards, so the row names each one and the end it went
-    # to, top first at each end, and is the scryer's alone (_seen's row layout).
+    # to, top first at each end, and is the scryer's alone (_seen's row layout). A fifth field
+    # is everyone's: how many went to the top and how many to the bottom, which the table sees
+    # as the cards go back face down (the old row's public count, split).
     placed = tuple((str(c), "TOP") for c in reversed(top_run)) + tuple(
         (str(c), "BOTTOM") for c in reversed(bottom_run)
     )
-    ctx.events.append(
-        (len(ctx.events), "SCRY", ((str(player), ZONE_LIBRARY, placed),), str(player))
-    )
+    ctx.events.append((
+        len(ctx.events), "SCRY", ((str(player), ZONE_LIBRARY, placed),), str(player),
+        (len(top_run), len(bottom_run)),
+    ))
 
 
 def _v_shuffle(ctx: ExecCtx, atom: Atom) -> None:
@@ -1689,8 +1692,9 @@ def _seen(ctx: ExecCtx, atom: Atom, cards: Sequence[Handle]) -> None:
     the cards in the order shown (a library's top first), none when nothing was shown. A reveal
     shows them to all players (CR 701.20a: ``viewers`` "ALL"), a look to the looker alone, the
     effect's controller. A SCRY row has the same layout, its cards each paired with the end it
-    went to (``_v_scry``). One row per atom whatever it shows: a later random order is seeded by
-    the event count (``_library_order``), which what was revealed must not move."""
+    went to, and a fifth, public field: how many went to each end (``_v_scry``). One row per
+    atom whatever it shows: a later random order is seeded by the event count
+    (``_library_order``), which what was revealed must not move."""
     viewers = "ALL" if atom.verb is Verb.REVEAL else str(ctx.controller)
     groups: dict[tuple[Handle, str], list[str]] = {}
     for card in cards:
@@ -1710,7 +1714,8 @@ def _look(ctx: ExecCtx, atom: Atom) -> None:
     cards: a whole hand ("target opponent reveals their hand"), or the cards the instruction
     before found, moved or looked at ("reveal it", "reveal those cards": the ``result``
     register, read whole as a PERMIT reads it). Those are no look at a library's top: they open
-    no look window and leave ``result`` as it was."""
+    no look window; a hand's reveal leaves ``result`` as it was, and the cards found stay the
+    ``result``, written again so the next sentence's "it" reads them."""
     if atom.args.get("duration") is not None:
         raise NotImplementedError(
             f"executor: continuous {atom.verb.name} (duration) is 12d"
@@ -1721,6 +1726,11 @@ def _look(ctx: ExecCtx, atom: Atom) -> None:
             shown = ctx.binding_handles(sel.referent)
             if shown is None:
                 raise ReferentAbsentRegisterError(sel.referent)
+            # "Reveal it. If it's a creature card, ...": the card revealed is still the next
+            # sentence's "it", so the register is written again (a new list of the same cards)
+            # and stays fresh for a bare Conditional (run_atom's ``result_fresh``), as the old
+            # top-card reveal left it.
+            ctx.bindings["result"] = list(shown)
         else:
             shown = resolve_selector(sel, ctx)  # ALL of a hand: every card in it
         _seen(ctx, atom, shown)

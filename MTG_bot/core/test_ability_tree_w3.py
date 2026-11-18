@@ -2,19 +2,21 @@
 must not validate.
 
 - A state trigger (CR 603.8) is ``TriggeredAbility(event=StateTrigger(filter))``, its state read
-  over the object with the ability. Refused: IS_SOURCE in it, the universal state, an intervening
-  "if", once_per_event, a read of an event register it does not have, a state anywhere but a
-  trigger's event, and the state written as a counter-placed event (the old Nine Lives form).
+  over the object with the ability. Refused: IS_SOURCE anywhere in it, the universal state, an
+  intervening "if", once_per_event, a read of an event register it does not have, a target or a
+  designated player, a grant, a state anywhere but a trigger's event, and the state written as a
+  counter-placed event (the old Nine Lives form).
 - "That ability triggers an additional time" (CR 603.2d) is a static ability:
   ``StaticAbility(TRIGGER_ADDITIONAL(count, event=AbilityTriggerEvent(filter, cause?)))``. Refused:
-  the old carrier trigger, an event that is not an ability triggering, a count below one, the
-  verb anywhere but a card's, token's, emblem's or copy's own static, a test that reads no subject
-  in the filter (the static's condition is its one home), a cause no trigger can match.
+  the old carrier trigger, an event that is not an ability triggering, a count that is not a
+  printed number of at least one, two equal steps, the verb anywhere but a card's, token's,
+  emblem's or copy's own static, a test that reads no subject in the filter (the static's
+  condition is its one home), a cause that is not an object entering the battlefield.
 - REVEAL names the cards it shows (CR 701.20a): the top ``count`` of a library, a whole hand
   (``reveal_hand``), or the cards the instruction before found, moved or picked
   (``reveal_result``). Refused: the old "whole library" count (it encoded a hand and a search's
-  cards alike), ``cards`` beside the other roles, any other ``cards``, and the old pick form (a
-  top-``count`` reveal after a look).
+  cards alike), ``cards`` beside the other roles, any other ``cards``, ``reveal_result`` with no
+  step before it that found cards, and the old pick form (a top-``count`` reveal after a look).
 
 Every refusal here validated on main 0b7f9c22 (or the class did not exist), so each test fails
 there."""
@@ -43,6 +45,7 @@ from MTG_bot.core.ability_tree import (
     FAtom,
     FAtomPred,
     FNot,
+    FOr,
     OptionalEffect,
     Phase,
     PhasingEvent,
@@ -50,6 +53,7 @@ from MTG_bot.core.ability_tree import (
     QProp,
     QPropField,
     QUnbounded,
+    QX,
     ReplacementAbility,
     Selector,
     SelectorMode,
@@ -126,8 +130,10 @@ def test_a_state_trigger_is_a_state_read_over_its_object() -> None:
     TriggeredAbility(event=StateTrigger(filter=none_left), condition=None, effect=EXILE_IT)
 
 
-@pytest.mark.parametrize("state", [SOURCE, FAnd(children=(SOURCE, NINE)), FAnd(())],
-                         ids=["IS_SOURCE", "IS_SOURCE-conjunct", "universal"])
+@pytest.mark.parametrize("state", [
+    SOURCE, FAnd(children=(SOURCE, NINE)), FAnd(()), FNot(inner=SOURCE), FOr(children=(SOURCE, NINE)),
+    FAnd(children=(FNot(inner=SOURCE), NINE)),
+], ids=["IS_SOURCE", "IS_SOURCE-conjunct", "universal", "never", "always", "nested"])
 def test_a_state_says_nothing_twice_and_is_never_always_true(state) -> None:
     with pytest.raises(ValueError, match="StateTrigger"):
         StateTrigger(filter=state)
@@ -145,6 +151,22 @@ def test_a_state_trigger_has_no_intervening_if_no_occurrences_and_no_event_to_re
     ):
         with pytest.raises(ValueError, match="no triggering event"):
             TriggeredAbility(event=state, condition=None, effect=reads_event)
+
+
+def test_a_state_trigger_designates_nothing_and_is_never_granted() -> None:
+    """A targeted state trigger with no legal target is removed as it goes on the stack (CR
+    603.3d) and triggers again at once while the state holds: a loop no card of the 19 sets
+    prints. A granted one would never be checked (the binder checks bound abilities)."""
+    state = StateTrigger(filter=NINE)
+    creature = Selector(QConst(1), SelectorMode.TARGET, FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                        zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),))
+    for designating in (A(Verb.DESTROY, target=creature),
+                        A(Verb.DRAW, controller=ControllerRef.TARGET_PLAYER, amount=QConst(1))):
+        with pytest.raises(ValueError, match="designates nothing"):
+            TriggeredAbility(event=state, condition=None, effect=designating)
+    with pytest.raises(ValueError, match="granted state trigger"):
+        A(Verb.GRANT_ABILITY, target=THIS,
+          ability=TriggeredAbility(event=state, condition=None, effect=EXILE_IT))
 
 
 def test_a_state_is_only_a_triggers_event() -> None:
@@ -217,7 +239,7 @@ def test_an_additional_time_is_over_a_triggered_ability_only(event) -> None:
         extra(event)
 
 
-@pytest.mark.parametrize("count", [QConst(0), QUnbounded()], ids=["zero", "unbounded"])
+@pytest.mark.parametrize("count", [QConst(0), QUnbounded(), QX()], ids=["zero", "unbounded", "X"])
 def test_an_additional_time_is_at_least_once(count) -> None:
     with pytest.raises(ValueError, match="at least 1"):
         extra(count=count)
@@ -233,11 +255,25 @@ def test_the_six_shrines_are_the_statics_condition_not_the_filter() -> None:
 @pytest.mark.parametrize("cause", [
     AbilityTriggerEvent(filter=YOURS), CounteredEvent(filter=YOURS),
     StepEvent(phase=Phase.UPKEEP, step=Step.UNTAP, controller=ControllerRef.YOU),
-    PhasingEvent(phased_in=True, filter=YOURS),
-], ids=["ability-triggering", "countered", "step", "phasing"])
-def test_a_cause_is_an_event_a_trigger_can_match(cause) -> None:
+    PhasingEvent(phased_in=True, filter=YOURS), UPKEEP,
+    ZoneChangeEvent(from_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                    to_zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY)),
+    ZoneChangeEvent(from_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                    to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)),
+], ids=["ability-triggering", "countered", "step", "phasing", "upkeep", "dying", "staying"])
+def test_a_cause_is_an_object_entering_the_battlefield(cause) -> None:
+    """The one cause the 19 sets print (Yarok, Naban, Ancient Greenwarden). A dying creature's
+    (Teysa Karlov) needs the copies counted for a look-back trigger whose source has left, which
+    the binder does not do: it comes with its card (BACKLOG)."""
     with pytest.raises(ValueError, match="cause"):
         AbilityTriggerEvent(filter=YOURS, cause=cause)
+
+
+def test_two_additional_times_over_one_ability_are_one_count() -> None:
+    """"Two additional times" is one count; two equal steps would be its second encoding."""
+    with pytest.raises(ValueError, match="two TRIGGER_ADDITIONAL"):
+        Seq(steps=(extra(), extra()))
+    StaticAbility(effect=Seq(steps=(extra(), extra(AbilityTriggerEvent(filter=FAnd(children=(SHRINE, YOURS)))))))
 
 
 @pytest.mark.parametrize("host", ["spell", "trigger", "activation", "granted", "optional"])
@@ -322,6 +358,17 @@ def test_a_card_picked_from_a_look_is_revealed_after_its_move() -> None:
         Seq(steps=(look, OptionalEffect(inner=Seq(steps=(old_reveal, pick)))))
     with pytest.raises(ValueError, match="after a look or a search"):
         Seq(steps=(look, old_reveal, pick))
+
+
+def test_a_reveal_of_it_follows_the_step_that_found_it() -> None:
+    """"Reveal it" reads the cards an instruction before it found, looked at or moved: with none
+    before it (first, or after a draw, which writes no register) there is nothing to reveal."""
+    search = A(Verb.SEARCH, cards=Selector(QConst(1), SelectorMode.CHOOSE, FAnd(()), zones=(LIBRARY,)),
+               destination=HAND_YOU)
+    card(SpellAbility(kind=SpellKind.SORCERY, effect=Seq(steps=(search, reveal_result()))), types=("Sorcery",))
+    for effect in (reveal_result(), Seq(steps=(DRAW, reveal_result()))):
+        with pytest.raises(ValueError, match="reveal of `result`"):
+            card(SpellAbility(kind=SpellKind.SORCERY, effect=effect), types=("Sorcery",))
 
 
 def test_a_card_found_by_a_search_is_revealed_as_its_result() -> None:

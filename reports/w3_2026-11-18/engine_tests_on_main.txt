@@ -1,25 +1,476 @@
+FFF.F..F.FFFFFFFFFFFFF                                                   [100%]
+=================================== FAILURES ===================================
+___ TestStateTriggers.test_a_countered_state_trigger_triggers_again_at_once ____
+
+self = <MTG_bot.core.test_executor_w3.TestStateTriggers testMethod=test_a_countered_state_trigger_triggers_again_at_once>
+
+    def test_a_countered_state_trigger_triggers_again_at_once(self) -> None:
+        """CR 603.8: countered while nine counters remain, it triggers again at the next check
+        (the card's ruling). On main the countered trigger was gone for good and Nine Lives stayed
+        on the battlefield: stronger than printed once Sublime Epiphany is stamped."""
+        self.counters(8)
+        with self.ex.holding_priority():
+            self.hit(1)
+            (first,) = self.waiting()
+            self.counter_the_exile(first)
+            self.assertNotIn(first, self.ex.stack.frames)
+>           (again,) = self.waiting()
+            ^^^^^^^^
+E           ValueError: not enough values to unpack (expected 1, got 0)
+
+MTG_bot/core/test_executor_w3.py:161: ValueError
+___________ TestStateTriggers.test_a_new_object_triggers_on_its_own ____________
+
+self = <MTG_bot.core.test_executor_w3.TestStateTriggers testMethod=test_a_new_object_triggers_on_its_own>
+
+    def test_a_new_object_triggers_on_its_own(self) -> None:
+        """CR 603.8 with 400.7: an instance blocks the object it triggered for; Nine Lives that
+        left and came back is a new object, which triggers for itself while the old instance
+        waits (that instance then finds no "it" to exile: the new object is not it)."""
+        self.counters(9)
+        with self.ex.holding_priority():
+>           (old,) = self.waiting()
+            ^^^^^^
+E           ValueError: not enough values to unpack (expected 1, got 0)
+
+MTG_bot/core/test_executor_w3.py:181: ValueError
+_ TestStateTriggers.test_an_instance_the_turn_ending_exiled_triggers_again_in_the_cleanup _
+
+self = <MTG_bot.core.test_executor_w3.TestStateTriggers testMethod=test_an_instance_the_turn_ending_exiled_triggers_again_in_the_cleanup>
+
+    def test_an_instance_the_turn_ending_exiled_triggers_again_in_the_cleanup(self) -> None:
+        """CR 724.1b with 603.8: an effect ending the turn exiles the waiting instance from the
+        stack, and what triggers is held until the cleanup step (CR 724.1c); there the state
+        still holds, so it triggers again and resolves (CR 514.3a). On main the exiled trigger
+        was gone for good and Nine Lives stayed."""
+        self.ex.begin_turn(self.p0)
+        self.counters(8)
+        with self.ex.holding_priority():
+            self.hit(1)
+            (first,) = self.waiting()
+            self.ex.execute(atom(Verb.END_TURN), source=self.p1, controller=self.p1)
+            self.assertNotIn(first, self.ex.stack.frames)
+            self.assertEqual(self.world.zone_of(self.nine).kind, ZONE_BATTLEFIELD)
+        self.ex.pass_until(TURN_ENDED)
+>       self.assertEqual(self.world.zone_of(self.nine).kind, ZONE_EXILE)
+E       AssertionError: 'battlefield' != 'exile'
+E       - battlefield
+E       + exile
+
+MTG_bot/core/test_executor_w3.py:204: AssertionError
+___ TestStateTriggers.test_two_damage_events_at_eight_counters_trigger_once ____
+
+self = <MTG_bot.core.test_executor_w3.TestStateTriggers testMethod=test_two_damage_events_at_eight_counters_trigger_once>
+
+    def test_two_damage_events_at_eight_counters_trigger_once(self) -> None:
+        """CR 603.8 and the card's ruling: once the first instance is on the stack, more counters
+        trigger nothing. On main each counter placed at nine or more queued another instance
+        (two exile triggers)."""
+        self.counters(8)
+        with self.ex.holding_priority():
+            self.hit(1, 1)
+            self.assertEqual(self.world.cards[self.nine].counters["INCARNATION"], 10)
+>           self.assertEqual(len(self.waiting()), 1)
+                                 ^^^^^^^^^^^^^^
+
+MTG_bot/core/test_executor_w3.py:145: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+MTG_bot/core/test_executor_w3.py:127: in waiting
+    self.ex._priority_check()
+MTG_bot/core/executor/__init__.py:2021: in _priority_check
+    self.binder.put_waiting()
+MTG_bot/core/executor/binding.py:1569: in put_waiting
+    for payload in reversed(self._resolution_order(controller, mine)):
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MTG_bot/core/executor/binding.py:1597: in _resolution_order
+    answer = self.executor.decisions.take(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <MTG_bot.core.executor.decisions.DecisionStream object at 0xe1f929ce49e0>
+vocab = ('card:16', 'card:16:2'), what = 'trigger:player:0:b9c19ea16f66'
+seat = Handle(namespace='player', index=0)
+
+    def take(self, vocab: Sequence[str], what: str, *, seat: Handle | None = None) -> str:
+        """Pop the primed answer for the key, or consult the provider.
     
-    First differing element 0:
-    ('player:0', ('card:8',))
-    ('player:0', ('card:1',), 'hand', 'ALL')
+        ``seat`` is the deciding player when the site knows it; it is exposed
+        as :attr:`asking_seat` for the duration of the provider call only.
     
-    - [('player:0', ('card:8',))]
-    ?                      ^
-    
-    + [('player:0', ('card:1',), 'hand', 'ALL')]
-    ?                      ^   +++++++++++++++
-/usr/lib/python3.12/unittest/case.py:715: AssertionError: Lists differ: [('player:0', ('card:8',))] != [('player:0', ('card:1',), 'hand', 'ALL')]
+        Raises ``ValueError`` when neither lane can answer or the answer is
+        out of vocabulary — never a default."""
+        key: DecisionKey = (tuple(vocab), what)
+        queue = self._fifo.get(key)
+        if queue:
+            answer = queue.popleft()
+        elif self.provider is not None:
+            outer, self.asking_seat = self.asking_seat, seat
+            try:
+                answer = self.provider(tuple(vocab), what)
+            finally:
+                self.asking_seat = outer
+        else:
+>           raise ValueError(
+                f"executor: {what} needs a decision from {vocab}, "
+                "nothing is primed and no answerer is registered"
+            )
+E           ValueError: executor: trigger:player:0:b9c19ea16f66 needs a decision from ('card:16', 'card:16:2'), nothing is primed and no answerer is registered
+
+MTG_bot/core/executor/decisions.py:143: ValueError
+_________ TestYarok.test_an_entering_creatures_trigger_triggers_twice __________
+
+self = <MTG_bot.core.test_executor_w3.TestYarok testMethod=test_an_entering_creatures_trigger_triggers_twice>
+
+    def test_an_entering_creatures_trigger_triggers_twice(self) -> None:
+        r = self.runner(_card("bear", 0, zone="hand"))
+        r.run_step({"op": "enter", "key": "bear"})
+>       self.assertEqual(self.life(r, 0), 22)
+E       AssertionError: 21 != 22
+
+MTG_bot/core/test_executor_w3.py:248: AssertionError
+______ TestYarok.test_yarok_entering_with_a_creature_doubles_its_trigger _______
+
+self = <MTG_bot.core.test_executor_w3.TestYarok testMethod=test_yarok_entering_with_a_creature_doubles_its_trigger>
+
+    def test_yarok_entering_with_a_creature_doubles_its_trigger(self) -> None:
+        """CR 603.6a, 603.10: an enters trigger is checked after the event, Yarok's static then
+        applying (Panharmonicon's ruling)."""
+        r = self.runner(_card("bear", 0, zone="hand"))
+        r.world.move_to_zone(r.handles["yarok"], r.p0, ZONE_HAND)
+        r.ex.binder.detach(r.handles["yarok"])
+        r.run_step({"op": "move", "keys": ["yarok", "bear"], "to": "battlefield"})
+>       self.assertEqual(self.life(r, 0), 22)
+E       AssertionError: 21 != 22
+
+MTG_bot/core/test_executor_w3.py:276: AssertionError
+_ TestTheCopiesGoWithTheOriginal.test_one_order_option_for_the_ability_and_its_copy _
+
+self = <MTG_bot.core.test_executor_w3.TestTheCopiesGoWithTheOriginal testMethod=test_one_order_option_for_the_ability_and_its_copy>
+
+    def test_one_order_option_for_the_ability_and_its_copy(self) -> None:
+        world = GameWorld(num_players=2, start_life=20, master_seed=54)
+        p0 = world.player_order[0]
+        stock_libraries(world)
+        ex = Executor(world)
+        doubler = world.add_card(card_id("Doubler", type_line="Artifact"), p0, ZONE_BATTLEFIELD)
+>       ex.attach_card(doubler, record_of([_doubler(AbilityTriggerEvent(filter=ME))], name="Doubler",
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                          oid=world.cards[doubler].identity.oracle_id))
+
+MTG_bot/core/test_executor_w3.py:291: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+MTG_bot/core/test_executor_w3.py:223: in _doubler
+    return StaticAbility(effect=Atom(Verb.TRIGGER_ADDITIONAL, AtomArgs(pairs=(
+<string>:5: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = Atom(verb=<Verb.TRIGGER_ADDITIONAL: 'TRIGGER_ADDITIONAL'>, args=AtomArgs(pairs=(('count', QConst(value=1)), ('event', ... inner_filter=None, zone=None, from_zone=None, to_zone=None, referent=None, event=None, field=None, quantity=None))))))
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.verb, Verb):
+            raise ValueError(f"Atom: verb must be a Verb, got {self.verb!r}")
+        if not isinstance(self.args, AtomArgs):
+            raise ValueError(
+                f"Atom: args must be an AtomArgs, got {type(self.args).__name__}"
+            )
+        roles = dict(self.args.pairs)
+        table = _VERB_ROLES[self.verb]
+        missing = sorted(r for r, req in table.items() if req and r not in roles)
+        if missing:
+            raise ValueError(f"Atom: {self.verb.name} missing required roles {missing}")
+        extra = sorted(r for r in roles if r not in table)
+        if extra:
+>           raise ValueError(f"Atom: {self.verb.name} does not take roles {extra}")
+E           ValueError: Atom: TRIGGER_ADDITIONAL does not take roles ['event']
+
+MTG_bot/core/ability_tree.py:3315: ValueError
+______ TestCauses.test_every_object_a_gathered_trigger_gathered_caused_it ______
+
+self = <MTG_bot.core.test_executor_w3.TestCauses testMethod=test_every_object_a_gathered_trigger_gathered_caused_it>
+
+    def test_every_object_a_gathered_trigger_gathered_caused_it(self) -> None:
+        """CR 603.2c-d: "whenever one or more creatures you control enter" triggered on the Human
+        and the Wizard alike, so a Wizard entering caused it (Naban, Dean of Iteration), whichever
+        row the binder matched first. At 62cd34d8 the cause was matched against that first row
+        alone, the Human's, and the ability triggered once."""
+        r = _runner([
+            _card("naban", 0), _card("watcher", 0),
+            _card("human", 0, zone="hand", type="Creature — Human"),
+            _card("wizard", 0, zone="hand", type="Creature — Human Wizard"),
+        ])
+        anywhere = Zone(ZoneKind.ANY, ControllerRef.ANY)
+        yours = Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU)
+        wizard_enters = ZoneChangeEvent(anywhere, yours, FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Wizard"))
+        creatures_enter = ZoneChangeEvent(anywhere, yours, FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"))
+        gathered = TriggeredAbility(event=creatures_enter, condition=None, effect=GAIN_1, once_per_event=True)
+>       for key, ability in (("naban", _doubler(AbilityTriggerEvent(filter=ME, cause=wizard_enters))),
+                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                             ("watcher", gathered)):
+E                            TypeError: AbilityTriggerEvent.__init__() got an unexpected keyword argument 'cause'
+
+MTG_bot/core/test_executor_w3.py:324: TypeError
+_______ TestReveals.test_a_card_picked_from_a_look_is_the_card_revealed ________
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_a_card_picked_from_a_look_is_the_card_revealed>
+
+    def test_a_card_picked_from_a_look_is_the_card_revealed(self) -> None:
+        """M20 Brightwood Tracker (its record): "reveal a creature card from among them and put
+        it into your hand" names the card picked. On main it named the look's first card, here a
+        land that went to the bottom."""
+        r = _runner([
+            _card("tracker", 0, real="Brightwood Tracker"),
+            _card("bear", 0, zone="library", real="Elvish Reclaimer"),
+            _card("land", 0, zone="library", real="Forest"),
+        ], code="M20", records=True, mana={"0": {"G": 6}})
+        library = r.world.players[r.p0].zone(ZONE_LIBRARY).entries
+        for key in ("bear", "land"):  # the top two: the land first, the creature under it
+            library.remove(r.handles[key])
+            library.append(r.handles[key])
+        r.run_step({"op": "activate", "key": "tracker", "idx": 0, "decisions": ["fire", "bear"]})
+        self.assertEqual(r.world.zone_of(r.handles["bear"]).kind, ZONE_HAND)
+>       self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(r.handles["bear"]),), ZONE_HAND, "ALL")])
+                         ^^^^^^^^^^^^^^^^^^
+
+MTG_bot/core/test_executor_w3.py:442: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+r = <tools.run_scenarios.ScenarioRunner object at 0xe1f928e05040>
+kind = 'REVEAL'
+
+    def _rows(r: ScenarioRunner, kind: str) -> list[tuple]:
+        """The ``kind`` rows of the event log as (owner, cards, zone, viewers), one per group of a
+        row (verbs._seen: one row per atom, ((owner, zone, cards), ...), viewers)."""
+>       return [(owner, cards, zone, e[3]) for e in r.ex.events if e[1] == kind for owner, zone, cards in e[2]]
+                                                                                    ^^^^^^^^^^^^^^^^^^
+E       ValueError: not enough values to unpack (expected 3, got 1)
+
+MTG_bot/core/test_executor_w3.py:85: ValueError
+_ TestReveals.test_a_graveyard_search_reveals_the_card_found_not_the_library_top _
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_a_graveyard_search_reveals_the_card_found_not_the_library_top>
+
+    def test_a_graveyard_search_reveals_the_card_found_not_the_library_top(self) -> None:
+        """M21 Basri's Aegis, "search your library and/or graveyard ... reveal it", the graveyard
+        alone: no shuffle follows, so main's row (the library's top card) told the opponent the
+        next draw."""
+        r = _runner([
+            _card("aegis", 0, zone="hand", real="Basri's Aegis"),
+            _card("basri", 0, zone="graveyard", real="Basri, Devoted Paladin"),
+            _card("bear", 1),
+        ], mana={"0": {"W": 2, "G": 2}})
+        r.run_step({"op": "cast", "key": "aegis", "targets": ["bear"], "decisions": ["fire", "2", "basri"]})
+        self.assertEqual(r.world.zone_of(r.handles["basri"]).kind, ZONE_HAND)
+>       self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(r.handles["basri"]),), ZONE_HAND, "ALL")])
+                         ^^^^^^^^^^^^^^^^^^
+
+MTG_bot/core/test_executor_w3.py:425: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+r = <tools.run_scenarios.ScenarioRunner object at 0xe1f928ff1d00>
+kind = 'REVEAL'
+
+    def _rows(r: ScenarioRunner, kind: str) -> list[tuple]:
+        """The ``kind`` rows of the event log as (owner, cards, zone, viewers), one per group of a
+        row (verbs._seen: one row per atom, ((owner, zone, cards), ...), viewers)."""
+>       return [(owner, cards, zone, e[3]) for e in r.ex.events if e[1] == kind for owner, zone, cards in e[2]]
+                                                                                    ^^^^^^^^^^^^^^^^^^
+E       ValueError: not enough values to unpack (expected 3, got 1)
+
+MTG_bot/core/test_executor_w3.py:85: ValueError
+_________________ TestReveals.test_a_look_is_the_lookers_alone _________________
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_a_look_is_the_lookers_alone>
+
+    def test_a_look_is_the_lookers_alone(self) -> None:
+        r = _runner([_card("a", 0, zone="library", real="Forest")])
+        top = str(r.world.players[r.p0].zone(ZONE_LIBRARY).entries[-1])
+        r.ex.execute(atom(Verb.LOOK_AT, controller=ControllerRef.YOU, count=QConst(1)), source=r.p0,
+                     controller=r.p0)
+>       self.assertEqual(_rows(r, "LOOK_AT"), [(str(r.p0), (top,), ZONE_LIBRARY, str(r.p0))])
+                         ^^^^^^^^^^^^^^^^^^^
+
+MTG_bot/core/test_executor_w3.py:462: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+r = <tools.run_scenarios.ScenarioRunner object at 0xe1f928f4b410>
+kind = 'LOOK_AT'
+
+    def _rows(r: ScenarioRunner, kind: str) -> list[tuple]:
+        """The ``kind`` rows of the event log as (owner, cards, zone, viewers), one per group of a
+        row (verbs._seen: one row per atom, ((owner, zone, cards), ...), viewers)."""
+>       return [(owner, cards, zone, e[3]) for e in r.ex.events if e[1] == kind for owner, zone, cards in e[2]]
+                                                                                    ^^^^^^^^^^^^^^^^^^
+E       ValueError: not enough values to unpack (expected 3, got 1)
+
+MTG_bot/core/test_executor_w3.py:85: ValueError
+_______________ TestReveals.test_a_reveal_names_each_owners_zone _______________
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_a_reveal_names_each_owners_zone>
+
+    def test_a_reveal_names_each_owners_zone(self) -> None:
+        """A reveal's cards are grouped by the zone holding them, its owner named (CR 400.3)."""
+>       from MTG_bot.core.ability_tree import reveal_result  # not on main: imported here, so the
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ImportError: cannot import name 'reveal_result' from 'MTG_bot.core.ability_tree' (/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w3/base/MTG_bot/core/ability_tree.py)
+
+MTG_bot/core/test_executor_w3.py:361: ImportError
+______ TestReveals.test_a_scry_names_each_card_and_its_end_for_the_scryer ______
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_a_scry_names_each_card_and_its_end_for_the_scryer>
+
+    def test_a_scry_names_each_card_and_its_end_for_the_scryer(self) -> None:
+        """CR 701.22a: the scryer sees the cards, and the table how many went to each end; main's
+        row held only how many were scried."""
+        r = _runner([_card("a", 0, zone="library", real="Forest")])
+        library = r.world.players[r.p0].zone(ZONE_LIBRARY).entries
+        top, second = str(library[-1]), str(library[-2])
+        r.ex.execute(atom(Verb.SCRY, controller=ControllerRef.YOU, count=QConst(2)), source=r.p0,
+                     controller=r.p0, decisions=("top", "bottom"))
+>       self.assertEqual(_rows(r, "SCRY"),
+                         ^^^^^^^^^^^^^^^^
+                         [(str(r.p0), ((top, "TOP"), (second, "BOTTOM")), ZONE_LIBRARY, str(r.p0))])
+
+MTG_bot/core/test_executor_w3.py:452: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+r = <tools.run_scenarios.ScenarioRunner object at 0xe1f928f49430>, kind = 'SCRY'
+
+    def _rows(r: ScenarioRunner, kind: str) -> list[tuple]:
+        """The ``kind`` rows of the event log as (owner, cards, zone, viewers), one per group of a
+        row (verbs._seen: one row per atom, ((owner, zone, cards), ...), viewers)."""
+>       return [(owner, cards, zone, e[3]) for e in r.ex.events if e[1] == kind for owner, zone, cards in e[2]]
+                                                                                    ^^^^^^^^^^^^^^^^^^
+E       ValueError: not enough values to unpack (expected 3, got 1)
+
+MTG_bot/core/test_executor_w3.py:85: ValueError
+____________ TestReveals.test_an_empty_hand_is_revealed_as_nothing _____________
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_an_empty_hand_is_revealed_as_nothing>
+
+    def test_an_empty_hand_is_revealed_as_nothing(self) -> None:
+        """M21 Duress at an empty hand: one row that names nothing, to all (one row per atom: a
+        later random order is seeded by the event count). On main it listed the library."""
+        r = _runner([_card("duress", 0, zone="hand", real="Duress"), _card("deep", 1, zone="library")])
+        r.world.players[r.p0].mana_pool["B"] = 1
+        r.run_step({"op": "cast", "key": "duress", "targets": ["p1"]})
+>       self.assertEqual([e[2:] for e in r.ex.events if e[1] == "REVEAL"], [((), "ALL")])
+E       AssertionError: Lists differ: [('player:1', ('card:13', 'card:12', 'card:[42 chars]1'))] != [((), 'ALL')]
+E       
+E       First differing element 0:
+E       ('player:1', ('card:13', 'card:12', 'card:[41 chars]:1'))
+E       ((), 'ALL')
+E       
+E       + [((), 'ALL')]
+E       - [('player:1',
+E       -   ('card:13', 'card:12', 'card:11', 'card:10', 'card:9', 'card:8', 'card:1'))]
+
+MTG_bot/core/test_executor_w3.py:357: AssertionError
+________________ TestReveals.test_duress_reveals_the_hand_only _________________
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_duress_reveals_the_hand_only>
+
+    def test_duress_reveals_the_hand_only(self) -> None:
+        """M21 Duress: the row names the target's hand, to all, never its library. On main it
+        listed the target's whole library."""
+        r = _runner([
+            _card("duress", 0, zone="hand", real="Duress"),
+            _card("shock", 1, zone="hand", real="Shock"),
+            _card("bear", 1, zone="hand"),
+            _card("deep", 1, zone="library"),
+        ])
+        r.world.players[r.p0].mana_pool["B"] = 1
+        r.run_step({"op": "cast", "key": "duress", "targets": ["p1"], "decisions": ["shock"]})
+        hand = (str(r.handles["shock"]), str(r.handles["bear"]))
+>       self.assertEqual(_rows(r, "REVEAL"), [(str(r.p1), hand, ZONE_HAND, "ALL")])
+                         ^^^^^^^^^^^^^^^^^^
+
+MTG_bot/core/test_executor_w3.py:348: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+r = <tools.run_scenarios.ScenarioRunner object at 0xe1f929093ce0>
+kind = 'REVEAL'
+
+    def _rows(r: ScenarioRunner, kind: str) -> list[tuple]:
+        """The ``kind`` rows of the event log as (owner, cards, zone, viewers), one per group of a
+        row (verbs._seen: one row per atom, ((owner, zone, cards), ...), viewers)."""
+>       return [(owner, cards, zone, e[3]) for e in r.ex.events if e[1] == kind for owner, zone, cards in e[2]]
+                                                                                    ^^^^^^^^^^^^^^^^^^
+E       ValueError: not enough values to unpack (expected 3, got 1)
+
+MTG_bot/core/test_executor_w3.py:85: ValueError
+_____ TestReveals.test_each_player_reveals_their_own_hand_and_looks_alone ______
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_each_player_reveals_their_own_hand_and_looks_alone>
+
+    def test_each_player_reveals_their_own_hand_and_looks_alone(self) -> None:
+        """Under EachPlayer the reveal runs once per player, each row that player's hand; a look
+        there is each looker's alone (the rotated controller)."""
+>       from MTG_bot.core.ability_tree import reveal_hand  # not on main (above)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ImportError: cannot import name 'reveal_hand' from 'MTG_bot.core.ability_tree' (/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w3/base/MTG_bot/core/ability_tree.py)
+
+MTG_bot/core/test_executor_w3.py:373: ImportError
+____________ TestReveals.test_fierce_empath_reveals_the_card_found _____________
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_fierce_empath_reveals_the_card_found>
+
+    def test_fierce_empath_reveals_the_card_found(self) -> None:
+        """M21 Fierce Empath: "reveal it" names the card the search found, now in the hand. On
+        main the row named the library's new top card, which nobody saw."""
+        r = _runner([
+            _card("empath", 0, zone="hand", real="Fierce Empath"),
+            _card("big", 0, zone="library", real="Pursued Whale"),
+            _card("top", 0, zone="library", real="Llanowar Visionary"),
+        ])
+        r.run_step({"op": "enter", "key": "empath", "decisions": ["fire", "big"]})
+>       self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(r.handles["big"]),), ZONE_HAND, "ALL")])
+                         ^^^^^^^^^^^^^^^^^^
+
+MTG_bot/core/test_executor_w3.py:412: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+r = <tools.run_scenarios.ScenarioRunner object at 0xe1f92902efc0>
+kind = 'REVEAL'
+
+    def _rows(r: ScenarioRunner, kind: str) -> list[tuple]:
+        """The ``kind`` rows of the event log as (owner, cards, zone, viewers), one per group of a
+        row (verbs._seen: one row per atom, ((owner, zone, cards), ...), viewers)."""
+>       return [(owner, cards, zone, e[3]) for e in r.ex.events if e[1] == kind for owner, zone, cards in e[2]]
+                                                                                    ^^^^^^^^^^^^^^^^^^
+E       ValueError: not enough values to unpack (expected 3, got 1)
+
+MTG_bot/core/test_executor_w3.py:85: ValueError
+_________ TestReveals.test_the_card_revealed_is_the_next_sentences_it __________
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_the_card_revealed_is_the_next_sentences_it>
+
+    def test_the_card_revealed_is_the_next_sentences_it(self) -> None:
+        """"Search your library for a card, reveal it. If it's a creature card, ...": the card
+        found stays the fresh ``result`` through its reveal (run_atom's ``result_fresh``), as the
+        old top-card reveal left it, so the bare Conditional judges it, not the source (a Shock).
+        At 62cd34d8 the reveal left the register stale and the Conditional judged the Shock."""
+>       from MTG_bot.core.ability_tree import reveal_result  # not on main (above)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ImportError: cannot import name 'reveal_result' from 'MTG_bot.core.ability_tree' (/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w3/base/MTG_bot/core/ability_tree.py)
+
+MTG_bot/core/test_executor_w3.py:391: ImportError
 =========================== short test summary info ============================
 FAILED MTG_bot/core/test_executor_w3.py::TestStateTriggers::test_a_countered_state_trigger_triggers_again_at_once
 FAILED MTG_bot/core/test_executor_w3.py::TestStateTriggers::test_a_new_object_triggers_on_its_own
+FAILED MTG_bot/core/test_executor_w3.py::TestStateTriggers::test_an_instance_the_turn_ending_exiled_triggers_again_in_the_cleanup
 FAILED MTG_bot/core/test_executor_w3.py::TestStateTriggers::test_two_damage_events_at_eight_counters_trigger_once
 FAILED MTG_bot/core/test_executor_w3.py::TestYarok::test_an_entering_creatures_trigger_triggers_twice
 FAILED MTG_bot/core/test_executor_w3.py::TestYarok::test_yarok_entering_with_a_creature_doubles_its_trigger
 FAILED MTG_bot/core/test_executor_w3.py::TestTheCopiesGoWithTheOriginal::test_one_order_option_for_the_ability_and_its_copy
+FAILED MTG_bot/core/test_executor_w3.py::TestCauses::test_every_object_a_gathered_trigger_gathered_caused_it
 FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_a_card_picked_from_a_look_is_the_card_revealed
 FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_a_graveyard_search_reveals_the_card_found_not_the_library_top
 FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_a_look_is_the_lookers_alone
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_a_reveal_names_each_owners_zone
 FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_a_scry_names_each_card_and_its_end_for_the_scryer
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_an_empty_hand_is_revealed_as_nothing
 FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_duress_reveals_the_hand_only
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_each_player_reveals_their_own_hand_and_looks_alone
 FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_fierce_empath_reveals_the_card_found
-12 failed, 4 passed in 3.81s
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_the_card_revealed_is_the_next_sentences_it
+18 failed, 4 passed in 3.31s

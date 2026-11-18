@@ -1103,14 +1103,26 @@ class TriggerBinder:
             ctx = self._ctx(layer.source, layer.controller, payload.event)
             if not eval_filter(spec.filter, source, ctx):
                 continue
-            # A state's or a reflexive trigger's synthetic event matches no cause: no event
-            # caused it.
-            if spec.cause is not None and not self._match_node(
-                spec.cause, payload.event, layer.source, layer.controller
+            if spec.cause is not None and not any(
+                self._match_node(spec.cause, row, layer.source, layer.controller)
+                for row in self._causes(payload)
             ):
                 continue
             extra += resolve(atom.args.get("count"), ctx)
         return extra
+
+    def _causes(self, payload: _Firing) -> list[GameEvent]:
+        """The rows of the event that made ``payload``'s ability trigger, for a cause to match
+        (CR 603.2d: "if a permanent entering causes a triggered ability ... to trigger"). A
+        gathered trigger ("whenever one or more creatures you control enter") triggered on every
+        object it gathered, so each of their rows is a cause, not only the first row the binder
+        matched: a Wizard entering beside a Human causes it under Naban, whichever was matched
+        first. Any other trigger has its one event. A state's or a reflexive trigger's synthetic
+        event matches no cause: no event caused it."""
+        if payload.gathered is None or payload.event.kind != KIND_ZONE_CHANGE:
+            return [payload.event]
+        gathered = set(payload.gathered)
+        return [e for e in self._occurrences(payload.event) if e.subject in gathered]
 
     def _keyword_node(self, handle: Handle) -> TriggeredAbility:
         """The canonical compiled-shape node for a printed prowess trigger (CR 702.108a),

@@ -1,0 +1,237 @@
+...........F....F....F....FFF.F.........F.....FFFF..................F.   [100%]
+=================================== FAILURES ===================================
+______ TestCauses.test_every_object_a_gathered_trigger_gathered_caused_it ______
+
+self = <MTG_bot.core.test_executor_w3.TestCauses testMethod=test_every_object_a_gathered_trigger_gathered_caused_it>
+
+    def test_every_object_a_gathered_trigger_gathered_caused_it(self) -> None:
+        """CR 603.2c-d: "whenever one or more creatures you control enter" triggered on the Human
+        and the Wizard alike, so a Wizard entering caused it (Naban, Dean of Iteration), whichever
+        row the binder matched first. At 62cd34d8 the cause was matched against that first row
+        alone, the Human's, and the ability triggered once."""
+        r = _runner([
+            _card("naban", 0), _card("watcher", 0),
+            _card("human", 0, zone="hand", type="Creature — Human"),
+            _card("wizard", 0, zone="hand", type="Creature — Human Wizard"),
+        ])
+        anywhere = Zone(ZoneKind.ANY, ControllerRef.ANY)
+        yours = Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU)
+        wizard_enters = ZoneChangeEvent(anywhere, yours, FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Wizard"))
+        creatures_enter = ZoneChangeEvent(anywhere, yours, FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"))
+        gathered = TriggeredAbility(event=creatures_enter, condition=None, effect=GAIN_1, once_per_event=True)
+        for key, ability in (("naban", _doubler(AbilityTriggerEvent(filter=ME, cause=wizard_enters))),
+                             ("watcher", gathered)):
+            h = r.handles[key]
+            r.ex.attach_card(h, record_of([ability], name=key, oid=r.world.cards[h].identity.oracle_id))
+        r.run_step({"op": "move", "keys": ["human", "wizard"], "to": "battlefield"})
+>       self.assertEqual(r.world.players[r.p0].life, 22)
+E       AssertionError: 21 != 22
+
+MTG_bot/core/test_executor_w3.py:329: AssertionError
+______ TestReveals.test_a_scry_names_each_card_and_its_end_for_the_scryer ______
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_a_scry_names_each_card_and_its_end_for_the_scryer>
+
+    def test_a_scry_names_each_card_and_its_end_for_the_scryer(self) -> None:
+        """CR 701.22a: the scryer sees the cards, and the table how many went to each end; main's
+        row held only how many were scried."""
+        r = _runner([_card("a", 0, zone="library", real="Forest")])
+        library = r.world.players[r.p0].zone(ZONE_LIBRARY).entries
+        top, second = str(library[-1]), str(library[-2])
+        r.ex.execute(atom(Verb.SCRY, controller=ControllerRef.YOU, count=QConst(2)), source=r.p0,
+                     controller=r.p0, decisions=("top", "bottom"))
+        self.assertEqual(_rows(r, "SCRY"),
+                         [(str(r.p0), ((top, "TOP"), (second, "BOTTOM")), ZONE_LIBRARY, str(r.p0))])
+        # the public part, everyone's: one card went back on top, one to the bottom
+>       self.assertEqual([e[4] for e in r.ex.events if e[1] == "SCRY"], [(1, 1)])
+                          ^^^^
+E       IndexError: tuple index out of range
+
+MTG_bot/core/test_executor_w3.py:455: IndexError
+_________ TestReveals.test_the_card_revealed_is_the_next_sentences_it __________
+
+self = <MTG_bot.core.test_executor_w3.TestReveals testMethod=test_the_card_revealed_is_the_next_sentences_it>
+
+    def test_the_card_revealed_is_the_next_sentences_it(self) -> None:
+        """"Search your library for a card, reveal it. If it's a creature card, ...": the card
+        found stays the fresh ``result`` through its reveal (run_atom's ``result_fresh``), as the
+        old top-card reveal left it, so the bare Conditional judges it, not the source (a Shock).
+        At 62cd34d8 the reveal left the register stale and the Conditional judged the Shock."""
+        from MTG_bot.core.ability_tree import reveal_result  # not on main (above)
+    
+        r = _runner([_card("shock", 0, zone="hand", real="Shock"), _card("bear", 0, zone="library")])
+        creature = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
+        search = atom(Verb.SEARCH, cards=Selector(QConst(1), SelectorMode.CHOOSE, creature,
+                                                  zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU),)),
+                      destination=Zone(ZoneKind.HAND, ControllerRef.YOU))
+        r.ex.apply_effect(Seq(steps=(search, reveal_result(), Conditional(pred=creature, then_effect=GAIN_1))),
+                          source=r.handles["shock"], controller=r.p0, bindings={"cards": [r.handles["bear"]]})
+        self.assertEqual(r.world.zone_of(r.handles["bear"]).kind, ZONE_HAND)
+>       self.assertEqual(r.world.players[r.p0].life, 21)
+E       AssertionError: 20 != 21
+
+MTG_bot/core/test_executor_w3.py:401: AssertionError
+_______ test_a_state_says_nothing_twice_and_is_never_always_true[never] ________
+
+state = FNot(inner=FAtom(pred=<FAtomPred.IS_SOURCE: 'IS_SOURCE'>, string_value=None, color=None, colors=(), count=None, counte...one, inner_filter=None, zone=None, from_zone=None, to_zone=None, referent=None, event=None, field=None, quantity=None))
+
+    @pytest.mark.parametrize("state", [
+        SOURCE, FAnd(children=(SOURCE, NINE)), FAnd(()), FNot(inner=SOURCE), FOr(children=(SOURCE, NINE)),
+        FAnd(children=(FNot(inner=SOURCE), NINE)),
+    ], ids=["IS_SOURCE", "IS_SOURCE-conjunct", "universal", "never", "always", "nested"])
+    def test_a_state_says_nothing_twice_and_is_never_always_true(state) -> None:
+>       with pytest.raises(ValueError, match="StateTrigger"):
+E       Failed: DID NOT RAISE ValueError
+
+MTG_bot/core/test_ability_tree_w3.py:138: Failed
+_______ test_a_state_says_nothing_twice_and_is_never_always_true[always] _______
+
+state = FOr(children=(FAtom(pred=<FAtomPred.IS_SOURCE: 'IS_SOURCE'>, string_value=None, color=None, colors=(), count=None, cou...ne, inner_filter=None, zone=None, from_zone=None, to_zone=None, referent=None, event=None, field=None, quantity=None)))
+
+    @pytest.mark.parametrize("state", [
+        SOURCE, FAnd(children=(SOURCE, NINE)), FAnd(()), FNot(inner=SOURCE), FOr(children=(SOURCE, NINE)),
+        FAnd(children=(FNot(inner=SOURCE), NINE)),
+    ], ids=["IS_SOURCE", "IS_SOURCE-conjunct", "universal", "never", "always", "nested"])
+    def test_a_state_says_nothing_twice_and_is_never_always_true(state) -> None:
+>       with pytest.raises(ValueError, match="StateTrigger"):
+E       Failed: DID NOT RAISE ValueError
+
+MTG_bot/core/test_ability_tree_w3.py:138: Failed
+_______ test_a_state_says_nothing_twice_and_is_never_always_true[nested] _______
+
+state = FAnd(children=(FAtom(pred=<FAtomPred.HAS_COUNTER: 'HAS_COUNTER'>, string_value=None, color=None, colors=(), count=QCon...e, inner_filter=None, zone=None, from_zone=None, to_zone=None, referent=None, event=None, field=None, quantity=None))))
+
+    @pytest.mark.parametrize("state", [
+        SOURCE, FAnd(children=(SOURCE, NINE)), FAnd(()), FNot(inner=SOURCE), FOr(children=(SOURCE, NINE)),
+        FAnd(children=(FNot(inner=SOURCE), NINE)),
+    ], ids=["IS_SOURCE", "IS_SOURCE-conjunct", "universal", "never", "always", "nested"])
+    def test_a_state_says_nothing_twice_and_is_never_always_true(state) -> None:
+>       with pytest.raises(ValueError, match="StateTrigger"):
+E       Failed: DID NOT RAISE ValueError
+
+MTG_bot/core/test_ability_tree_w3.py:138: Failed
+_________ test_a_state_trigger_designates_nothing_and_is_never_granted _________
+
+    def test_a_state_trigger_designates_nothing_and_is_never_granted() -> None:
+        """A targeted state trigger with no legal target is removed as it goes on the stack (CR
+        603.3d) and triggers again at once while the state holds: a loop no card of the 19 sets
+        prints. A granted one would never be checked (the binder checks bound abilities)."""
+        state = StateTrigger(filter=NINE)
+        creature = Selector(QConst(1), SelectorMode.TARGET, FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
+                            zones=(Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),))
+        for designating in (A(Verb.DESTROY, target=creature),
+                            A(Verb.DRAW, controller=ControllerRef.TARGET_PLAYER, amount=QConst(1))):
+>           with pytest.raises(ValueError, match="designates nothing"):
+E           Failed: DID NOT RAISE ValueError
+
+MTG_bot/core/test_ability_tree_w3.py:165: Failed
+_________________ test_an_additional_time_is_at_least_once[X] __________________
+
+count = QX()
+
+    @pytest.mark.parametrize("count", [QConst(0), QUnbounded(), QX()], ids=["zero", "unbounded", "X"])
+    def test_an_additional_time_is_at_least_once(count) -> None:
+>       with pytest.raises(ValueError, match="at least 1"):
+E       Failed: DID NOT RAISE ValueError
+
+MTG_bot/core/test_ability_tree_w3.py:244: Failed
+__________ test_a_cause_is_an_object_entering_the_battlefield[upkeep] __________
+
+cause = TurnPhaseEvent(phase=<Phase.UPKEEP: 'UPKEEP'>, actor=FAtom(pred=<FAtomPred.CONTROLLER_IS: 'CONTROLLER_IS'>, string_val...U'>, inner_filter=None, zone=None, from_zone=None, to_zone=None, referent=None, event=None, field=None, quantity=None))
+
+    @pytest.mark.parametrize("cause", [
+        AbilityTriggerEvent(filter=YOURS), CounteredEvent(filter=YOURS),
+        StepEvent(phase=Phase.UPKEEP, step=Step.UNTAP, controller=ControllerRef.YOU),
+        PhasingEvent(phased_in=True, filter=YOURS), UPKEEP,
+        ZoneChangeEvent(from_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                        to_zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY)),
+        ZoneChangeEvent(from_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                        to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)),
+    ], ids=["ability-triggering", "countered", "step", "phasing", "upkeep", "dying", "staying"])
+    def test_a_cause_is_an_object_entering_the_battlefield(cause) -> None:
+        """The one cause the 19 sets print (Yarok, Naban, Ancient Greenwarden). A dying creature's
+        (Teysa Karlov) needs the copies counted for a look-back trigger whose source has left, which
+        the binder does not do: it comes with its card (BACKLOG)."""
+>       with pytest.raises(ValueError, match="cause"):
+E       Failed: DID NOT RAISE ValueError
+
+MTG_bot/core/test_ability_tree_w3.py:268: Failed
+__________ test_a_cause_is_an_object_entering_the_battlefield[dying] ___________
+
+cause = ZoneChangeEvent(from_zone=Zone(kind=<ZoneKind.BATTLEFIELD: 'BATTLEFIELD'>, controller=<ControllerRef.ANY: 'ANY'>, posi..._zone=Zone(kind=<ZoneKind.GRAVEYARD: 'GRAVEYARD'>, controller=<ControllerRef.ANY: 'ANY'>, position=None), subject=None)
+
+    @pytest.mark.parametrize("cause", [
+        AbilityTriggerEvent(filter=YOURS), CounteredEvent(filter=YOURS),
+        StepEvent(phase=Phase.UPKEEP, step=Step.UNTAP, controller=ControllerRef.YOU),
+        PhasingEvent(phased_in=True, filter=YOURS), UPKEEP,
+        ZoneChangeEvent(from_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                        to_zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY)),
+        ZoneChangeEvent(from_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                        to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)),
+    ], ids=["ability-triggering", "countered", "step", "phasing", "upkeep", "dying", "staying"])
+    def test_a_cause_is_an_object_entering_the_battlefield(cause) -> None:
+        """The one cause the 19 sets print (Yarok, Naban, Ancient Greenwarden). A dying creature's
+        (Teysa Karlov) needs the copies counted for a look-back trigger whose source has left, which
+        the binder does not do: it comes with its card (BACKLOG)."""
+>       with pytest.raises(ValueError, match="cause"):
+E       Failed: DID NOT RAISE ValueError
+
+MTG_bot/core/test_ability_tree_w3.py:268: Failed
+_________ test_a_cause_is_an_object_entering_the_battlefield[staying] __________
+
+cause = ZoneChangeEvent(from_zone=Zone(kind=<ZoneKind.BATTLEFIELD: 'BATTLEFIELD'>, controller=<ControllerRef.ANY: 'ANY'>, posi...e=Zone(kind=<ZoneKind.BATTLEFIELD: 'BATTLEFIELD'>, controller=<ControllerRef.ANY: 'ANY'>, position=None), subject=None)
+
+    @pytest.mark.parametrize("cause", [
+        AbilityTriggerEvent(filter=YOURS), CounteredEvent(filter=YOURS),
+        StepEvent(phase=Phase.UPKEEP, step=Step.UNTAP, controller=ControllerRef.YOU),
+        PhasingEvent(phased_in=True, filter=YOURS), UPKEEP,
+        ZoneChangeEvent(from_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                        to_zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY)),
+        ZoneChangeEvent(from_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY),
+                        to_zone=Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY)),
+    ], ids=["ability-triggering", "countered", "step", "phasing", "upkeep", "dying", "staying"])
+    def test_a_cause_is_an_object_entering_the_battlefield(cause) -> None:
+        """The one cause the 19 sets print (Yarok, Naban, Ancient Greenwarden). A dying creature's
+        (Teysa Karlov) needs the copies counted for a look-back trigger whose source has left, which
+        the binder does not do: it comes with its card (BACKLOG)."""
+>       with pytest.raises(ValueError, match="cause"):
+E       Failed: DID NOT RAISE ValueError
+
+MTG_bot/core/test_ability_tree_w3.py:268: Failed
+___________ test_two_additional_times_over_one_ability_are_one_count ___________
+
+    def test_two_additional_times_over_one_ability_are_one_count() -> None:
+        """"Two additional times" is one count; two equal steps would be its second encoding."""
+>       with pytest.raises(ValueError, match="two TRIGGER_ADDITIONAL"):
+E       Failed: DID NOT RAISE ValueError
+
+MTG_bot/core/test_ability_tree_w3.py:274: Failed
+______________ test_a_reveal_of_it_follows_the_step_that_found_it ______________
+
+    def test_a_reveal_of_it_follows_the_step_that_found_it() -> None:
+        """"Reveal it" reads the cards an instruction before it found, looked at or moved: with none
+        before it (first, or after a draw, which writes no register) there is nothing to reveal."""
+        search = A(Verb.SEARCH, cards=Selector(QConst(1), SelectorMode.CHOOSE, FAnd(()), zones=(LIBRARY,)),
+                   destination=HAND_YOU)
+        card(SpellAbility(kind=SpellKind.SORCERY, effect=Seq(steps=(search, reveal_result()))), types=("Sorcery",))
+        for effect in (reveal_result(), Seq(steps=(DRAW, reveal_result()))):
+>           with pytest.raises(ValueError, match="reveal of `result`"):
+E           Failed: DID NOT RAISE ValueError
+
+MTG_bot/core/test_ability_tree_w3.py:370: Failed
+=========================== short test summary info ============================
+FAILED MTG_bot/core/test_executor_w3.py::TestCauses::test_every_object_a_gathered_trigger_gathered_caused_it
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_a_scry_names_each_card_and_its_end_for_the_scryer
+FAILED MTG_bot/core/test_executor_w3.py::TestReveals::test_the_card_revealed_is_the_next_sentences_it
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_a_state_says_nothing_twice_and_is_never_always_true[never]
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_a_state_says_nothing_twice_and_is_never_always_true[always]
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_a_state_says_nothing_twice_and_is_never_always_true[nested]
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_a_state_trigger_designates_nothing_and_is_never_granted
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_an_additional_time_is_at_least_once[X]
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_a_cause_is_an_object_entering_the_battlefield[upkeep]
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_a_cause_is_an_object_entering_the_battlefield[dying]
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_a_cause_is_an_object_entering_the_battlefield[staying]
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_two_additional_times_over_one_ability_are_one_count
+FAILED MTG_bot/core/test_ability_tree_w3.py::test_a_reveal_of_it_follows_the_step_that_found_it
+13 failed, 57 passed in 3.63s
+restored ['MTG_bot/core/executor/binding.py', 'MTG_bot/core/executor/verbs.py', 'MTG_bot/core/ability_tree.py']

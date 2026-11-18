@@ -2127,12 +2127,16 @@ class CounterPlacedEvent:
             and p.counter_kind is self.counter_kind
             for p in parts
         ):
-            # "When there are N or more <kind> counters on it" is a state (CR 603.8): read on
-            # each placement it triggers again while its first instance waits, and never again
-            # once that instance is countered with the counters still there.
+            # The count after a placement is neither printed meaning. "When there are N or more
+            # <kind> counters on it" is a state (CR 603.8): read on each placement it triggers
+            # again while its first instance waits, and never again once that instance is
+            # countered with the counters still there. "When the Nth <kind> counter is put on
+            # it" (Midnight Clock) is a placement that crosses N: read as a count after it, it
+            # triggers again on the N+1th. The IR has no crossing yet (BACKLOG, Midnight Clock).
             raise ValueError(
                 "CounterPlacedEvent: a filter testing how many counters of its own kind the "
-                "object has is a state trigger's (StateTrigger), not a placement's"
+                "object has is no placement's: \"when there are N or more\" is a state trigger "
+                "(StateTrigger), \"when the Nth is put on\" a crossing the IR does not encode yet"
             )
 
 
@@ -2215,8 +2219,10 @@ class AbilityTriggerEvent:
       never a conjunct here: one encoding.
     - ``cause``, when present, is the event the ability triggered on: "if a permanent entering
       causes a triggered ability ... to trigger" (Yarok, the Desecrated) is a ZoneChangeEvent to
-      the battlefield. It is any event a trigger can match, never a state (a state trigger has
-      no event) nor this class."""
+      the battlefield, the one cause the 19 sets print (Yarok, Naban, Ancient Greenwarden).
+      Other causes come with their cards: a dying creature's (Teysa Karlov) needs the extra
+      trigger counted for a look-back trigger whose source has left, which the binder does not
+      do (``TriggerBinder._additional_times``)."""
 
     filter: Filter
     cause: EventSpec | None = None
@@ -2234,14 +2240,14 @@ class AbilityTriggerEvent:
                 "static's condition, never a conjunct of the filter over the permanent whose "
                 "ability triggered"
             )
-        if self.cause is not None and (
-            not _is_event(self.cause)
-            or isinstance(self.cause, _UNTRIGGERABLE_EVENTS)
-            or (isinstance(self.cause, DeclareBlockersEvent) and self.cause.count is not None)
+        if self.cause is not None and not (
+            isinstance(self.cause, ZoneChangeEvent)
+            and self.cause.to_zone.kind is ZoneKind.BATTLEFIELD
+            and self.cause.from_zone.kind is not ZoneKind.BATTLEFIELD
         ):
             raise ValueError(
-                "AbilityTriggerEvent: cause is the event the ability triggered on, one a trigger "
-                f"can match, got {type(self.cause).__name__}"
+                "AbilityTriggerEvent: cause is the event the ability triggered on, an object "
+                f"entering the battlefield (a ZoneChangeEvent to it), got {self.cause!r}"
             )
 
 
@@ -2257,10 +2263,11 @@ class StateTrigger:
     (resolved, countered, removed) if the state still holds and its object has not changed
     zones since (CR 603.8, 400.7). It stands only as a TriggeredAbility's event.
 
-    Refused: IS_SOURCE as the filter or one of its conjuncts (the subject is that object
-    already: a second form), the universal filter (it would trigger at every check), and the
-    state written as an event (a CounterPlacedEvent testing the count it reaches:
-    ``CounterPlacedEvent``)."""
+    Refused: IS_SOURCE anywhere its FAnd, FOr and FNot reach (the subject is that object
+    already: as a conjunct a second form, negated a state that never holds, in a disjunction one
+    that always does; a count's own filter is another subject), the universal filter (it would
+    trigger at every check), and the state written as an event (a CounterPlacedEvent testing the
+    count it reaches: ``CounterPlacedEvent``)."""
 
     filter: Filter
 
@@ -2271,11 +2278,18 @@ class StateTrigger:
             )
         if isinstance(self.filter, FAnd) and not self.filter.children:
             raise ValueError("StateTrigger: the universal filter is no state: it always holds")
-        parts = self.filter.children if isinstance(self.filter, FAnd) else (self.filter,)
-        if FAtom(pred=FAtomPred.IS_SOURCE) in parts:
+
+        def reaches_source(f: object) -> bool:
+            if isinstance(f, (FAnd, FOr)):
+                return any(reaches_source(c) for c in f.children)
+            if isinstance(f, FNot):
+                return reaches_source(f.inner)
+            return f == FAtom(pred=FAtomPred.IS_SOURCE)
+
+        if reaches_source(self.filter):
             raise ValueError(
                 "StateTrigger: the filter is read over the object with the ability; IS_SOURCE "
-                "says it again"
+                "says it again, never holds under FNot and always holds in an FOr"
             )
 
 
@@ -3439,15 +3453,29 @@ class Atom:
                     f"additional times (an AbilityTriggerEvent), got {type(event).__name__}"
                 )
             count = roles["count"]
-            if isinstance(count, QUnbounded) or (isinstance(count, QConst) and count.value < 1):
+            if not (isinstance(count, QConst) and count.value >= 1):
+                # "an additional time", "two additional times": a printed number. A static has
+                # no X, and no card of the 19 sets derives the count; one that does brings it.
                 raise ValueError(
                     "Atom: TRIGGER_ADDITIONAL's count is how many more times the ability "
-                    "triggers: a number of at least 1"
+                    "triggers: a printed number of at least 1"
                 )
         elif isinstance(event, (AbilityTriggerEvent, StateTrigger)):
             raise ValueError(
                 f"Atom: {self.verb.name}'s event cannot be a {type(event).__name__}: only "
                 "TRIGGER_ADDITIONAL reads an ability triggering, and a state is no event"
+            )
+        granted = roles.get("ability")
+        if (
+            self.verb is Verb.GRANT_ABILITY
+            and isinstance(granted, TriggeredAbility)
+            and isinstance(granted.event, StateTrigger)
+        ):
+            # The binder checks the states of bound abilities (TriggerBinder.check_states); a
+            # granted one would never trigger, and no card of the 19 sets grants one.
+            raise ValueError(
+                "Atom: a granted state trigger (CR 603.8) would never be checked: none in the "
+                "19 sets"
             )
         if self.verb in (Verb.REVEAL, Verb.LOOK_AT):
             fault = _look_roles_fault(roles)
@@ -3535,6 +3563,13 @@ class Seq:
                     "Seq: two equal copy steps would share one designation; \"twice\" is one "
                     "copy with a `count`, two printed copies are two different steps"
                 )
+        extra = [s.args.get("event") for s in self.steps
+                 if isinstance(s, Atom) and s.verb is Verb.TRIGGER_ADDITIONAL]
+        if len(extra) != len(set(extra)):
+            raise ValueError(
+                "Seq: two TRIGGER_ADDITIONAL steps over one AbilityTriggerEvent are one, its "
+                "count their sum (\"two additional times\")"
+            )
         looked = False
         for step in self.steps:
             own = list(walk(step, skip=_FOREIGN_ABILITY_NODES))
@@ -4122,6 +4157,24 @@ def _reads_subject(filter_: object) -> bool:
     return isinstance(filter_, FAtom) and not reads_no_subject(filter_)
 
 
+def _designates(effect: object) -> bool:
+    """Does ``effect`` (its own nodes, not a nested ability's) choose a target as it goes on the
+    stack: a TARGET selector, or a designated player ("target player", "target opponent") in a
+    role, a zone or a filter?"""
+    for n in walk(effect, skip=(*_A_CLASSES, DelayedTrigger)):
+        if isinstance(n, Selector) and n.mode is SelectorMode.TARGET:
+            return True
+        if isinstance(n, Zone) and n.controller in DESIGNATED_PLAYER_REFS:
+            return True
+        if isinstance(n, FAtom) and n.who in DESIGNATED_PLAYER_REFS:
+            return True
+        if isinstance(n, Atom) and any(
+            isinstance(v, ControllerRef) and v in DESIGNATED_PLAYER_REFS for _r, v in n.args.pairs
+        ):
+            return True
+    return False
+
+
 def _reads_event_register(effect: object) -> bool:
     """Does ``effect`` read its trigger's event register ("it", "they", "that many", "its
     power", "until it leaves", "that spell")? Its own nodes only: a nested ability (a granted
@@ -4355,6 +4408,14 @@ class TriggeredAbility:
                 raise ValueError(
                     "TriggeredAbility: a state trigger (CR 603.8) has no triggering event, so "
                     "nothing for \"it\", \"that many\" or \"its power\" of the event to read"
+                )
+            if _designates(self.effect):
+                # With no legal target it is removed as it goes on the stack (CR 603.3d), and the
+                # state, still holding, triggers it again at once: a loop no card of the 19 sets
+                # prints. A targeted state trigger comes with its card and that ruling.
+                raise ValueError(
+                    "TriggeredAbility: a state trigger (CR 603.8) designates nothing in the 19 "
+                    "sets: no TARGET selector or designated player in its effect"
                 )
         _check_once_per_event("TriggeredAbility", self.event, self.once_per_event)
         if not _is_effect(self.effect):
@@ -4748,8 +4809,21 @@ def _moves_or_makes(step: Any) -> bool:
     )
 
 
+def _finds(step: Any) -> bool:
+    """Does ``step`` run an instruction whose `result` "reveal it" can show: one that moves or
+    makes objects, a search (the cards found) or a look or reveal of a library's top (the cards
+    seen; ``verbs._look``)?"""
+    return any(
+        isinstance(n, Atom) and (
+            n.verb in (*_RESULT_OBJECT_VERBS, Verb.SEARCH, Verb.LOOK_AT)
+            or (n.verb is Verb.REVEAL and n.args.get("count") is not None)
+        )
+        for n in walk(step, skip=(*_A_CLASSES, DelayedTrigger))
+    )
+
+
 def _is_result_misplaced(
-    node: Any, allowed: bool, in_atom: bool = False, written: bool = False
+    node: Any, allowed: bool, in_atom: bool = False, written: bool = False, found: bool = False
 ) -> bool:
     """Is an IS_RESULT atom reachable from ``node`` outside the Atom roles
     :func:`_is_result_role` admits? ``allowed`` is whether ``node`` sits in one.
@@ -4764,24 +4838,29 @@ def _is_result_misplaced(
       ability put on the stack (CR 601.2c), before the register exists.
     - "A token that's a copy of it" is CopyOf(referent `result`).
     With nothing written before, the read finds no register (gate round B3, M3a-b: a first step,
-    or after a DESTROY, which writes none, made no token)."""
+    or after a DESTROY, which writes none, made no token).
+    - "Reveal it", "reveal those cards" is REVEAL(cards=RESULT_REFERENT) after a step that
+      ``found`` cards (:func:`_finds`: a search, a look, a move; DESIGN_ATOM_ONTOLOGY §19)."""
     if isinstance(node, tuple):
-        return any(_is_result_misplaced(item, allowed, in_atom, written) for item in node)
+        return any(_is_result_misplaced(item, allowed, in_atom, written, found) for item in node)
     if not dataclasses.is_dataclass(node) or isinstance(node, type):
         return False
     if isinstance(node, Atom):
+        if node.verb is Verb.REVEAL and node.args.get("cards") == RESULT_REFERENT and not found:
+            return True
         return any(
-            _is_result_misplaced(value, _is_result_role(role), role != "duration", written)
+            _is_result_misplaced(value, _is_result_role(role), role != "duration", written, found)
             for role, value in node.args.pairs
         )
     if isinstance(node, Seq):
         misplaced = False
         for step in node.steps:
-            misplaced = misplaced or _is_result_misplaced(step, allowed, in_atom, written)
+            misplaced = misplaced or _is_result_misplaced(step, allowed, in_atom, written, found)
             written = written or _moves_or_makes(step)
+            found = found or _finds(step)
         return misplaced
     if isinstance(node, (*_A_CLASSES, DelayedTrigger)):
-        in_atom = written = False  # another ability's parts: read when it triggers or resolves
+        in_atom = written = found = False  # another ability's parts: read when it triggers or resolves
     if isinstance(node, FAtom) and node.pred is FAtomPred.IS_RESULT and not allowed:
         return True
     if isinstance(node, CopyOf) and node.source.referent == "result" and not (in_atom and written):
@@ -4798,7 +4877,7 @@ def _is_result_misplaced(
         if node.mode is SelectorMode.TARGET:
             in_atom = False  # designated before the resolution writes any register
     return any(
-        _is_result_misplaced(getattr(node, f.name), allowed, in_atom, written)
+        _is_result_misplaced(getattr(node, f.name), allowed, in_atom, written, found)
         for f in dataclasses.fields(node)
     )
 
@@ -5326,7 +5405,8 @@ class CardRecord:
                 "CardRecord: IS_RESULT outside an Atom role that takes a Filter and cannot "
                 "take a referent Selector (elsewhere it is Selector(referent='result'), or "
                 "there is no result register to read); or \"all other\" (FNot(IS_RESULT)) or a "
-                "copy of `result` with no instruction before it that moved or made objects"
+                "copy of `result` with no instruction before it that moved or made objects; or a "
+                "reveal of `result` with none before it that found, looked at or moved cards"
             )
         if _reflexive_misplaced(self.abilities, barred="Emblem" in self.types):
             raise ValueError(

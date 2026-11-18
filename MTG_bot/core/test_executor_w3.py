@@ -1,7 +1,9 @@
 """Ontology gate round W3 (DESIGN_ATOM_ONTOLOGY §19) in the engine: state triggers (CR 603.8),
 "that ability triggers an additional time" as a static (CR 603.2d), and the records of what a
 reveal, a look and a scry showed (CR 701.20a, 701.22a). Each test fails on main 0b7f9c22 (the
-note on each says how)."""
+note on each says how), except the controls, which pass on both and say so: a state that does
+not hold, the Tome's one exile, and Yarok's two triggers that no entering of his caused. The
+tests of the fresh review's fixes fail at the round's first commit, 62cd34d8, and say so."""
 
 from __future__ import annotations
 
@@ -12,11 +14,15 @@ from MTG_bot.core.ability_tree import (
     AbilityTriggerEvent,
     Atom,
     AtomArgs,
+    Conditional,
     ControllerRef,
+    EachPlayer,
     FAtom,
     FAtomPred,
     Phase,
     QConst,
+    Selector,
+    SelectorMode,
     Seq,
     StaticAbility,
     TriggeredAbility,
@@ -32,7 +38,15 @@ from MTG_bot.core.compiler.templates_b5a import target_stack_ability
 from MTG_bot.core.compiler.test_compiler import _oid, _raw_card
 from MTG_bot.core.executor import Executor
 from MTG_bot.core.executor.games import compile_supply, get_supply
-from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_EXILE, ZONE_HAND, ZONE_LIBRARY, GameWorld
+from MTG_bot.core.executor.legality import TURN_ENDED
+from MTG_bot.core.state import (
+    ZONE_BATTLEFIELD,
+    ZONE_EXILE,
+    ZONE_GRAVEYARD,
+    ZONE_HAND,
+    ZONE_LIBRARY,
+    GameWorld,
+)
 from MTG_bot.core.test_executor_binding import record_of
 from MTG_bot.core.test_executor_durations import atom, card_id, target_sel
 from MTG_bot.core.test_executor_verbs import stock_libraries
@@ -150,6 +164,7 @@ class TestStateTriggers(NineLivesCase):
         self.assertEqual(self.world.zone_of(self.nine).kind, ZONE_EXILE)
 
     def test_it_does_not_trigger_while_the_state_does_not_hold(self) -> None:
+        """A control: eight counters are no state (it passes on main too)."""
         self.counters(7)
         with self.ex.holding_priority():
             self.hit(1)
@@ -172,12 +187,29 @@ class TestStateTriggers(NineLivesCase):
             self.assertEqual(len(mine), 2)
             self.assertIn(old, mine)
 
+    def test_an_instance_the_turn_ending_exiled_triggers_again_in_the_cleanup(self) -> None:
+        """CR 724.1b with 603.8: an effect ending the turn exiles the waiting instance from the
+        stack, and what triggers is held until the cleanup step (CR 724.1c); there the state
+        still holds, so it triggers again and resolves (CR 514.3a). On main the exiled trigger
+        was gone for good and Nine Lives stayed."""
+        self.ex.begin_turn(self.p0)
+        self.counters(8)
+        with self.ex.holding_priority():
+            self.hit(1)
+            (first,) = self.waiting()
+            self.ex.execute(atom(Verb.END_TURN), source=self.p1, controller=self.p1)
+            self.assertNotIn(first, self.ex.stack.frames)
+            self.assertEqual(self.world.zone_of(self.nine).kind, ZONE_BATTLEFIELD)
+        self.ex.pass_until(TURN_ENDED)
+        self.assertEqual(self.world.zone_of(self.nine).kind, ZONE_EXILE)
+
 
 class TestMazemindTome(unittest.TestCase):
     """M21 and FDN Mazemind Tome: the fourth page counter, paid as a cost, triggers the state; it
     exiles the Tome and you gain 4 life, once."""
 
     def test_the_fourth_page_counter_exiles_it_once(self) -> None:
+        """A control on the re-baked record (it passes on main too)."""
         r = _runner([_card("tome", 0, real="Mazemind Tome", counters={"PAGE": 3})])
         r.run_step({"op": "activate", "key": "tome", "ability": 0, "decisions": ["top"]})
         self.assertEqual(r.world.zone_of(r.handles["tome"]).kind, ZONE_EXILE)
@@ -216,11 +248,13 @@ class TestYarok(unittest.TestCase):
         self.assertEqual(self.life(r, 0), 22)
 
     def test_an_opponents_permanents_trigger_once(self) -> None:
+        """A control: Yarok's static reads his controller's permanents (it passes on main too)."""
         r = self.runner(_card("foe", 1, zone="hand"))
         r.run_step({"op": "enter", "key": "foe"})
         self.assertEqual(self.life(r, 1), 21)
 
     def test_a_trigger_no_entering_caused_triggers_once(self) -> None:
+        """A control: no entering caused an upkeep trigger (it passes on main too)."""
         r = self.runner(_card("bear", 0))
         bear = r.handles["bear"]
         upkeep = TriggeredAbility(event=TurnPhaseEvent(Phase.UPKEEP, actor=ME), condition=None, effect=GAIN_1)
@@ -271,6 +305,30 @@ class TestTheCopiesGoWithTheOriginal(unittest.TestCase):
         self.assertEqual([a for a in asks if a.startswith("trigger:")], [])
 
 
+class TestCauses(unittest.TestCase):
+    def test_every_object_a_gathered_trigger_gathered_caused_it(self) -> None:
+        """CR 603.2c-d: "whenever one or more creatures you control enter" triggered on the Human
+        and the Wizard alike, so a Wizard entering caused it (Naban, Dean of Iteration), whichever
+        row the binder matched first. At 62cd34d8 the cause was matched against that first row
+        alone, the Human's, and the ability triggered once."""
+        r = _runner([
+            _card("naban", 0), _card("watcher", 0),
+            _card("human", 0, zone="hand", type="Creature — Human"),
+            _card("wizard", 0, zone="hand", type="Creature — Human Wizard"),
+        ])
+        anywhere = Zone(ZoneKind.ANY, ControllerRef.ANY)
+        yours = Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU)
+        wizard_enters = ZoneChangeEvent(anywhere, yours, FAtom(pred=FAtomPred.SUBTYPE_EQ, string_value="Wizard"))
+        creatures_enter = ZoneChangeEvent(anywhere, yours, FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"))
+        gathered = TriggeredAbility(event=creatures_enter, condition=None, effect=GAIN_1, once_per_event=True)
+        for key, ability in (("naban", _doubler(AbilityTriggerEvent(filter=ME, cause=wizard_enters))),
+                             ("watcher", gathered)):
+            h = r.handles[key]
+            r.ex.attach_card(h, record_of([ability], name=key, oid=r.world.cards[h].identity.oracle_id))
+        r.run_step({"op": "move", "keys": ["human", "wizard"], "to": "battlefield"})
+        self.assertEqual(r.world.players[r.p0].life, 22)
+
+
 # ---------------------------------------------------------------------------- reveal, look, scry
 
 
@@ -289,6 +347,58 @@ class TestReveals(unittest.TestCase):
         hand = (str(r.handles["shock"]), str(r.handles["bear"]))
         self.assertEqual(_rows(r, "REVEAL"), [(str(r.p1), hand, ZONE_HAND, "ALL")])
         self.assertEqual(r.world.zone_of(r.handles["shock"]).kind, "graveyard")
+
+    def test_an_empty_hand_is_revealed_as_nothing(self) -> None:
+        """M21 Duress at an empty hand: one row that names nothing, to all (one row per atom: a
+        later random order is seeded by the event count). On main it listed the library."""
+        r = _runner([_card("duress", 0, zone="hand", real="Duress"), _card("deep", 1, zone="library")])
+        r.world.players[r.p0].mana_pool["B"] = 1
+        r.run_step({"op": "cast", "key": "duress", "targets": ["p1"]})
+        self.assertEqual([e[2:] for e in r.ex.events if e[1] == "REVEAL"], [((), "ALL")])
+
+    def test_a_reveal_names_each_owners_zone(self) -> None:
+        """A reveal's cards are grouped by the zone holding them, its owner named (CR 400.3)."""
+        from MTG_bot.core.ability_tree import reveal_result  # not on main: imported here, so the
+        # module imports there and its other tests run (reports/w3_2026-11-18/engine_tests_on_main.txt)
+
+        r = _runner([_card("mine", 0, zone="hand"), _card("theirs", 1, zone="graveyard")])
+        mine, theirs = r.handles["mine"], r.handles["theirs"]
+        r.ex.execute(reveal_result(), source=r.p0, controller=r.p0, bindings={"result": [mine, theirs]})
+        self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(mine),), ZONE_HAND, "ALL"),
+                                              (str(r.p1), (str(theirs),), ZONE_GRAVEYARD, "ALL")])
+
+    def test_each_player_reveals_their_own_hand_and_looks_alone(self) -> None:
+        """Under EachPlayer the reveal runs once per player, each row that player's hand; a look
+        there is each looker's alone (the rotated controller)."""
+        from MTG_bot.core.ability_tree import reveal_hand  # not on main (above)
+
+        r = _runner([_card("mine", 0, zone="hand"), _card("theirs", 1, zone="hand"),
+                     _card("a", 0, zone="library"), _card("b", 1, zone="library")])
+        each = ControllerRef.ANY
+        r.ex.apply_effect(EachPlayer(ref=each, effect=reveal_hand(ControllerRef.YOU)), source=r.p0, controller=r.p0)
+        self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(r.handles["mine"]),), ZONE_HAND, "ALL"),
+                                              (str(r.p1), (str(r.handles["theirs"]),), ZONE_HAND, "ALL")])
+        look = atom(Verb.LOOK_AT, controller=ControllerRef.YOU, count=QConst(1))
+        r.ex.apply_effect(EachPlayer(ref=each, effect=look), source=r.p0, controller=r.p0)
+        self.assertEqual([(owner, viewers) for owner, _cards, _zone, viewers in _rows(r, "LOOK_AT")],
+                         [(str(r.p0), str(r.p0)), (str(r.p1), str(r.p1))])
+
+    def test_the_card_revealed_is_the_next_sentences_it(self) -> None:
+        """"Search your library for a card, reveal it. If it's a creature card, ...": the card
+        found stays the fresh ``result`` through its reveal (run_atom's ``result_fresh``), as the
+        old top-card reveal left it, so the bare Conditional judges it, not the source (a Shock).
+        At 62cd34d8 the reveal left the register stale and the Conditional judged the Shock."""
+        from MTG_bot.core.ability_tree import reveal_result  # not on main (above)
+
+        r = _runner([_card("shock", 0, zone="hand", real="Shock"), _card("bear", 0, zone="library")])
+        creature = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
+        search = atom(Verb.SEARCH, cards=Selector(QConst(1), SelectorMode.CHOOSE, creature,
+                                                  zones=(Zone(ZoneKind.LIBRARY, ControllerRef.YOU),)),
+                      destination=Zone(ZoneKind.HAND, ControllerRef.YOU))
+        r.ex.apply_effect(Seq(steps=(search, reveal_result(), Conditional(pred=creature, then_effect=GAIN_1))),
+                          source=r.handles["shock"], controller=r.p0, bindings={"cards": [r.handles["bear"]]})
+        self.assertEqual(r.world.zone_of(r.handles["bear"]).kind, ZONE_HAND)
+        self.assertEqual(r.world.players[r.p0].life, 21)
 
     def test_fierce_empath_reveals_the_card_found(self) -> None:
         """M21 Fierce Empath: "reveal it" names the card the search found, now in the hand. On
@@ -332,7 +442,8 @@ class TestReveals(unittest.TestCase):
         self.assertEqual(_rows(r, "REVEAL"), [(str(r.p0), (str(r.handles["bear"]),), ZONE_HAND, "ALL")])
 
     def test_a_scry_names_each_card_and_its_end_for_the_scryer(self) -> None:
-        """CR 701.22a: the scryer sees the cards; main's row held only how many."""
+        """CR 701.22a: the scryer sees the cards, and the table how many went to each end; main's
+        row held only how many were scried."""
         r = _runner([_card("a", 0, zone="library", real="Forest")])
         library = r.world.players[r.p0].zone(ZONE_LIBRARY).entries
         top, second = str(library[-1]), str(library[-2])
@@ -340,6 +451,8 @@ class TestReveals(unittest.TestCase):
                      controller=r.p0, decisions=("top", "bottom"))
         self.assertEqual(_rows(r, "SCRY"),
                          [(str(r.p0), ((top, "TOP"), (second, "BOTTOM")), ZONE_LIBRARY, str(r.p0))])
+        # the public part, everyone's: one card went back on top, one to the bottom
+        self.assertEqual([e[4] for e in r.ex.events if e[1] == "SCRY"], [(1, 1)])
 
     def test_a_look_is_the_lookers_alone(self) -> None:
         r = _runner([_card("a", 0, zone="library", real="Forest")])
