@@ -1,0 +1,5 @@
+The soak's d3 class on the branch at 92061a25 (trace_soak_d3.py: the soak's own games, stress decks,
+the verified pools), against soak_d3_M20_base.txt and soak_d3_FDN_base.txt on fa284327:
+
+M20 seeds 1-150: 0 games with a d3 hit or a real placement (fa284327: 1, seed 122, no real placement)
+FDN seeds 1-300: 0 games with a d3 hit or a real placement (fa284327: 2, seeds 260 and 283, no real placement)

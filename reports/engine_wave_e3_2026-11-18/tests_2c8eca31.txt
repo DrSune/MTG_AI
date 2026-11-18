@@ -1,0 +1,63 @@
+== main-2c8eca31: engine tests (whole files)
+FAILED MTG_bot/core/test_executor_counters_new_object.py::CountersStayWithTheirObject::test_a_counter_put_on_a_card_in_a_graveyard_does_not_come_back_with_it
+FAILED MTG_bot/core/test_executor_counters_new_object.py::CountersStayWithTheirObject::test_a_walker_back_from_exile_enters_with_its_printed_loyalty_only
+FAILED MTG_bot/core/test_executor_counters_new_object.py::ATriggersSourceIsTheObjectItWas::test_a_source_that_died_with_the_creature_it_triggers_on_gets_no_counter
+FAILED MTG_bot/core/test_executor_counters_new_object.py::ATriggersSourceIsTheObjectItWas::test_a_source_that_left_and_came_back_while_its_trigger_waited_gets_no_counter
+FAILED MTG_bot/core/test_executor_control_endpoints.py::EntersUnderYourControl::test_a_creature_returned_under_another_players_control_triggers_for_that_player
+FAILED MTG_bot/core/test_executor_control_endpoints.py::LeavesWhileYouControlIt::test_another_creature_you_control_leaving_counts_for_its_controller
+FAILED MTG_bot/core/test_executor_control_endpoints.py::LeavesWhileYouControlIt::test_the_player_who_controlled_it_as_it_left_is_you
+FAILED MTG_bot/core/test_executor_control_endpoints.py::LeavingWithWhatControlsIt::test_a_creature_leaving_with_the_aura_that_steals_it_was_still_stolen
+FAILED MTG_bot/core/test_executor_control_endpoints.py::ReplacementEndpoints::test_a_creature_that_would_enter_under_an_opponents_control_is_exiled_instead
+FAILED MTG_bot/core/test_executor_control_endpoints.py::ReplacementEndpoints::test_a_creature_that_would_enter_under_your_control_is_not
+FAILED MTG_bot/core/test_executor_control_endpoints.py::ReplacementEndpoints::test_a_creature_you_control_that_would_die_is_exiled_whoever_owns_it
+FAILED MTG_bot/core/test_executor_control_endpoints.py::EntersWithUnderYourControl::test_what_it_enters_with_counts_for_the_player_it_enters_under
+FAILED MTG_bot/core/test_executor_control_endpoints.py::YourBattlefield::test_a_selector_over_your_battlefield_finds_the_permanents_you_control
+FAILED MTG_bot/core/test_executor_cast_payability.py::CastPayabilityCase::test_an_untapped_land_pays_for_the_cast_it_is_offered
+FAILED MTG_bot/core/test_executor_cast_payability.py::CastPayabilityCase::test_x_ranges_over_what_the_lands_can_pay
+15 failed, 29 passed in 1.64s
+== main-2c8eca31: tools tests (the wave's own)
+E   AssertionError: assert 'HIT' == 'clean'
+/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/e3/main_tests/tools/audit/test_detectors.py:246: AssertionError: assert 'HIT' == 'clean'
+E   KeyError: 'key'
+/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/e3/main_tests/tools/run_scenarios.py:858: KeyError: 'key'
+E   AssertionError: assert not {'1/1/effect/steps/0/args/controller', '1/1/effect/steps/0/args/count'}
+/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/e3/main_tests/tools/cards/test_gates.py:466: AssertionError: assert not {'1/1/effect/steps/0/args/controller', '1/1/effect/steps/0/args/count'}
+E   AssertionError: assert ('amount+1', '1/2/effect/args/target/count') not in {('amount+1', '1/0/effect/args/count'), ('amount+1', '1/1/effect/args/source/filter/children/1/inner/count'), ('amount...PONENT', '1/0/effect/args/controller'), ('controller YOU->OPPONENT', '1/2/effect/args/target/zones/0/controller'), ...}
+/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/e3/main_tests/tools/cards/test_gates.py:484: AssertionError: assert ('amount+1', '1/2/effect/args/target/count') not in {('amount+1', '1/0/effect/args/count'), ('amount+1', '1/1/effect/args/source/filter/children/1/inner/count'), ('amount...PONENT', '1/0/effect/args/controller'), ('controller YOU->OPPONENT', '1/2/effect/args/target/zones/0/controller'), ...}
+E   AttributeError: module 'cardtool' has no attribute 'EQUIVALENT'
+/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/e3/main_tests/tools/cards/test_gates.py:511: AttributeError: module 'cardtool' has no attribute 'EQUIVALENT'
+FAILED tools/audit/test_detectors.py::test_d3_clean_after_a_death_and_a_return
+FAILED tools/test_run_scenarios.py::test_a_move_of_several_cards_is_one_event
+FAILED tools/cards/test_gates.py::test_a_statics_own_look_is_dead - Assertion...
+FAILED tools/cards/test_gates.py::test_a_pick_from_the_one_top_card_has_a_dead_count
+FAILED tools/cards/test_gates.py::test_every_proven_equivalent_mutant_holds_for_the_tree_it_was_proven_on
+5 failed, 124 deselected in 4.12s
+== main-2c8eca31: packs
+FAIL starfield_mystic_an_enchantment_you_control_counts_whoever_owns_it.json
+     counters[mystic]: expected {'PLUS_1_PLUS_1': 1}, got {}
+     power[mystic]: expected 3, got 2
+     toughness[mystic]: expected 3, got 2
+FAIL scavenging_ooze_that_left_the_battlefield_gets_no_counter.json
+     counters[ooze]: expected {}, got {'PLUS_1_PLUS_1': 1}
+     power[ooze]: expected 2, got 3
+     toughness[ooze]: expected 2, got 3
+FAIL havoc_jester_sees_its_controller_sacrifice_a_stolen_creature.json
+     life[1]: expected 19, got 20
+FAIL watcher_of_the_spheres_two_fliers_entering_at_once.json
+     step {'op': 'move', 'keys': ['f1', 'f2'], 'to': 'battlefield', 'decisions': ['watcher']}: KeyError: 'key'
+     expect lanes this runner never checks: ['power', 'toughness', 'zone']
+FAIL chandra_flames_catalyst_minus_two_pays_with_an_untapped_mountain.json
+     step {'op': 'act', 'seat': 0, 'words': ['act:cf:1', 'fire', 'bear']}: PackError: act: the act ask act:player:0:1 does not offer 'act:card:0:1'; it offers ('PASS', 'act:card:0:0')
+     expect lanes this runner never checks: ['counters', 'tapped', 'zone']
+PASS chandra_flames_catalyst_minus_two_is_not_offered_without_mana_for_its_spell.json
+== branch-92061a25: engine tests (whole files)
+44 passed in 1.83s
+== branch-92061a25: tools tests (the wave's own)
+5 passed, 124 deselected in 6.86s
+== branch-92061a25: packs
+PASS starfield_mystic_an_enchantment_you_control_counts_whoever_owns_it.json
+PASS scavenging_ooze_that_left_the_battlefield_gets_no_counter.json
+PASS havoc_jester_sees_its_controller_sacrifice_a_stolen_creature.json
+PASS watcher_of_the_spheres_two_fliers_entering_at_once.json
+PASS chandra_flames_catalyst_minus_two_pays_with_an_untapped_mountain.json
+PASS chandra_flames_catalyst_minus_two_is_not_offered_without_mana_for_its_spell.json
