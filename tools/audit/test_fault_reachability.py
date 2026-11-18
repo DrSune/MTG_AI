@@ -57,12 +57,10 @@ LATENT: dict[str, fs.Shape] = {
     "F29": fs.f29_shape,
     "F35": fs.f35_life,
     "F38": fs.each(fs.f38_carrier),
-    "F40": fs.f40_shape,
     "F46": fs.each(fs.f46),
     "F53": fs.each(fs.f53),
     "F56": fs.each(fs.f56),
     "F57": fs.each(fs.f57),
-    "F60": fs.each(fs.copies),
     "F61": fs.each(fs.f61),
 }
 
@@ -89,15 +87,17 @@ PINNED: dict[str, tuple[fs.Shape, tuple[set[str], set[str], set[str]]]] = {
     "F43": (fs.each(fs.f43_carrier), (
         {"Chandra, Flame's Catalyst", "Crypt Lurker", "Dire Fleet Warmonger", "Experimental Overload",
          "Ghostly Pilferer", "Liliana's Devotee", "Niambi, Esteemed Speaker", "Tolarian Kraken"},
-        {"Boneclad Necromancer", "Cavalier of Night", "Cavalier of Thorns", "Chandra's Regulator", "Gravedigger",
-         "Keldon Raider", "Riddlemaster Sphinx", "Risen Reef", "Sorin, Imperious Bloodlord"},
+        {"Boneclad Necromancer", "Cavalier of Night", "Cavalier of Thorns", "Gravedigger", "Keldon Raider",
+         "Riddlemaster Sphinx", "Risen Reef", "Sorin, Imperious Bloodlord",
+         "Chandra's Regulator"},  # its "you may pay {1}" (verified 2026-11-18, wave 7)
         {"Crossway Troublemakers", "High-Society Hunter", "Incinerating Blast", "Spinner of Souls"})),
     # latent: the carriers 215 judged unable to reach the fault (§4's reasons)
     # F14c's residue after W1: an Aura flickered in one resolution loses its new attachment
     "F14c": (fs.each(fs.f14c_carrier), ({"Transmogrify"}, set(), set())),  # returns another card, not the exiled one
     "F31": (fs.each(fs.f31_carrier), ({"Idol of Endurance"}, {"Bag of Holding"}, set())),
-    "F36": (fs.each(fs.f36_carrier), ({"Radha, Heart of Keld"}, {"Diviner's Lockbox", "Goblin Ringleader", "Mystic Forge"},
-                                      set())),
+    # See the Truth: a resolving look, so the window it writes names cards its player does look at
+    "F36": (fs.each(fs.f36_carrier), ({"Radha, Heart of Keld", "See the Truth"},
+                                      {"Diviner's Lockbox", "Goblin Ringleader", "Mystic Forge"}, set())),
     "F37": (fs.each(fs.f37_carrier), ({"Chandra, Heart of Fire", "Necromentia", "Siege Striker"},
                                       {"Cavalier of Flame"}, set())),
     "F41": (fs.each(fs.f41_carrier), ({"Teferi, Timeless Voyager"}, {"Cavalier of Gales", "Eternal Isolation"}, set())),
@@ -148,21 +148,13 @@ def test_f46_is_the_draw_lane_naming_another_players_library() -> None:
 
 
 def test_the_guard_turns_red_on_a_card_holding_a_latent_shape() -> None:
-    """A synthetic card in the M21 pool: a Saga (F61, lore counters are not modelled) and a copy
-    effect beside a card that chooses as it enters (F60, F40). Each latent entry it holds fails."""
+    """A synthetic card in the M21 pool, a Saga (F61: lore counters are not modelled), fails the
+    latent entry it holds."""
     m21 = list(pools()["M21"])
     base = m21[0]
     saga = dataclasses.replace(base, name="Synthetic Saga", subtypes=(*base.subtypes, "Saga"))
-    permanent = at.Selector(at.QConst(1), at.SelectorMode.TARGET, at.FAnd(()),
-                            zones=(at.Zone(at.ZoneKind.BATTLEFIELD, at.ControllerRef.ANY),))
-    copy = at.Atom(verb=at.Verb.CREATE_TOKEN,  # "create a token that's a copy of target permanent"
-                   args=at.AtomArgs(pairs=(("count", at.QConst(1)), ("tokens", at.CopyOf(permanent)))))
-    copier = dataclasses.replace(base, name="Synthetic Copier",
-                                 abilities=(at.SpellAbility(kind=at.SpellKind.SORCERY, effect=copy),))
-    pooled = [*m21, saga, copier]
+    pooled = [*m21, saga]
     assert holders(LATENT["F61"], pooled) == {"Synthetic Saga"}
-    assert holders(LATENT["F60"], pooled) == {"Synthetic Copier"}
-    assert "Synthetic Copier" in holders(LATENT["F40"], pooled) and "Runed Halo" in holders(LATENT["F40"], pooled)
     # and a pinned set that gains a card says which
     assert drift(PINNED["F19"][0], PINNED["F19"][1], {"M21": pooled, "M20": pools()["M20"], "FDN": pools()["FDN"]}) == []
     halo = next(c for c in m21 if c.name == "Runed Halo")

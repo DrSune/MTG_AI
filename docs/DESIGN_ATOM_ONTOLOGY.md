@@ -3191,7 +3191,8 @@ branch; each code fix has a test that fails at 5a310010 (`reports/w3_2026-11-18/
   closed, so their entries and shapes went; the re-baked cards left the pins of F27 self-damage,
   F37 and F43 (a re-verification brings each back, and its verifier pins it again); F43 gained
   Chandra's Regulator, which wave 7 stamped (a reachable fault's pin records its carriers). The
-  guard's four other reds (F40 and F60 latent but held by wave 7's copy cards, F36 joined by See
-  the Truth, and the guard's own F60 assertion) fail on main b84282a9 alone: they wait for their
-  owners' judgment, not this round's. W1's F14 makes the old state instance leave a returned
-  object alone (assumption 2; the Tome's bounce test).
+  guard's four other reds on main b84282a9 (F40 and F60 held by wave 7's copy cards, F36 joined by
+  See the Truth, the guard's own F60 assertion) were main's: main a6e90ba6 closed them (F40 and
+  F60's copy half closed by the copy round; See the Truth and Chandra's Regulator pinned with
+  reasons), merged here too, its F43 pin with this round's sets. W1's F14 makes the old state
+  instance leave a returned object alone (assumption 2; the Tome's bounce test).

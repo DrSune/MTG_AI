@@ -414,6 +414,20 @@ the coordinator.**
     second of them to merge rebases, as B3 did beside E3.
   - W2 still follows W1, and W-D still follows W2.
 
+**Closed by the copy round, B3 (0b7f9c22), recorded 2026-11-18 late** (the latent-fault guard turned red
+once verification wave 7 stamped copy cards).
+- **F40**: closed by B3's gate fix M1 (DESIGN_ATOM_ONTOLOGY §18). A permanent that becomes a copy
+  reads its copied choices as nothing chosen; a token copy makes its own choice.
+- **F60's copy half**: closed by B3, which is that half. Its other half (layer dependencies,
+  approximate timestamps) stays latent: no dependent pair is dealt, and no shape guards it.
+- **F29's copy case**: closed by B3's m4 (per-handle copy records). The general case stays latent,
+  still guarded by its shape.
+- **The guard's F40 and F60 entries** are deleted with their shapes.
+- **F36**: See the Truth is pinned as a carrier unable to reach it. It is a resolving look, so the
+  look window it writes names cards its player does look at.
+- **F43**: Chandra's Regulator ("you may pay {1}") is pinned with the reachable carriers that W-D
+  fixes.
+
 ## 7. Logic check against the project's goals
 
 | Goal | How the plan serves it | What could go wrong, and why the design survives it |
