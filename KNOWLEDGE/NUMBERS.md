@@ -5,6 +5,15 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-11-18 (the fallback census, KNOWLEDGE 213; main at a31c39b7, the code r29 runs; evidence `reports/fallback_census_2026-11-18/`)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| fallback asks (more than 64 options, or a name ask) per seat and game, M21 verified pool | **0.051** (122 in 1,200 games, 217,135 real decisions) | `.venv/bin/python reports/fallback_census_2026-11-18/overflow_census.py M21 1200 7000 out.json` | heuristic against heuristic, coherent decks; Necromentia 69, Runed Halo 53 |
+| the same, M20 verified pool | **0.226** (271 in 600 games, 92,091 decisions) | `... overflow_census.py M20 600 9000 out.json` | Diviner's Lockbox 193 (283 names), Icon of Ancestry 78 (70 types) |
+| options pointing at no encoded entity | **0** of 117,481 decisions (M21 400 games, M20 300) | `... entity_census.py M21 400 7000 out.json`, `M20 300 9000` | |
+| decisions whose graveyard keep (16 newest) cut cards | M21 **859 of 72,072** (1.2%; 6,156 cards, at most 20 at once); M20 18 of 45,409 | the same | no battlefield or hand card cut; the caps were removed after this |
+
 ## 2026-11-17 (the recurrence guards for causes A and B of KNOWLEDGE 212 §3: the CR 400.7 registry of the executor's handle-keyed containers and its random-game test; "exiled with" placed in the life of the ability that exiled; the soak's live invariant I1; branch `worktree-agent-aee2edc561a82da47` on c80f45f7, main a7b7ac35 and 1fb4463f merged; evidence `reports/guards_400_7_2026-11-17/`)
 
 | Number | Value | Command | Notes |

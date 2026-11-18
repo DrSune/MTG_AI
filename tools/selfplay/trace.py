@@ -65,18 +65,12 @@ class TracedNet:
         self.tracer = tracer
         self.name = name
         self.mask = mask_names
-        self.fallback = HeuristicAgent()
 
     def decide(self, ask: Any, obs: Any) -> int:
         n = len(ask.options)
         if n == 1:
             return 0
         self.tracer.board(obs)
-        if n > FT.MAX_OPTIONS or ask.kind == "name":
-            idx = self.fallback.decide(ask, obs)
-            self.tracer.out.write(f"  [{self.name} seat {ask.seat}] {ask.prompt}\n"
-                                  f"      fallback -> {ask.options[idx].label}\n")
-            return idx
         feats = FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx)
         if self.mask:
             feats = dict(feats)

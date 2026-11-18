@@ -74,6 +74,9 @@ class PolicyValueNet(nn.Module):
         self.out_norm = nn.LayerNorm(d)
         self.policy_head = nn.Sequential(nn.Linear(d, d), nn.GELU(), nn.Linear(d, 1))
         self.value_head = nn.Sequential(nn.Linear(d, d), nn.GELU(), nn.Linear(d, 1))
+        # a named card (features.O_NAMED, C_NAMED), read as a card token reads its identity.
+        # Registered last, so a seeded build draws every older layer's weights as before
+        self.named_ptr = nn.Linear(d, d, bias=False)
         self._init()
 
     def _init(self) -> None:
@@ -112,27 +115,39 @@ class PolicyValueNet(nn.Module):
         older network."""
         return self.ir_emb(ids) * (ids > 0).unsqueeze(-1).to(self.ir_emb.weight.dtype)
 
+    def _names(self, idx: torch.Tensor, dropout: bool = True) -> torch.Tensor:
+        """The name rows card rows ``idx`` read: the unknown card's under ``mask_names``, and,
+        with ``dropout``, at the name-dropout rate in training."""
+        if self.mask_names:
+            return torch.where(idx > FT.UNK, torch.full_like(idx, FT.UNK), idx)
+        if dropout and self.training and self.name_dropout > 0:
+            drop = torch.rand(idx.shape, device=idx.device) < self.name_dropout
+            return torch.where(drop & (idx > FT.UNK), torch.full_like(idx, FT.UNK), idx)
+        return idx
+
+    def _named(self, idx: torch.Tensor, ir: torch.Tensor) -> torch.Tensor:
+        """The card a chosen or offered card name names (features.C_NAMED, O_NAMED), read as a
+        card token reads its identity; row 0, none, a zero term. The name is the choice (Runed
+        Halo's protection is from that name, not from what the card does), so it never drops."""
+        x = self.name_emb(self._names(idx, dropout=False)) + ir[idx]
+        return self.named_ptr(x * (idx > 0).unsqueeze(-1).to(x.dtype))
+
     def tokens(self, b: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """The input tokens [global, me, opponent, cards..., options...] and which are real (the
         opponent simulator reads the same view through them: simulator.py)."""
         cards_i, cards_f = b["cards_i"], b["cards_f"]
         bsz = cards_i.shape[0]
         card_idx = cards_i[..., 0]
-        name_idx = card_idx
-        if self.mask_names:
-            name_idx = torch.where(card_idx > FT.UNK, torch.full_like(card_idx, FT.UNK),
-                                   card_idx)
-        elif self.training and self.name_dropout > 0:
-            drop = torch.rand(card_idx.shape, device=card_idx.device) < self.name_dropout
-            name_idx = torch.where(drop & (card_idx > FT.UNK), torch.full_like(card_idx, FT.UNK),
-                                   card_idx)
         ir = self.card_table_emb()
-        x_card = (self.name_emb(name_idx) + ir[card_idx] + self.zone_emb(cards_i[..., 1])
+        x_card = (self.name_emb(self._names(card_idx)) + ir[card_idx]
+                  + self.zone_emb(cards_i[..., 1])
                   + self.ctrl_emb(cards_i[..., 2]) + self.owner_emb(cards_i[..., 3])
                   + self.card_f(cards_f)
                   # a permanent's chosen colour or creature type by its component token (0 for
-                  # none, a zero term: an older network computes what it computed before)
-                  + self.value_emb(cards_i[..., FT.C_CHOSEN]))
+                  # none, a zero term: an older network computes what it computed before), and
+                  # the card name it chose
+                  + self.value_emb(cards_i[..., FT.C_CHOSEN])
+                  + self._named(cards_i[..., FT.C_NAMED], ir))
         x_play = self.player_f(b["players_f"]) + self.player_role.weight[None]
         ent = torch.cat([x_play, x_card], dim=1)  # [B, 2+E, d]
         zero = ent.new_zeros(bsz, 1, self.d)
@@ -146,7 +161,8 @@ class PolicyValueNet(nn.Module):
         x_opt = (self.opt_type(opts_i[..., 0]) + self.opt_ab(opts_i[..., 3].clamp(0, 23))
                  + self.opt_f(opts_f) + self.opt_ref(_gather(ent_ext, opts_i[..., 1]))
                  + self.opt_ref2(_gather(ent_ext, opts_i[..., 2]))
-                 + self.value_emb(opts_i[..., FT.O_VALUE]))  # a quality ask's value, as above
+                 + self.value_emb(opts_i[..., FT.O_VALUE])  # a quality ask's value, as above
+                 + self._named(opts_i[..., FT.O_NAMED], ir))  # a name option's card
         x_glob = (self.glob_f(b["glob_f"]) + self.ask_emb(b["ask_i"][:, 0]))[:, None]
         seg = self.segment.weight
         x = torch.cat([x_glob + seg[0], x_play + seg[1], x_card + seg[2], x_opt + seg[3]], dim=1)

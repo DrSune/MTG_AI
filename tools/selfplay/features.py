@@ -10,7 +10,8 @@ float16):
 
 * ``cards_i``   [E, CI]  card vocab id, zone, controller, owner, attached-to entity, and for a
                          stack object: its source's entity (an ability) and its first target;
-                         the colour or creature type a permanent chose (C_CHOSEN)
+                         the colour or creature type a permanent chose (C_CHOSEN), the
+                         card-table row of the card name it chose (C_NAMED)
 * ``cards_f``   [E, CF]  flags, type line, colours, keywords, P/T, damage, counters, cost; on
                          the stack: depth, ability kind and index; targeted by a stack object
 * ``players_f`` [2, PF]  me then the opponent: life, zone counts, mana pool, board counts
@@ -19,7 +20,8 @@ float16):
 * ``ask_i``     [1]      ask kind (the act menu's says which main phase)
 * ``opts_i``    [K, OI]  option type, entity ref, second entity ref, ability index (an activated
                          ability's; which of one source's different waiting triggers), a value
-                         option's component token (a quality ask's colour or creature type)
+                         option's component token (a quality ask's colour or creature type), the
+                         card-table row of the card a name option names (O_NAMED)
 * ``opts_f``    [K, 2]   number value, kicked
 
 Entity refs index the entity list ``[me, opponent, cards...]`` plus one (0 = no entity).
@@ -162,11 +164,17 @@ C_HOST, C_SOURCE, C_TARGET = 4, 5, 6
 # chosen color|type" reads), as the component token that names the value (``value_token``; 0 =
 # none or a token the table lacks). model.tokens embeds it with the card's component embedding.
 C_CHOSEN = C_TARGET + 1
-CI = C_CHOSEN + 1
-# opts_i: option type, entity ref, second entity ref, ability index, and the component token of a
-# value option (a quality ask's colour or creature type; 0 for every other option)
+# The card name a permanent chose (Runed Halo's "As this enchantment enters, choose a card
+# name"), as the card-table row of the card so named (0 = none). model.tokens reads it as a name
+# option's card (O_NAMED).
+C_NAMED = C_CHOSEN + 1
+CI = C_NAMED + 1
+# opts_i: option type, entity ref, second entity ref, ability index, the component token of a
+# value option (a quality ask's colour or creature type; 0 for every other option), and the
+# card-table row of the card a name option names (a "name" ask's; 0 for every other option)
 O_VALUE = 4
-OI = O_VALUE + 1
+O_NAMED = 5
+OI = O_NAMED + 1
 
 OPTION_TYPES = (
     "pad", "PASS", "TAP_ALL_MANA", "land", "cast", "cast_kicked", "activate", "ATTACK",
@@ -178,13 +186,6 @@ OPTION_TYPES = (
 )
 OPT_INDEX = {k: i for i, k in enumerate(OPTION_TYPES)}
 
-#: The option menus are capped at this size. A larger ask is answered by the fallback agent and
-#: never trained on (counted as ``overflow``). A capacity limit, not a strategy limit.
-MAX_OPTIONS = 64
-#: Graveyard and exile keep their newest cards when the entity list would exceed MAX_CARDS.
-MAX_CARDS = 112
-GRAVE_KEEP = 16
-EXILE_KEEP = 10
 
 _CARD_RE = re.compile(r"card:(\d+)")
 
@@ -295,10 +296,12 @@ class CardTable:
     ir: list[list[int]]
     index: dict[str, int] = field(default_factory=dict)
     ir_index: dict[str, int] = field(default_factory=dict)
+    name_index: dict[str, int] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         self.index = {oid: i for i, oid in enumerate(self.oracle_ids)}
         self.ir_index = {t: i for i, t in enumerate(self.ir_vocab)}
+        self.name_index = {n: i for i, n in enumerate(self.names[2:], start=2)}
 
     @classmethod
     def from_records(cls, records: dict[str, Any]) -> CardTable:
@@ -311,6 +314,9 @@ class CardTable:
 
     def row(self, oracle_id: str) -> int:
         return self.index.get(oracle_id, UNK)
+
+    def name_row(self, name: str) -> int:
+        return self.name_index.get(name, UNK)
 
     def extend(self, records: dict[str, Any], add_tokens: bool = False) -> tuple[CardTable, dict]:
         """A copy with a row for every record this table lacks. Without ``add_tokens`` the new
@@ -573,7 +579,7 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
     source = Handle("card", int(site_cards[0])) if site_cards else None
     if ask.kind == "scry" and ctx.revealed is not None:
         source = ctx.revealed
-    parsed = [_OPTS[o.token] for o in ask.options[:MAX_OPTIONS]]
+    parsed = [_OPTS[o.token] for o in ask.options]
     # an ability offered as a target is marked on its stack entity, as a spell is
     offered = {h for p in parsed for h in p[1:3]
                if h is not None and h.namespace in ("card", "ability")}
@@ -598,35 +604,18 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
             on_stack[frame.handle] = (depth, frame)
         for t in frame.declared_targets:
             stack_targeted[t] = stack_targeted.get(t, 0) + 1
-    groups = []
+    # every public card, however many (no cut since 2026-11-18: KNOWLEDGE/2026-11-18/213)
     for ph in (me_h, opp_h):
         zones = world.players[ph].zones
-        if ph == me_h and ZONE_HAND in zones:
-            ents.extend((h, ZONE_HAND, ph) for h in zones[ZONE_HAND].entries)
-        if ZONE_BATTLEFIELD in zones:
-            ents.extend((h, ZONE_BATTLEFIELD, ph) for h in zones[ZONE_BATTLEFIELD].entries)
-        if ZONE_COMMAND in zones:
-            ents.extend((h, ZONE_COMMAND, ph) for h in zones[ZONE_COMMAND].entries)
+        for zone in ((ZONE_HAND,) if ph == me_h else ()) + (ZONE_BATTLEFIELD, ZONE_COMMAND):
+            if zone in zones:
+                ents.extend((h, zone, ph) for h in zones[zone].entries)
     for ph in (me_h, opp_h):
         zones = world.players[ph].zones
-        if ZONE_GRAVEYARD in zones:
-            groups.append([(h, ZONE_GRAVEYARD, ph) for h in zones[ZONE_GRAVEYARD].entries])
-        if ZONE_EXILE in zones:
-            groups.append([(h, ZONE_EXILE, ph) for h in zones[ZONE_EXILE].entries])
+        for zone in (ZONE_GRAVEYARD, ZONE_EXILE):
+            if zone in zones:
+                ents.extend((h, zone, ph) for h in zones[zone].entries)
     seen = {e[0] for e in ents}
-    room = MAX_CARDS - len(ents)
-    for g in groups:
-        keep = GRAVE_KEEP if g and g[0][1] == ZONE_GRAVEYARD else EXILE_KEEP
-        g = [e for e in g if e[0] not in seen]
-        # keep the newest; offered cards always stay
-        tail = g[-keep:] if len(g) > keep else g
-        extra = [e for e in g[:-keep] if e[0] in offered] if len(g) > keep else []
-        for e in extra + tail:
-            if room <= 0:
-                break
-            ents.append(e)
-            seen.add(e[0])
-            room -= 1
     # offered or revealed cards in hidden zones (library search, scry, a revealed hand)
     hidden = [h for h in sorted(offered | ({ctx.revealed} if ctx.revealed else set()), key=str)
               if h not in seen and h in world.cards]
@@ -634,7 +623,6 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
         zone = world.zone_of(h)
         ents.append((h, zone.kind, zone.controller))
         seen.add(h)
-    ents = ents[: MAX_CARDS + 8]
 
     n = len(ents)
     cards_i = np.zeros((n, CI), dtype=np.int32)
@@ -659,6 +647,7 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
     # what each permanent chose as it entered, by its component token (a card name has none)
     chosen = {s: table.ir_index.get(value_token(q, v), 0)
               for (s, q), v in executor.name_choices.items() if q is not None}
+    named = {s: table.name_row(v) for (s, q), v in executor.name_choices.items() if q is None}
     for j, (h, zone, owner) in enumerate(ents):
         card = cards[stack_card.get(h, h)]
         ident = card.identity
@@ -674,6 +663,7 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
         if host is not None and host in ent_index:
             ci[C_HOST] = ent_index[host] + 1
         ci[C_CHOSEN] = chosen.get(h, 0)  # a choice leaves with its permanent (CR 400.7)
+        ci[C_NAMED] = named.get(h, 0)
         f = cards_f[j]
         f[F_STACK_TARGETED] = stack_targeted.get(h, 0) / 2.0
         if h in on_stack:
@@ -796,8 +786,11 @@ def encode(executor: Any, seat: int, ask: Any, table: CardTable,
         opts_f[i, 1] = kicked
     if ask.kind == "quality":  # quality:<source>:<QUALITY>, each option a value of it
         quality = ask.site.rsplit(":", 1)[1]
-        for i, option in enumerate(ask.options[:k]):
+        for i, option in enumerate(ask.options):
             opts_i[i, O_VALUE] = table.ir_index.get(value_token(quality, option.token), 0)
+    elif ask.kind == "name":  # name:<source>, each option a card name of the format's pool
+        for i, option in enumerate(ask.options):
+            opts_i[i, O_NAMED] = table.name_row(option.token)
     # compact dtypes: these arrays are pickled to the learner and buffered per decision
     return {
         "cards_i": cards_i.astype(np.int16),

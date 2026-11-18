@@ -1,0 +1,105 @@
+{
+ "set": "M20",
+ "games": 600,
+ "voids": 0,
+ "decisions": 92091,
+ "wall_s": 214.9,
+ "overflow": {
+  "name | Diviner's Lockbox": 193,
+  "quality | Icon of Ancestry": 78
+ },
+ "examples": {
+  "quality | Icon of Ancestry": [
+   70,
+   "quality:card:74:CREATURE_TYPE",
+   "o2 Icon of Ancestry enters the battlefield: choose a creature type.",
+   [
+    "Angel",
+    "Ape",
+    "Archer",
+    "Artificer",
+    "Bat",
+    "Beast"
+   ]
+  ],
+  "name | Diviner's Lockbox": [
+   283,
+   "name:card:36",
+   "Choose a card name.",
+   [
+    "Act of Treason",
+    "Aerial Assault",
+    "Aggressive Mammoth",
+    "Agonizing Syphon",
+    "Air Elemental",
+    "Ajani, Inspiring Leader"
+   ]
+  ]
+ },
+ "sizes": {
+  "mulligan": {
+   "0": 1395
+  },
+  "act": {
+   "0": 21838,
+   "16": 1
+  },
+  "attack": {
+   "0": 13492
+  },
+  "block": {
+   "0": 5243
+  },
+  "priority": {
+   "0": 45028
+  },
+  "target": {
+   "0": 1988,
+   "16": 2
+  },
+  "may": {
+   "0": 318
+  },
+  "choose": {
+   "0": 308
+  },
+  "divide": {
+   "0": 673,
+   "16": 2
+  },
+  "sacrifice": {
+   "0": 49
+  },
+  "one_of": {
+   "0": 390
+  },
+  "mulligan_bottom": {
+   "0": 225
+  },
+  "scry": {
+   "0": 263
+  },
+  "quality": {
+   "0": 92,
+   "64": 78
+  },
+  "arrange": {
+   "0": 176
+  },
+  "trigger": {
+   "0": 181
+  },
+  "name": {
+   "272": 193
+  },
+  "discard": {
+   "0": 148
+  },
+  "legend": {
+   "0": 7
+  },
+  "pay": {
+   "0": 1
+  }
+ }
+}

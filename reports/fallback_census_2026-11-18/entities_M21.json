@@ -1,0 +1,16 @@
+{
+ "set": "M21",
+ "games": 400,
+ "decisions": 72072,
+ "unresolved_options": {},
+ "asks_with_unresolved": {},
+ "dropped_cards": {
+  "graveyard": 6156
+ },
+ "decisions_dropping": {
+  "graveyard": 859
+ },
+ "most_dropped": {
+  "graveyard": 20
+ }
+}

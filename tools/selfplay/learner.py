@@ -826,9 +826,6 @@ class Learner:
 
     def _finish_train(self, r: dict, void: bool) -> None:
         a = self.args
-        # the learner's asks answered by the fallback (never trained on); not the opponent's
-        self.counts["overflow"] += sum(n for s, n in zip(r["seats"], r.get("overflow", [0, 0]),
-                                                         strict=True) if s == "learner")
         rows, result = [], None
         for seat in (0, 1):
             steps = self.traj.pop((r["gid"], seat), None)
@@ -1247,10 +1244,9 @@ class Learner:
                 wr[group] += zs
                 if group != "self":  # a win and a loss for the learner: in no set's win rate
                     by_set[set_code] += zs
-            # per update, like "games": the void training games, the learner's asks answered by
-            # the fallback (overflow) and the job requests refused while a full batch waited
-            counts = {"voids": self.counts["train:void"], "overflow": self.counts["overflow"],
-                      "throttled": self.counts["throttled"]}
+            # per update, like "games": the void training games and the job requests refused
+            # while a full batch waited
+            counts = {"voids": self.counts["train:void"], "throttled": self.counts["throttled"]}
             per_update = {k: v - self._iter_counts.get(k, 0) for k, v in counts.items()}
             self._iter_counts = counts
             self.log({"event": "iter", "it": self.it, "stage": self.stage, **st, **tp,

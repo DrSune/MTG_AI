@@ -1,0 +1,16 @@
+{
+ "set": "M20",
+ "games": 300,
+ "decisions": 45409,
+ "unresolved_options": {},
+ "asks_with_unresolved": {},
+ "dropped_cards": {
+  "graveyard": 18
+ },
+ "decisions_dropping": {
+  "graveyard": 18
+ },
+ "most_dropped": {
+  "graveyard": 1
+ }
+}

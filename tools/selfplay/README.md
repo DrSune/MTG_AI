@@ -75,10 +75,12 @@ to the trainer's numerics ~1e-5, §20); without it inference runs in fp32 (befor
 ran fp32 weights under bf16 autocast on CUDA: KNOWLEDGE/2026-11-12/197). The `iter` rows'
 `games`, `turns`, `win` and `learner_seats` (the learner's seats in those games: two in a self
 game; the guard's mulligan rate is per seat) are the batch's games (before 2026-11-17, the games
-that ended between two updates' ends); `voids`, `overflow` (the learner's asks answered by the
-fallback) and `throttled` (job requests refused while a full batch waited; before 2026-11-17 it
-counted the serve loop's passes, about 20 a second) are per update; before 2026-11-12 the last
-three were totals since the process started. `win` is the training win rate per opponent group;
+that ended between two updates' ends); `voids` and `throttled` (job requests refused while a
+full batch waited; before 2026-11-17 it counted the serve loop's passes, about 20 a second) are per
+update; before 2026-11-12 they were totals since the process started. Until 2026-11-18 an
+`overflow` count stood beside them: the learner's asks answered by a fallback agent, never trained
+on (more than 64 options, or a name ask); the network answers every ask since
+(KNOWLEDGE/2026-11-18/213). `win` is the training win rate per opponent group;
 its `self` entry is 0.5 over decided games by construction (one seat wins, the other loses), a
 check of the crediting, and self games stay out of `win_set`. A game that holds its worker
 `actor.HANG_S` (600 s) without handing the baton back is hung and voided (`void-timeout`).

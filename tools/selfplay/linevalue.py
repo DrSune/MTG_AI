@@ -145,8 +145,7 @@ class LineAgent(S.SimAgent):
 
     def decide(self, ask: Any, obs: Any) -> int:
         n = len(ask.options)
-        if (ask.kind not in S.SEARCH_KINDS or n == 1 or n > FT.MAX_OPTIONS
-                or self.decisions >= S.MAX_SIM_DECISIONS):
+        if ask.kind not in S.SEARCH_KINDS or n == 1 or self.decisions >= S.MAX_SIM_DECISIONS:
             return super().decide(ask, obs)
         root = self.root is not None and self.played is None
         step = self.line.step(ask, obs)

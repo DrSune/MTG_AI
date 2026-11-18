@@ -173,10 +173,9 @@ class SimAgent:
         idx = planned(ask, obs.executor.world.turn, self.attack_plan, self.block_plan)
         if idx is not None:
             return idx
-        n = len(ask.options)
-        if n == 1:
+        if len(ask.options) == 1:
             return 0
-        if n > FT.MAX_OPTIONS or ask.kind == "name" or self.decisions >= MAX_SIM_DECISIONS:
+        if self.decisions >= MAX_SIM_DECISIONS:
             return self.fallback.decide(ask, obs)
         self.decisions += 1
         feats = FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx)

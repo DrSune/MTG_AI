@@ -186,7 +186,7 @@ def test_encodings_are_consistent_over_whole_games(table) -> None:
     for feats, idx in samples:
         e = feats["cards_i"].shape[0]
         k = feats["opts_i"].shape[0]
-        assert 2 <= k <= FT.MAX_OPTIONS and 0 <= idx < k
+        assert 2 <= k and 0 <= idx < k
         assert feats["cards_f"].shape == (e, FT.CF)
         refs = feats["opts_i"][:, 1:3]
         assert refs.min() >= 0 and refs.max() <= e + 2  # [none, me, opp, cards...]
@@ -1587,7 +1587,7 @@ def test_the_appended_asks_start_as_other_and_an_old_network_computes_what_it_di
 
     new = ("exile", "remove_counter", "divide")
     assert FT.ASK_KINDS[-3:] == new and set(new) <= SITE_KINDS and not set(new) & set(FT.ASK_GROWN_FROM)
-    assert (FT.CI, FT.CF, FT.PF, FT.GF, FT.OI) == (8, 62, 18, 23, 5)
+    assert (FT.CI, FT.CF, FT.PF, FT.GF, FT.OI) == (9, 62, 18, 23, 6)
     net = M.build(table, d=32, layers=1, heads=4, ff=64).eval()
     with torch.no_grad():
         for p in net.parameters():
@@ -1604,7 +1604,7 @@ def test_the_appended_asks_start_as_other_and_an_old_network_computes_what_it_di
 
     class Recording(HeuristicAgent):
         def decide(self, ask, obs):
-            if len(batches) < 48 and len(ask.options) <= FT.MAX_OPTIONS and ask.kind not in new:
+            if len(batches) < 48 and ask.kind not in new:
                 batches.append(FT.encode(obs.executor, ask.seat, ask, table))
             return super().decide(ask, obs)
 
@@ -1643,8 +1643,8 @@ def test_heuristic_exiles_the_cheapest_card_a_cost_offers() -> None:
 
 
 def test_heuristic_chooses_the_quality_its_cards_share() -> None:
-    """The heuristic (and so the fallback for a creature-type menu wider than MAX_OPTIONS) names
-    the colour or creature type most of its own cards in hand and in public zones have."""
+    """The heuristic names the colour or creature type most of its own cards in hand and in
+    public zones have."""
     from MTG_bot.core.ability_tree import Atom, AtomArgs, Verb
 
     game, _router, me = _teach(hand0=("Llanowar Visionary",),
@@ -1655,6 +1655,95 @@ def test_heuristic_chooses_the_quality_its_cards_share() -> None:
             Atom(verb=Verb.CHOOSE_NAME, args=AtomArgs(pairs=(("quality", quality),))),
             source=source, controller=me)
         assert game.executor.name_choices[(source, quality)] == want, quality
+
+
+def _wide_asks(game, table) -> list:
+    """A name ask over every card name of the table, as Runed Halo, Necromentia and Diviner's
+    Lockbox ask it, and a creature-type ask over 70 types, as Icon of Ancestry asks it in M20."""
+    from MTG_bot.bench.protocol import Ask, Option
+
+    source = _named(game, "Forest")
+    names = sorted(set(table.names[2:]))
+    types = sorted(t[4:] for t in table.ir_vocab if t.startswith("sub:"))[:70]
+    return [Ask(seat=0, kind="name", site=f"name:{source}", prompt="",
+                options=tuple(Option(n, n) for n in names)),
+            Ask(seat=0, kind="quality", site=f"quality:{source}:CREATURE_TYPE", prompt="",
+                options=tuple(Option(t, t) for t in types))]
+
+
+def test_the_network_answers_every_ask_however_many_options(table) -> None:
+    """KNOWLEDGE/2026-11-18/213: an ask of more than 64 options (Icon of Ancestry's creature
+    types) and every name ask (Runed Halo, Necromentia, Diviner's Lockbox) went to the heuristic,
+    never trained on: about one learner decision in ten r29 games. The network answers each,
+    over one option row per option, and a name option points at the card it names, so the
+    network can tell every option apart."""
+    from MTG_bot.bench.test_router import _lenses
+    from tools.selfplay.actor import NetAgent
+    from tools.selfplay.rig import SPObservation
+
+    game, _router, _me = _teach(field0=("Forest",))
+    net = M.build(table, d=32, layers=1, heads=4, ff=64).eval()
+    seen = []
+
+    class Slot(M.LocalSlot):
+        def infer(self, req):
+            seen.append(req[5])
+            return super().infer(req)
+
+    job = {"gid": 0, "seats": ["net", "heuristic"], "greedy": [True, True],
+           "record": [False, False]}
+    agent = NetAgent(Slot({"net": net}), job, 0, table)
+    for ask in _wide_asks(game, table):
+        n = len(ask.options)
+        assert n > 64
+        idx = agent.decide(ask, SPObservation(_lenses()[0], game.executor))
+        feats = seen.pop()
+        assert 0 <= idx < n and feats["opts_i"].shape[0] == n
+        named = feats["opts_i"][:, FT.O_NAMED]
+        if ask.kind == "name":
+            assert list(named) == [table.name_row(o.token) for o in ask.options] and named.min() > 1
+        else:
+            assert not named.any()
+        with torch.no_grad():
+            x, _ = net.tokens(M.collate([feats], "cpu"))
+        assert torch.unique(x[0, -n:], dim=0).shape[0] == n  # every option its own token
+
+
+def test_a_permanents_chosen_card_name_is_observed(table) -> None:
+    """Runed Halo's chosen name was no input: a chosen colour or creature type has a component
+    token (C_CHOSEN), a card name none. The permanent's entity carries the named card's row."""
+    from MTG_bot.bench.protocol import Ask, Option
+
+    game, _router, _me = _teach(field0=("Forest",))
+    source = _named(game, "Forest")
+    ask = Ask(seat=0, kind="may", site=f"may:{source}", prompt="",
+              options=(Option("yes", "yes"), Option("no", "no")))
+    before = FT.encode(game.executor, 0, ask, table)["cards_i"][:, FT.C_NAMED]
+    game.executor.name_choices[(source, None)] = "Shock"
+    after = FT.encode(game.executor, 0, ask, table)["cards_i"][:, FT.C_NAMED]
+    assert table.name_row("Shock") > FT.UNK and not before.any()
+    assert [int(v) for v in after if v] == [table.name_row("Shock")]
+
+
+def test_a_network_from_before_name_options_computes_what_it_did(table, tmp_path) -> None:
+    """A checkpoint without the named-card layer loads it as zero: on every decision, a name
+    ask's and a named permanent's included, it computes what it computed before the layer
+    existed."""
+    game, _router, _me = _teach(field0=("Forest",))
+    game.executor.name_choices[(_named(game, "Forest"), None)] = "Shock"
+    net = M.build(table, d=32, layers=1, heads=4, ff=64).eval()
+    path = tmp_path / "old.pt"
+    M.save(str(path), net, table)
+    ck = torch.load(path, weights_only=False)
+    del ck["state"]["named_ptr.weight"]
+    torch.save(ck, path)
+    old, _, _ = M.load(str(path))
+    assert not old.named_ptr.weight.any()
+    with torch.no_grad():
+        net.named_ptr.weight.zero_()
+        for ask in _wide_asks(game, table):
+            b = M.collate([FT.encode(game.executor, 0, ask, table)], "cpu")
+            assert all(torch.equal(g, w) for g, w in zip(old(b), net(b), strict=True))
 
 
 def test_heuristic_never_casts_an_x_spell_for_x_zero() -> None:
@@ -1891,7 +1980,7 @@ def _asks_old_and_new(table, monkeypatch, games: tuple[int, ...] = ()) -> list[t
             self.caster = caster  # casts Tale's End as soon as it can
 
         def decide(self, ask, obs):
-            if 1 < len(ask.options) <= FT.MAX_OPTIONS and ask.kind != "name":
+            if len(ask.options) > 1:
                 record(obs.executor, ask, obs.ctx)
             cast = [i for i, o in enumerate(ask.options) if o.token.startswith("cast:")]
             if self.caster and ask.kind == "priority" and cast:

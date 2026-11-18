@@ -1,0 +1,114 @@
+{
+ "set": "M21",
+ "games": 1200,
+ "voids": 0,
+ "decisions": 217135,
+ "wall_s": 434.5,
+ "overflow": {
+  "name | Necromentia": 69,
+  "name | Runed Halo": 53
+ },
+ "examples": {
+  "name | Necromentia": [
+   269,
+   "name:card:58",
+   "Choose a card name.",
+   [
+    "Adherent of Hope",
+    "Alchemist's Gift",
+    "Alpine Houndmaster",
+    "Alpine Watchdog",
+    "Angelic Ascension",
+    "Animal Sanctuary"
+   ]
+  ],
+  "name | Runed Halo": [
+   274,
+   "name:card:88",
+   "Choose a card name.",
+   [
+    "Adherent of Hope",
+    "Alchemist's Gift",
+    "Alpine Houndmaster",
+    "Alpine Watchdog",
+    "Angelic Ascension",
+    "Animal Sanctuary"
+   ]
+  ]
+ },
+ "sizes": {
+  "mulligan": {
+   "0": 2843
+  },
+  "mulligan_bottom": {
+   "0": 497
+  },
+  "act": {
+   "0": 45730,
+   "16": 42,
+   "32": 6
+  },
+  "priority": {
+   "0": 120777,
+   "16": 24
+  },
+  "attack": {
+   "0": 25068
+  },
+  "block": {
+   "0": 9695
+  },
+  "discard": {
+   "0": 946,
+   "16": 122
+  },
+  "target": {
+   "0": 4335,
+   "16": 47,
+   "32": 1
+  },
+  "divide": {
+   "0": 1300,
+   "16": 2
+  },
+  "may": {
+   "0": 1747
+  },
+  "choose": {
+   "0": 1111,
+   "16": 125
+  },
+  "one_of": {
+   "0": 895,
+   "16": 161,
+   "32": 26,
+   "48": 42
+  },
+  "scry": {
+   "0": 505
+  },
+  "arrange": {
+   "0": 149
+  },
+  "trigger": {
+   "0": 356,
+   "16": 9
+  },
+  "legend": {
+   "0": 43
+  },
+  "mana": {
+   "0": 271
+  },
+  "name": {
+   "256": 69,
+   "272": 53
+  },
+  "sacrifice": {
+   "0": 116
+  },
+  "pay": {
+   "0": 22
+  }
+ }
+}

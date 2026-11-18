@@ -78,9 +78,9 @@ class _UniformRandom:
 
 
 class NetAgent:
-    """A seat played by a network on the learner. Single-option asks are not decisions, and
-    asks the encoding cannot hold (more than MAX_OPTIONS options, or a ``name`` ask, which lists
-    every card name of the format's pool) go to the fallback agent; both are counted."""
+    """A seat played by a network on the learner. Single-option asks are not decisions; the
+    network answers every other ask, however many options it has (a ``name`` ask lists every
+    card name of the format's pool, each option pointing at its card: features.O_NAMED)."""
 
     def __init__(self, slot: _Slot, job: dict, seat: int, table: FT.CardTable,
                  labeller: Any = None) -> None:
@@ -92,9 +92,7 @@ class NetAgent:
         self.greedy = bool(job["greedy"][seat])
         self.record = bool(job["record"][seat])
         self.table = table
-        self.fallback = HeuristicAgent()
         self.name = spec
-        self.overflow = 0
         self.searcher = None
         self.attack_plan = None  # (the turn it was made in, the plan): search.planned
         self.block_plan = None
@@ -109,12 +107,8 @@ class NetAgent:
                                      seed=job["seed"] * 2 + seat, noise=not self.greedy, **opts)
 
     def decide(self, ask: Any, obs: Any) -> int:
-        n = len(ask.options)
-        if n == 1:
+        if len(ask.options) == 1:
             return 0
-        if n > FT.MAX_OPTIONS or ask.kind == "name":
-            self.overflow += 1
-            return self.fallback.decide(ask, obs)
         if self.attack_plan is not None or self.block_plan is not None:
             from tools.selfplay.search import planned
 
@@ -160,8 +154,7 @@ class RecordingHeuristic:
 
     def decide(self, ask: Any, obs: Any) -> int:
         idx = self.inner.decide(ask, obs)
-        n = len(ask.options)
-        if 1 < n <= FT.MAX_OPTIONS and ask.kind != "name":
+        if len(ask.options) > 1:
             self.samples.append((FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx), idx))
         return idx
 
@@ -181,7 +174,7 @@ class Capture:
         self.views: list[dict] = []
         self.truth: list[tuple[np.ndarray, np.ndarray]] = []
 
-    def __getattr__(self, name: str) -> Any:  # the seat's own (name, plan_combat, overflow, ...)
+    def __getattr__(self, name: str) -> Any:  # the seat's own (name, plan_combat, ...)
         return getattr(self.inner, name)
 
     def decide(self, ask: Any, obs: Any) -> int:
@@ -367,7 +360,6 @@ class Worker:
         audits = [x for a in agents if getattr(a, "searcher", None) for x in a.searcher.audits]
         if audits:
             res["audits"] = audits
-        res["overflow"] = [getattr(a, "overflow", 0) for a in agents]
         bc = [a.samples if isinstance(a, RecordingHeuristic) else None for a in agents]
         if any(s is not None for s in bc):
             res["bc"] = bc
