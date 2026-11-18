@@ -166,19 +166,6 @@ def f38_carrier(card: Any) -> bool:
                for _p, n in walk(card))
 
 
-def chooses_as_it_enters(card: Any) -> bool:
-    return any(isinstance(n, at.EtBState) and n.effect is not None
-               and any(isinstance(a, at.Atom) and a.verb is at.Verb.CHOOSE_NAME for _q, a in walk(n.effect))
-               for _p, n in walk(card))
-
-
-def copies(card: Any) -> bool:
-    """A copy effect: a COPY atom, or a token or object made "a copy of" another (CopyOf, CR 707).
-    No pool card has one yet; the copy round (209 B3) brings them, with F29, F40 and F60."""
-    return any(isinstance(n, at.CopyOf) or isinstance(n, at.Atom) and n.verb is at.Verb.COPY
-               for _p, n in walk(card))
-
-
 def f29_shape(cards: list) -> set:
     """Two token specs of one name with different bytes and abilities in one pool: the binder keys a
     token's record by its name, so one reads the other's abilities (CR 111.3, 707.9)."""
@@ -190,14 +177,6 @@ def f29_shape(cards: list) -> set:
                 specs.setdefault(n.name, set()).add(repr(n))
                 owners.setdefault(n.name, set()).add(card.name)
     return {name for token, made in specs.items() if len(made) > 1 for name in owners[token]}
-
-
-def f40_shape(cards: list) -> set:
-    """A copy effect beside a card that chooses as it enters: a copy that entered without choosing
-    raises (CR 707.2; Icon of Ancestry's ruling). Empty while no pool card copies."""
-    if not any(copies(c) for c in cards):
-        return set()
-    return {c.name for c in cards if chooses_as_it_enters(c) or copies(c)}
 
 
 def f04(card: Any) -> bool:
