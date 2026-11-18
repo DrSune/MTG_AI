@@ -316,6 +316,32 @@ uses generated variants (§5, P2).
     commitment. A value read with the plan as input, V(state, plan), scores candidate plans. The
     learner can then compare "assemble and survive" with "all in now" without simulating, and the
     search refines it where it runs.
+  - **The owner's per-card form (2026-11-18, fourth round; proposed to replace the slots).**
+    - **What it is.** Every card the player could use carries its own intention instead of K plan
+      slots: the hand, permanents with choices, and cards in other zones a permission reaches.
+      - this sequence's actions as A1, A2, ..., each with its planned target, a pointer from the
+        card's token;
+      - "hold" with its time to use and the event before its use;
+      - and so on.
+    - **It feeds back.** The intention is written by a head on the card's own token at every
+      decision. It is read back as a column of the card's token at the next decision, so the
+      network knows what it meant to do with each card, as `C_CHOSEN` carries a chosen colour.
+    - **Why it beats the slots:**
+      - every card is covered and no slot count is set;
+      - a held card always states it is held;
+      - it costs one head and one input column per card token, not new tokens;
+      - it reads as plan-level components.
+    - **What stays from the slots:**
+      - hindsight trains every label from the card's actual fate, and the search's line where it
+        ran;
+      - a card that changes zones starts a new intention (CR 400.7);
+      - one global mode token covers what no single card owns (survive or all in).
+    - **Open with the owner:**
+      - the labels' vocabulary: observable buckets with a hidden vector, or named intents such as
+        "play when the tempo is good";
+      - which cards carry one;
+      - whether exploration samples the labels or only the mode. Labels sampled card by card can
+        clash, for example two A1s.
   - **Built in steps** (the owner: make the simplest case work, then test):
     - v1: this action sequence only; readable next actions; hindsight; commitment.
     - v2: one or two sequences ahead, revised at execution; hold steps with their two heads.

@@ -341,3 +341,15 @@ meaningful work."
   they were before, though this is a lot of things to attend to, and not sure all of it matters)":
   "Work what you are sure of how to implement for this account. When unsure, dont rush to
   conclusions, spar with me to find the optimal path forward."
+
+**The owner, fourth round (2026-11-18).**
+- **The per-card plan.** "What do you think of a plan implementation where it needs to have a plan
+  for every single one of it cards? So other than having an action sequence, it plans the other cards
+  too. It can assign them 'hold for X', 'play when tempo is good' or something similar ... These
+  labels could be part of the card input/encoding for next turn, so it knows what it thought to do
+  with the card last turn. This might be more straightforward AND more useful to be honest. And
+  action cards can get A1, A2... labels. And then the explicit action sequence with planned targets
+  etc can also be a thing."
+- **Component understanding at the plan level.** "It is component understanding/encoding, just at
+  the planning level instead of the playing level, meaning components are different/more ones."
+- **Recorded in** PLAN_PLANNING §5 as the proposed replacement of the plan slots.
