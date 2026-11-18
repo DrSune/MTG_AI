@@ -7,7 +7,9 @@ state. An option token is its type plus the embeddings of the entities it points
 attends to every other (no causal mask: there is no time axis inside one decision).
 
 Heads: one logit per option token (the pointer policy) and a scalar value in [-1, 1] from the
-global token, the expected outcome for the deciding seat.
+global token, the expected outcome for the deciding seat. A planner network (``planner``,
+docs/DESIGN_PLANNER.md v1, planner.py) also reads each card's read-back columns and forecasts,
+on each card token, the card's next use (``forward(b, plan=True)``).
 
 Name dropout (training only) swaps a card's name embedding for the unknown-card row, so the
 network must also read the components; at play time an unseen card uses the unknown row and
@@ -21,6 +23,7 @@ the network in eval mode (training code switches to train mode itself).
 
 from __future__ import annotations
 
+import math
 import os
 from collections.abc import Callable
 from typing import Any
@@ -30,18 +33,21 @@ import torch
 from torch import nn
 
 from tools.selfplay import features as FT
+from tools.selfplay import planner as PL
 
 
 class PolicyValueNet(nn.Module):
     def __init__(self, n_cards: int, n_ir: int, ir_counts: np.ndarray, d: int = 256,
                  layers: int = 6, heads: int = 8, ff: int = 1024, name_dropout: float = 0.1,
-                 mask_names: bool = False):
+                 mask_names: bool = False, planner: bool = False):
         super().__init__()
         # mask_names: every card name read as the unknown card (a generalisation probe: the
         # network must play from components and live state alone)
         self.config = {"n_cards": n_cards, "n_ir": n_ir, "d": d, "layers": layers,
                        "heads": heads, "ff": ff, "name_dropout": name_dropout,
                        "mask_names": bool(mask_names)}
+        if planner:  # in the config only when on: a network without it is saved as before
+            self.config["planner"] = True
         self.d = d
         self.name_dropout = name_dropout
         self.name_emb = nn.Embedding(n_cards, d)
@@ -75,9 +81,12 @@ class PolicyValueNet(nn.Module):
         self.policy_head = nn.Sequential(nn.Linear(d, d), nn.GELU(), nn.Linear(d, 1))
         self.value_head = nn.Sequential(nn.Linear(d, d), nn.GELU(), nn.Linear(d, 1))
         # a named card (features.O_NAMED, C_NAMED), read as a card token reads its identity.
-        # Registered last, so a seeded build draws every older layer's weights as before
+        # Registered last; its construction draw, before _init, moved the seeded weights of every
+        # older layer (the planner's layers are built after _init, so they move none)
         self.named_ptr = nn.Linear(d, d, bias=False)
         self._init()
+        if planner:
+            self._add_planner()
 
     def _init(self) -> None:
         for m in self.modules():
@@ -90,6 +99,26 @@ class PolicyValueNet(nn.Module):
         nn.init.zeros_(self.policy_head[-1].weight)
         nn.init.zeros_(self.value_head[-1].weight)
 
+    def _add_planner(self) -> None:
+        """The planner's layers (planner.py), built after ``_init``, so a seeded build draws every
+        older layer's weights as a build without them does: the read-back's embeddings (when, verb
+        and window; id 0, none, a zero term) and its target pointer; the forecast heads on each
+        card token (when, verb and window logits and the target's "none" logit; the target's
+        pointer to the entities), at zero: they start forecasting uniformly, as the policy's last
+        layer starts."""
+        d = self.d
+        self.plan_when = nn.Embedding(len(PL.WHEN) + 1, d)
+        self.plan_verb = nn.Embedding(len(PL.VERBS) + 1, d)
+        self.plan_window = nn.Embedding(len(PL.WINDOWS) + 1, d)
+        self.plan_target = nn.Linear(d, d, bias=False)
+        self.plan_head = nn.Linear(d, len(PL.WHEN) + len(PL.VERBS) + len(PL.WINDOWS) + 1)
+        self.plan_ptr = nn.Linear(d, d, bias=False)
+        for w in (self.plan_when.weight, self.plan_verb.weight, self.plan_window.weight,
+                  self.plan_target.weight):
+            nn.init.normal_(w, std=0.02)
+        for w in (self.plan_head.weight, self.plan_head.bias, self.plan_ptr.weight):
+            nn.init.zeros_(w)
+
     @property
     def mask_names(self) -> bool:
         return self.config["mask_names"]
@@ -97,6 +126,10 @@ class PolicyValueNet(nn.Module):
     @mask_names.setter
     def mask_names(self, on: bool) -> None:
         self.config["mask_names"] = bool(on)
+
+    @property
+    def planner(self) -> bool:
+        return bool(self.config.get("planner"))
 
     def card_table_emb(self) -> torch.Tensor:
         """Every table row's component vector: the mean of the embeddings of all its component
@@ -132,6 +165,16 @@ class PolicyValueNet(nn.Module):
         x = self.name_emb(self._names(idx, dropout=False)) + ir[idx]
         return self.named_ptr(x * (idx > 0).unsqueeze(-1).to(x.dtype))
 
+    def _readback(self, cards_i: torch.Tensor) -> torch.Tensor:
+        """The planner's read-back of when, verb and window (features.C_PLAN_WHEN .. _WINDOW):
+        each column's embedding, 0 (none) a zero term as in ``value_emb``."""
+        out = 0
+        for emb, col in ((self.plan_when, FT.C_PLAN_WHEN), (self.plan_verb, FT.C_PLAN_VERB),
+                         (self.plan_window, FT.C_PLAN_WINDOW)):
+            ids = cards_i[..., col]
+            out = out + emb(ids) * (ids > 0).unsqueeze(-1).to(emb.weight.dtype)
+        return out
+
     def tokens(self, b: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """The input tokens [global, me, opponent, cards..., options...] and which are real (the
         opponent simulator reads the same view through them: simulator.py)."""
@@ -148,6 +191,10 @@ class PolicyValueNet(nn.Module):
                   # the card name it chose
                   + self.value_emb(cards_i[..., FT.C_CHOSEN])
                   + self._named(cards_i[..., FT.C_NAMED], ir))
+        # a planner network's read-back, each term after the sums it joins: one from a network
+        # without the planner, its layers at zero (``upgraded``), computes what that one did
+        if self.planner:
+            x_card = x_card + self._readback(cards_i)
         x_play = self.player_f(b["players_f"]) + self.player_role.weight[None]
         ent = torch.cat([x_play, x_card], dim=1)  # [B, 2+E, d]
         zero = ent.new_zeros(bsz, 1, self.d)
@@ -155,6 +202,8 @@ class PolicyValueNet(nn.Module):
         x_card = (x_card + self.host(_gather(ent_ext, cards_i[..., FT.C_HOST]))
                   + self.source_ptr(_gather(ent_ext, cards_i[..., FT.C_SOURCE]))
                   + self.target_ptr(_gather(ent_ext, cards_i[..., FT.C_TARGET])))
+        if self.planner:
+            x_card = x_card + self.plan_target(_gather(ent_ext, cards_i[..., FT.C_PLAN_TARGET]))
         ent = torch.cat([x_play, x_card], dim=1)
         ent_ext = torch.cat([zero, ent], dim=1)
         opts_i, opts_f = b["opts_i"], b["opts_f"]
@@ -171,7 +220,9 @@ class PolicyValueNet(nn.Module):
             b["card_mask"], b["opt_mask"]], dim=1)
         return x, valid
 
-    def forward(self, b: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, b: dict[str, torch.Tensor], plan: bool = False) -> tuple[torch.Tensor, ...]:
+        """The option logits and the value; with ``plan`` (a planner network), also the forecast
+        heads (``forecast``)."""
         x, valid = self.tokens(b)
         bsz, e = b["cards_i"].shape[:2]
         k = b["opts_i"].shape[1]
@@ -181,7 +232,25 @@ class PolicyValueNet(nn.Module):
         logits = logits.masked_fill(~b["opt_mask"], -1e9)
         value = torch.tanh(self.value_head(h[:, 0]).squeeze(-1).float())
         assert logits.shape == (bsz, k)
+        if plan:
+            return logits, value, self.forecast(h, b["card_mask"])
         return logits, value
+
+    def forecast(self, h: torch.Tensor, card_mask: torch.Tensor) -> tuple[torch.Tensor, ...]:
+        """The planner's heads (planner.HEADS) on the card tokens of the final hidden states
+        ``h``: when [B, E, |WHEN|], verb [B, E, |VERBS|], window [B, E, |WINDOWS|] and target
+        [B, E, 3 + E]: "none", then a pointer to each entity (me, the opponent, the cards; a
+        padded card -1e9), as features.C_PLAN_TARGET counts them."""
+        if not self.planner:
+            raise ValueError("a forecast needs a planner network (model.load(..., planner=True))")
+        bsz, e = card_mask.shape
+        cards = h[:, 3:3 + e]
+        out = self.plan_head(cards).float()
+        when, verb, win, none = out.split([len(PL.WHEN), len(PL.VERBS), len(PL.WINDOWS), 1], -1)
+        ptr = torch.einsum("bed,bjd->bej", self.plan_ptr(cards), h[:, 1:3 + e]).float()
+        valid = torch.cat([card_mask.new_ones(bsz, 2), card_mask], 1)
+        ptr = (ptr / math.sqrt(self.d)).masked_fill(~valid[:, None, :], -1e9)
+        return when, verb, win, torch.cat([none, ptr], -1)
 
 
 def extend_cards(net: PolicyValueNet, table: FT.CardTable) -> PolicyValueNet:
@@ -224,8 +293,9 @@ def _gather(ent_ext: torch.Tensor, idx: torch.Tensor) -> torch.Tensor:
 
 def widened(a: np.ndarray, width: int) -> np.ndarray:
     """``a`` with zero columns appended up to ``width``. Columns are only ever appended
-    (C_CHOSEN, O_VALUE on 2026-11-13), and 0 is none, so an encoding recorded before one existed
-    (a ceiling window's --search-record shards, a simulator's views) reads exactly."""
+    (C_CHOSEN, O_VALUE on 2026-11-13; the planner's read-back, C_PLAN_WHEN .. C_PLAN_TARGET, on
+    2026-11-18), and 0 is none, so an encoding recorded before one existed (a ceiling window's
+    --search-record shards, a simulator's views) reads exactly."""
     if a.shape[-1] > width:
         raise ValueError(f"an encoding {a.shape[-1]} columns wide, wider than this code's {width}")
     if a.shape[-1] == width:
@@ -270,10 +340,15 @@ class Packed:
 
     FIELDS = ("cards_i", "cards_f", "c_off", "opts_i", "opts_f", "o_off", "players_f", "glob_f",
               "ask_i")
+    #: a planner run's rows also hold (planner.attach): per card row the hindsight labels and the
+    #: read-back plan-following trains on, per decision whether it has one; None otherwise
+    PLAN = ("plan_y", "plan_x", "plan_m")
 
     def __init__(self, **arrays: np.ndarray) -> None:
         for k in self.FIELDS:
             setattr(self, k, arrays[k])
+        for k in self.PLAN:
+            setattr(self, k, arrays.get(k))
 
     def __len__(self) -> int:
         return len(self.c_off) - 1
@@ -283,9 +358,11 @@ class Packed:
         return np.diff(self.c_off) + np.diff(self.o_off)
 
     def __getstate__(self) -> dict:
-        return {k: getattr(self, k) for k in self.FIELDS}
+        return {k: getattr(self, k) for k in self.FIELDS + self.PLAN}
 
     def __setstate__(self, state: dict) -> None:
+        for k in self.PLAN:
+            setattr(self, k, None)
         for k, v in state.items():
             setattr(self, k, v)
 
@@ -293,6 +370,11 @@ class Packed:
 def pack(obs: list[dict[str, np.ndarray]]) -> Packed:
     e = np.array([o["cards_i"].shape[0] for o in obs], dtype=np.int64)
     k = np.array([o["opts_i"].shape[0] for o in obs], dtype=np.int64)
+    plan = {}
+    if "plan_y" in obs[0]:
+        plan = {"plan_y": np.concatenate([o["plan_y"] for o in obs]).astype(np.int16),
+                "plan_x": np.concatenate([o["plan_x"] for o in obs]).astype(np.int16),
+                "plan_m": np.concatenate([o["plan_m"] for o in obs]).astype(np.int8)}
     return Packed(
         cards_i=np.concatenate([o["cards_i"] for o in obs]).astype(np.int16),
         cards_f=np.concatenate([o["cards_f"] for o in obs]).astype(np.float16),
@@ -303,6 +385,7 @@ def pack(obs: list[dict[str, np.ndarray]]) -> Packed:
         players_f=np.stack([o["players_f"] for o in obs]).astype(np.float16),
         glob_f=np.stack([o["glob_f"] for o in obs]).astype(np.float16),
         ask_i=np.stack([o["ask_i"] for o in obs]).astype(np.int16),
+        **plan,
     )
 
 
@@ -332,6 +415,10 @@ def collate_packed(p: Packed, idx: np.ndarray, device: torch.device | str) -> di
         "opts_f": p.opts_f[o_rows].astype(np.float32) * o_mask[..., None],
         "opt_mask": o_mask,
     }
+    if p.plan_y is not None:  # a padded card row has no label (-1) and no read-back
+        out["plan_y"] = np.where(c_mask[..., None], p.plan_y[c_rows], -1).astype(np.int64)
+        out["plan_x"] = p.plan_x[c_rows].astype(np.int64) * c_mask[..., None]
+        out["plan_m"] = p.plan_m[idx].astype(bool)
     return {k: torch.from_numpy(np.ascontiguousarray(v)).to(device, non_blocking=True)
             for k, v in out.items()}
 
@@ -360,10 +447,19 @@ class LocalSlot:
         p = next(net.parameters())
         b = {k: (v.to(p.dtype) if v.is_floating_point() else v)
              for k, v in collate([feats], p.device).items()}
-        logits, value = net(b)
-        probs = torch.softmax(logits[0, : feats["opts_i"].shape[0]].float(), -1)
-        a, v = int(probs.argmax()), float(value.float()[0])
+        out = net(b, plan=want == 4)
+        probs = torch.softmax(out[0][0, : feats["opts_i"].shape[0]].float(), -1)
+        a, v = int(probs.argmax()), float(out[1].float()[0])
+        if want == 4:  # a planning seat's decision: the action and its forecast (actor.NetAgent)
+            return a, forecasts(out[2])[0, : feats["cards_i"].shape[0]]
         return a if want == 0 else (a, v) if want == 1 else (a, v, probs.tolist())
+
+
+def forecasts(heads: tuple[torch.Tensor, ...]) -> np.ndarray:
+    """The forecast heads' best classes, [B, E, 4] (when, verb, window, target), as the read-back
+    keeps them (planner.plan_of): a forecast is the network's best, never sampled
+    (DESIGN_PLANNER §3.3)."""
+    return torch.stack([h.argmax(-1) for h in heads], -1).to(torch.int16).cpu().numpy()
 
 
 def build(table: FT.CardTable, **kw: Any) -> PolicyValueNet:
@@ -451,20 +547,27 @@ def upgraded(state: dict, model: nn.Module, prefix: str = "") -> dict:
         w = state[prefix + key]
         if w.shape[1] < width:
             state[prefix + key] = torch.cat([w, w.new_zeros(w.shape[0], width - w.shape[1])], dim=1)
-    # pointer layers added since this checkpoint (features.C_SOURCE, C_TARGET) start at zero too
+    # pointer layers added since this checkpoint (features.C_SOURCE, C_TARGET) start at zero too;
+    # so do the planner's layers on a network from without it (``load(..., planner=True)``): the
+    # read-back adds nothing and the heads forecast uniformly, so it computes what it did
     for key, w in model.state_dict().items():
-        if key.startswith(prefix) and key not in state and key.endswith("_ptr.weight"):
+        if key.startswith(prefix) and key not in state and (
+                key.endswith("_ptr.weight") or key.startswith(prefix + "plan_")):
             state[key] = torch.zeros_like(w)
     return state
 
 
-def load(path: str, device: torch.device | str = "cpu") -> tuple[PolicyValueNet, FT.CardTable, dict]:
+def load(path: str, device: torch.device | str = "cpu",
+         planner: bool = False) -> tuple[PolicyValueNet, FT.CardTable, dict]:
     """A checkpoint's network in eval mode, its card table and its extra. An older checkpoint's
-    table rows are read as saved (before 2026-11-17 cut at 128 tokens: FT.CardTable)."""
+    table rows are read as saved (before 2026-11-17 cut at 128 tokens: FT.CardTable). With
+    ``planner`` a network saved without the planner becomes a planner network computing what it
+    computed (``upgraded``); a planner network loads as one either way."""
     ck = torch.load(path, map_location="cpu", weights_only=False)
     table = FT.CardTable.from_json(ck["table"])
     cfg = dict(ck["config"])
     n_cards, n_ir = cfg.pop("n_cards"), cfg.pop("n_ir")
+    cfg["planner"] = planner or cfg.get("planner", False)
     model = PolicyValueNet(n_cards, n_ir, table.ir_counts(), **cfg)
     model.load_state_dict(upgraded(ck["state"], model))
     return model.to(device).eval(), table, ck.get("extra", {})
