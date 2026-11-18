@@ -4986,6 +4986,97 @@ def permission_fault(*nodes: Any) -> str | None:
     return faults[0] if faults else None
 
 
+def is_prohibition(node: Any) -> bool:
+    """Is ``node`` one of round B12's prohibitions: a PREVENT_EFFECT over a cast, a move onto the
+    battlefield, a life gain or a game outcome (:func:`prohibition_fault`'s events)?"""
+    return (
+        isinstance(node, Atom)
+        and node.verb is Verb.PREVENT_EFFECT
+        and isinstance(
+            node.args.get("event"),
+            (CastSpellEvent, ZoneChangeEvent, LifeGainedEvent, GameOutcomeEvent),
+        )
+    )
+
+
+def prohibition_placement_fault(*nodes: Any) -> str | None:
+    """Why a prohibition (:func:`is_prohibition`) under ``nodes`` (a card's keywords and
+    abilities) stands where it means nothing or a second thing, else None: where a PERMIT may
+    stand (:func:`permission_fault`), mirrored (gate round B12, MINOR 2; DESIGN_ATOM_ONTOLOGY
+    §19). A prohibition
+
+    - in a static ability (a card's, an emblem's, a granted one) is the static's own rule, live
+      while the static functions (CR 604.2, 611.3a): no ``duration``, and no "may" around it (a
+      static never resolves, so there is nothing to ask);
+    - in the effect of a resolving ability (a spell, an activated, triggered or delayed ability)
+      is a continuous effect that ability creates, for as long as it says (CR 611.2a, 611.2c): its
+      ``duration`` one the templates write, "this turn" or "until the end of your next turn" (a
+      resolved prohibition with none would last the whole game; no card of the 19 sets makes one);
+    - never under EachPlayer or Repeat: whose cast, gain or loss it is, is the event's ``actor``
+      (EachPlayer(ALL_OPPONENTS, PREVENT_EFFECT(LifeGainedEvent(actor=YOU))) is
+      PREVENT_EFFECT(LifeGainedEvent(actor=OPPONENT)), a second encoding), and a repeated rule is
+      the rule;
+    - never in another ability (a replacement, an "as ~ enters" state, a cost modifier, a
+      keyword, an opening-hand action), none of which makes a rule."""
+    faults: list[str] = []
+
+    def visit(node: Any, host: Any, rotated: bool, optional: bool) -> None:
+        if faults:
+            return
+        if isinstance(node, tuple):
+            for item in node:
+                visit(item, host, rotated, optional)
+            return
+        if not dataclasses.is_dataclass(node) or isinstance(node, type):
+            return
+        if is_prohibition(node):
+            fault = _prohibition_misplaced(node, host, rotated, optional)
+            if fault is not None:
+                faults.append(fault)
+            return
+        if isinstance(node, (*_A_CLASSES, DelayedTrigger)):
+            host, rotated, optional = node, False, False
+        elif isinstance(node, (EachPlayer, Repeat)):
+            rotated = True
+        elif isinstance(node, OptionalEffect):
+            optional = True
+        for f in dataclasses.fields(node):
+            visit(getattr(node, f.name), host, rotated, optional)
+
+    visit(nodes, None, False, False)
+    return faults[0] if faults else None
+
+
+#: The durations of a prohibition a resolving ability makes: what the 19 sets print (Silence's
+#: "this turn", Single Combat's "until the end of your next turn"). Another comes with its card.
+_PROHIBITION_DURATIONS = (DurationEot, DurationUntilEndOfNextTurn)
+
+
+def _prohibition_misplaced(atom: Atom, host: Any, rotated: bool, optional: bool) -> str | None:
+    """:func:`prohibition_placement_fault` for one prohibition of the effect of ``host``."""
+    if rotated:
+        return (
+            "a prohibition under EachPlayer or Repeat: whose event it is, is its `actor` (\"each "
+            "opponent can't gain life\" is LifeGainedEvent(actor=OPPONENT)), written once"
+        )
+    duration = atom.args.get("duration")
+    if isinstance(host, StaticAbility):
+        if duration is not None:
+            return "a static's prohibition lasts while the static functions (CR 611.3a): no duration"
+        if optional:
+            return "a static's prohibition is no choice: a static never resolves, so no \"may\""
+        return None
+    if isinstance(host, _REFLEXIVE_HOSTS):
+        if not isinstance(duration, _PROHIBITION_DURATIONS):
+            return (
+                "a prohibition a resolving ability makes lasts as long as it says (CR 611.2a): "
+                "its duration is \"this turn\" or \"until the end of your next turn\""
+            )
+        return None
+    where = type(host).__name__ if host is not None else "bare effect"
+    return f"a prohibition in a {where} makes no rule: it stands in a static or a resolving effect"
+
+
 def self_copy_fault(abilities: tuple, spell_card: bool) -> str | None:
     """Why a copy of "this <object>" (a CopyOf whose source pins IS_SOURCE) stands where "this" is
     no permanent, else None (gate round B3, M3c): in a spell's own effect, or in any ability of an
@@ -5360,6 +5451,7 @@ class CardRecord:
         fault = (
             chosen_quality_fault(self.keywords, self.abilities)
             or permission_fault(self.keywords, self.abilities)
+            or prohibition_placement_fault(self.keywords, self.abilities)
             or event_object_fault(self.keywords, self.abilities)
             or self_copy_fault(self.abilities, bool({"Instant", "Sorcery"} & set(self.types)))
             or opening_hand_fault(self)

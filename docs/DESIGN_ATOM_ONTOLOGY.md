@@ -2916,6 +2916,15 @@ has, a PREVENT_EFFECT over the event it forbids, with four new event lanes:
   `step` and `controller` mean nothing there. "Graveyards or libraries" is one PREVENT_EFFECT per
   zone in the static's Seq (a cast and a move come from one zone, as Faith's Fetters is one per
   declaration).
+- Where one stands (`prohibition_placement_fault`, on every card as `permission_fault` is; gate
+  round B12's MINOR 2): a static's own rule, with no duration (it lasts while the static
+  functions, CR 611.3a) and no "may" around it (a static asks nothing); or a resolving ability's
+  effect, with the duration it prints ("this turn", "until the end of your next turn": CR 611.2a,
+  a resolved rule with none would last the game), where a "may" is a real choice. Never under
+  EachPlayer or Repeat ("each opponent can't gain life" is the event's `actor`, written once), and
+  never in another ability (a replacement, an "as ~ enters" state, a cost modifier). The 19 sets:
+  17 cards with a static prohibition, 5 with a resolving one (Silence M10, M11, M14; Single
+  Combat; Roiling Vortex), none refused (`placement_census.txt`).
 
 **B12-3 Game results.** LOSE_GAME names its player in a required `controller` (`:3479`): YOU,
 TARGET_PLAYER / TARGET_OPPONENT (a printed target: Door to Nothingness), `event_player()`
@@ -3024,8 +3033,8 @@ one (Silence) has no entity, as no resolved effect has (BACKLOG).
    stops; BACKLOG).
 
 **CR basis**: 101.2, 101.3, 103.5, 103.6, 103.6a, 104.1, 104.2b, 104.3b-c, 104.3e, 117, 119.7,
-302.6, 400.7, 601.2, 601.2c, 601.3, 601.3e, 603.3, 608.2d, 611.2c, 614.1a, 614.6, 701.23b,
-704.5a-b, 702.15b, 707.10.
+302.6, 400.7, 601.2, 601.2c, 601.3, 601.3e, 603.3, 604.2, 608.2d, 611.2a, 611.2c, 611.3a, 614.1a,
+614.6, 701.23b, 704.5a-b, 702.15b, 707.10.
 
 **Rejected.**
 - A TriggeredAbility on a "game begins" event for the Leylines: it would use the stack and could be

@@ -1,0 +1,3 @@
+refused: 0
+cards with a static prohibition: 17
+cards with a prohibition elsewhere: 5 [('M10', 'Silence'), ('M11', 'Silence'), ('M14', 'Silence'), ('WAR', 'Single Combat'), ('ZNR', 'Roiling Vortex')]

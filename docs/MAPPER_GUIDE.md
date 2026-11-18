@@ -480,7 +480,9 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
     graveyards or libraries." (one PREVENT_EFFECT per zone), "Creature cards in graveyards and
     libraries can't enter the battlefield.", "Players can't gain life.", "You can't lose the game
     and your opponents can't win the game.". Who can't cast is the `actor`, never a CONTROLLER_IS
-    in the spell's filter. With a duration it is a resolving spell's effect ("this turn").
+    in the spell's filter, nor an EachPlayer around it. With a duration it is a resolving spell's
+    effect ("this turn"); without one, a static's, never with a "may" around it
+    (`ability_tree.prohibition_placement_fault`).
   - **Who loses or wins** (CR 104.3e, 104.2b): LOSE_GAME and WIN_GAME name their player in
     `controller`: "you" YOU, "target player" TARGET_PLAYER, "that player" of a trigger's event
     `ability_tree.event_player()` (Atemsis), "each opponent loses the game" ALL_OPPONENTS (the

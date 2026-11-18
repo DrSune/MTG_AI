@@ -186,6 +186,55 @@ def test_a_prohibition_says_its_restriction_once(make, match) -> None:
         make()
 
 
+def no_gain(**roles: object) -> Atom:
+    """"Players can't gain life" (Giant Cindermaw), with ``roles`` added."""
+    return prevent(LifeGainedEvent(), FAnd(()), **roles)
+
+
+def spell(effect: object) -> at.SpellAbility:
+    return at.SpellAbility(kind=at.SpellKind.SORCERY, effect=effect)
+
+
+def test_a_prohibition_stands_in_a_static_or_a_resolving_effect() -> None:
+    """Where a prohibition means one thing (gate round B12's MINOR 2; round 13's PERMIT rule,
+    mirrored): a static's own rule, with no duration and no "may"; or a resolving ability's
+    effect, for as long as it says (CR 611.2a), where a "may" is a real choice (whether to make
+    the rule at all)."""
+    card(at.StaticAbility(no_gain()))
+    card(at.StaticAbility(at.Seq(steps=(
+        prevent(GameOutcomeEvent(won=False, actor=YOU), FAnd(())),
+        prevent(GameOutcomeEvent(won=True, actor=OPPONENT), FAnd(()))))))
+    for duration in (at.DurationEot(), at.DurationUntilEndOfNextTurn()):
+        card(spell(no_gain(duration=duration)), types=("Sorcery",))
+    card(spell(at.OptionalEffect(no_gain(duration=at.DurationEot()))), types=("Sorcery",))
+    assert at.prohibition_placement_fault((), (at.TriggeredAbility(
+        at.CreatureDiesEvent(filter=FAtom(pred=FAtomPred.IS_SOURCE)), None,
+        no_gain(duration=at.DurationEot())),)) is None
+
+
+@pytest.mark.parametrize(
+    ("ability", "match"),
+    [
+        # a static lasts while it functions (CR 611.3a), and resolves nothing to ask about
+        (at.StaticAbility(no_gain(duration=at.DurationEot())), "no duration"),
+        (at.StaticAbility(at.OptionalEffect(no_gain())), "never resolves"),
+        # "each opponent can't gain life" is the actor's: EachPlayer is its second encoding
+        (at.StaticAbility(at.EachPlayer(ControllerRef.ALL_OPPONENTS, prevent(
+            LifeGainedEvent(actor=YOU), FAnd(())))), "EachPlayer or Repeat"),
+        (spell(at.EachPlayer(ControllerRef.ALL_OPPONENTS, prevent(
+            CastSpellEvent(filter=FAnd(()), actor=YOU), FAnd(()), duration=at.DurationEot()))),
+         "EachPlayer or Repeat"),
+        (spell(at.Repeat(QConst(2), no_gain(duration=at.DurationEot()))), "EachPlayer or Repeat"),
+        # a resolving ability's rule lasts as long as it says: no duration would be the game
+        (spell(no_gain()), "as long as it says"),
+    ],
+)
+def test_a_prohibition_placed_where_it_means_nothing_is_refused(ability, match) -> None:
+    with pytest.raises(ValueError, match=match):
+        card(ability, types=("Sorcery",) if isinstance(ability, at.SpellAbility) else
+             ("Enchantment",))
+
+
 def test_the_at_least_ordinal_is_a_prohibitions_alone() -> None:
     """QAtLeast(1) is every cast (the absent ordinal); a trigger's ordinal is the exact Nth; a
     game outcome is never a trigger's, a replacement's or a history's (the game is over)."""
