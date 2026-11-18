@@ -32,7 +32,10 @@ shapes and both fingerprint-dumped:
     Voyager's "they can't phase in"),
     card damage, counter placement, the attack/block declarations,
     activation (legality's ``ability_playable`` through
-    :meth:`ReplacementRegistry.prevents_activation`) and countering.
+    :meth:`ReplacementRegistry.prevents_activation`), countering, and since round B12 the
+    prohibitions (CR 101.2): casting (``prevents_cast``), entering the battlefield from a
+    graveyard or a library (``prevents_entering``), gaining life (``prevents_life_gain``), and
+    losing or winning the game (``prevents_game_outcome``).
 
 Matching rules (documented, pinned): the player-subject filter of a
 DamageDealtEvent replacement is read with the PLAYER as subject —
@@ -45,6 +48,7 @@ the untap tick needs no re-evaluation of cast-time anaphora.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
@@ -53,6 +57,7 @@ from MTG_bot.core.ability_tree import (
     AbilityActivatedEvent,
     Atom,
     CardDrawnEvent,
+    CastSpellEvent,
     ControllerRef,
     CounteredEvent,
     CounterKind,
@@ -76,6 +81,7 @@ from MTG_bot.core.ability_tree import (
     Filter,
     FNot,
     FOr,
+    GameOutcomeEvent,
     LifeGainedEvent,
     PhasingEvent,
     QAtLeast,
@@ -1157,6 +1163,94 @@ class ReplacementRegistry:
             if eval_filter(event.source, permanent, ctx):
                 return True
         return False
+
+    # ------------------------------------------------------ prohibitions (CR 101.2)
+
+    def _prohibitions(self, kind: type) -> Iterator[tuple[PreventionRecord, ExecCtx]]:
+        """The live prohibitions over events of ``kind`` (DESIGN_ATOM_ONTOLOGY §19: a cast, a
+        move onto the battlefield, a life gain, a game outcome), each with its consult context in
+        the record's own coordinates (:meth:`_live_ctx`: a static's while its source is on the
+        battlefield, a resolved one's until its duration ends), in record order."""
+        for rec in sorted(self.preventions, key=lambda r: r.seq):
+            if isinstance(rec.event, kind):
+                ctx = self._live_ctx(rec)
+                if ctx is not None:
+                    yield rec, ctx
+
+    def _player_prohibited(self, kind: type, player: Handle, applies=lambda event: True) -> bool:
+        """Is a live prohibition over ``kind`` (a player's event: a life gain, a game outcome)
+        about ``player``: its ``actor`` (None: any player) and its condition over that player?"""
+        return any(
+            applies(rec.event)
+            and (rec.event.actor is None or eval_filter(rec.event.actor, player, ctx))
+            and self._condition_holds(rec, player, ctx)
+            for rec, ctx in self._prohibitions(kind)
+        )
+
+    def prevents_cast(self, caster: Handle, card: Handle) -> bool:
+        """CR 601.3: may ``caster`` not begin to cast ``card`` from where it is now? A live
+        prohibition over a CastSpellEvent says so when the cast fits it: its ``actor`` over the
+        caster, its zone pair over the zone the card is cast from, its filter over the card as it
+        is there (CR 601.3e reads the card's characteristics), and its ordinal QAtLeast(n) when
+        the caster has cast n - 1 or more spells this turn that fit it, the turn's casts before
+        the prohibition arrived and the countered ones included (Rule of Law's rulings): "Each
+        player can't cast more than one spell each turn". Legality consults it for every cast,
+        the menu's, a permission's and a CAST effect's (``query.cast_designee_ok``), so a
+        prohibition overrides a permission (Drannith Magistrate's ruling)."""
+        binder = self.executor.binder
+        from_zone = self.world.zone_of(card).kind
+        for rec, ctx in self._prohibitions(CastSpellEvent):
+            event = rec.event
+            if event.actor is not None and not eval_filter(event.actor, caster, ctx):
+                continue
+            if not binder.spell_fits(event, caster, card, from_zone, ctx):
+                continue
+            if not self._condition_holds(rec, card, ctx):
+                continue
+            if isinstance(event.ordinal, QAtLeast) and (
+                binder.casts_this_turn(event, caster, rec.source, rec.controller) + 1
+                < event.ordinal.n
+            ):
+                continue
+            return True
+        return False
+
+    def prevents_entering(self, card: Handle, to_player: Handle) -> bool:
+        """CR 101.2: can't ``card`` enter the battlefield (under ``to_player``'s control) from
+        the zone it is in? "Creature cards in graveyards and libraries can't enter the
+        battlefield" (Grafdigger's Cage) is a prohibition over a ZoneChangeEvent: its endpoints
+        read as the replacement lane reads them (:meth:`_endpoint_matches`) and its subject over
+        the card as it is where it is now (the Cage's ruling: "Look at the card as it exists in
+        your graveyard"). The move does not happen (``verbs._move_all``)."""
+        src = self.world.zone_of(card)
+        for rec, ctx in self._prohibitions(ZoneChangeEvent):
+            event = rec.event
+            if not (
+                self._endpoint_matches(event.to_zone, ZONE_BATTLEFIELD, to_player, ctx)
+                and self._endpoint_matches(event.from_zone, src.kind, src.controller, ctx)
+                and event.subject is not None
+                and eval_filter(event.subject, card, ctx)
+                and self._condition_holds(rec, card, ctx)
+            ):
+                continue
+            return True
+        return False
+
+    def prevents_life_gain(self, player: Handle) -> bool:
+        """CR 101.2: can't ``player`` gain life ("Players can't gain life", Giant Cindermaw;
+        "Your opponents can't gain life", Quakebringer)? The gain does not happen, and nothing
+        replaces a gain that can't happen (Leyline of Punishment's ruling): ``verbs._v_gain_life``
+        asks this before the replacements."""
+        return self._player_prohibited(LifeGainedEvent, player)
+
+    def prevents_game_outcome(self, player: Handle, *, won: bool) -> bool:
+        """CR 101.2: can't ``player`` lose (``won`` False) or win the game? "You can't lose the
+        game and your opponents can't win the game" (Platinum Angel, Herald of Eternal Dawn) is
+        two prohibitions over a GameOutcomeEvent: the state-based losses, LOSE_GAME and WIN_GAME
+        ask it (``Executor.lose``, ``verbs._v_win_game``)."""
+        return self._player_prohibited(
+            GameOutcomeEvent, player, lambda event: event.won is won
+        )
 
     def prevents_countering(self, spell: Handle) -> bool:
         """CR 701.6a, 101.2: can't ``spell`` be countered? Yes when a

@@ -184,9 +184,13 @@ class Verb(Enum):
     # their own timing (CR 117.1a, 305.1): DESIGN_ATOM_ONTOLOGY §17.
     PERMIT = "PERMIT"
     PAY = "PAY"  # pay a cost as an effect ("you may pay {2}", with an "if you do" continuation)
-    LOSE_GAME = (
-        "LOSE_GAME"  # "the player who cast this spell loses the game" (no roles)
-    )
+    # LOSE_GAME / WIN_GAME: the player `controller` names loses or wins the game (CR 104.3e,
+    # 104.2b): "you lose the game" (Nine Lives), "that player loses the game" (Atemsis, Phage),
+    # "target player loses the game" (Door to Nothingness), "you win the game" (Thassa's Oracle).
+    # A "can't lose the game" / "can't win the game" is a PREVENT_EFFECT over GameOutcomeEvent,
+    # which both verbs and the state-based losses consult (DESIGN_ATOM_ONTOLOGY §19).
+    LOSE_GAME = "LOSE_GAME"
+    WIN_GAME = "WIN_GAME"
     FLIP_COIN = (
         "FLIP_COIN"  # "flip a coin" (no roles; outcome gated by FAtomPred.FLIP_WON)
     )
@@ -343,6 +347,12 @@ DESIGNATED_PLAYER_REFS = frozenset({ControllerRef.TARGET_PLAYER, ControllerRef.T
 EMBLEM_RECIPIENTS = frozenset(
     {ControllerRef.YOU, ControllerRef.ALL_OPPONENTS, ControllerRef.TARGET_OPPONENT}
 )
+
+#: Who an effect makes lose the game (LOSE_GAME's ``controller``, CR 104.3e) besides "that
+#: player" (:func:`event_player`): "you" and the printed targets, what the 19 sets print. "Each
+#: opponent ... loses the game" is LOSE_GAME(YOU) under EachPlayer (one form: the plural refs are
+#: refused). WIN_GAME takes YOU only: every "win the game" of the 19 sets is "you win the game".
+LOSERS = frozenset({ControllerRef.YOU, ControllerRef.TARGET_PLAYER, ControllerRef.TARGET_OPPONENT})
 
 
 class QPropField(Enum):
@@ -1531,7 +1541,8 @@ class FAtom:
             if isinstance(self.count, QConst) and self.count.value < 1:
                 raise ValueError(f"FAtom: {self.pred.name} requires count >= 1")
             if isinstance(
-                self.event, (StepEvent, AbilityTriggerEvent, PhasingEvent, CounteredEvent)
+                self.event,
+                (StepEvent, AbilityTriggerEvent, PhasingEvent, CounteredEvent, GameOutcomeEvent),
             ) or (
                 isinstance(self.event, DeclareBlockersEvent) and self.event.count is not None
             ):
@@ -1841,6 +1852,16 @@ def number_in(zone: Zone, filter_: Filter | None = None) -> QCount:
     )
 
 
+def event_player() -> Selector:
+    """"That player" of a trigger's event, the player the event is about (the player a damage
+    trigger's source dealt damage to: Atemsis, Phage), or that object's controller: the referent
+    Selector of MAPPER_GUIDE's R_ITSCONTROLLER, byte for byte Gloom Sower's."""
+    return Selector(
+        QConst(1), SelectorMode.CHOOSE, FAnd(()), (Zone(ZoneKind.ANY, ControllerRef.ANY),),
+        referent="event",
+    )
+
+
 # ---------------------------------------------------------------------------
 # Durations — a small union of frozen dataclasses. An enum cannot carry the
 # Filter that WHILE_CONDITION needs; one dataclass with an optional filter
@@ -1973,6 +1994,20 @@ def _check_ordinal(owner: str, ordinal: object) -> None:
         raise ValueError(f"{owner}: ordinal must be an int >= 1, got {ordinal!r}")
 
 
+def _check_trigger_event(owner: str, event: object) -> None:
+    """An event a trigger, delayed or not, can be about: never a game outcome (when a player
+    loses or wins, the game is over, CR 104.1; GameOutcomeEvent is a prohibition's), never a
+    cast's "nth or a later one" (QAtLeast: a cast that happened has one place, the int ordinal;
+    the at-least form is a prohibition's, DESIGN_ATOM_ONTOLOGY §19)."""
+    if isinstance(event, GameOutcomeEvent):
+        raise ValueError(f"{owner}: a game outcome is a prohibition's event, never a trigger's")
+    if isinstance(getattr(event, "ordinal", None), QAtLeast):
+        raise ValueError(
+            f"{owner}: a cast ordinal QAtLeast(n) is a prohibition's \"more than n - 1\"; a "
+            "trigger's ordinal is the exact Nth (an int)"
+        )
+
+
 @dataclass(frozen=True)
 class ZoneChangeEvent:
     """A permanent changed zones. ETB = from anywhere to the battlefield —
@@ -2005,12 +2040,18 @@ class CastSpellEvent:
     cast by that caster this turn (None = every cast; 2 = "your second
     spell each turn"), ``from_zone_not`` = exclusion: the cast came from
     anywhere OTHER than this zone ("from anywhere other than their hand" —
-    Ghostly Pilferer; mutually exclusive with ``from_zone``)."""
+    Ghostly Pilferer; mutually exclusive with ``from_zone``).
+
+    A prohibition's ordinal is ``QAtLeast(n)``, the nth cast or a later one: "Each player can't
+    cast more than one spell each turn" (Rule of Law) is a PREVENT_EFFECT over the casts that
+    would be a player's second or later, QAtLeast(2), as DeclareBlockersEvent's QAtLeast(2) is
+    "more than one creature". An int stays a trigger's exact Nth (the cast happened, its place
+    is fixed); each form is refused where the other one stands (DESIGN_ATOM_ONTOLOGY §19)."""
 
     filter: Filter
     actor: Filter | None = None
     from_zone: Zone | None = None
-    ordinal: int | None = None
+    ordinal: int | QAtLeast | None = None
     from_zone_not: Zone | None = None
 
     def __post_init__(self) -> None:
@@ -2027,7 +2068,12 @@ class CastSpellEvent:
             raise ValueError(
                 f"CastSpellEvent: from_zone must be a Zone, got {type(self.from_zone).__name__}"
             )
-        _check_ordinal("CastSpellEvent", self.ordinal)
+        if isinstance(self.ordinal, QAtLeast):
+            if self.ordinal.n < 2:
+                # the first or a later cast is every cast: the absent ordinal says it
+                raise ValueError("CastSpellEvent: an ordinal QAtLeast(n) needs n >= 2")
+        else:
+            _check_ordinal("CastSpellEvent", self.ordinal)
         if self.from_zone_not is not None and not isinstance(self.from_zone_not, Zone):
             raise ValueError(
                 f"CastSpellEvent: from_zone_not must be a Zone, got {type(self.from_zone_not).__name__}"
@@ -2469,6 +2515,31 @@ class AbilityActivatedEvent:
             )
 
 
+@dataclass(frozen=True)
+class GameOutcomeEvent:
+    """A player loses (``won`` False) or wins (True) the game: by a state-based action (CR
+    704.5a-b; poison, 704.5c, when its counter lands), an effect ("that player loses the game",
+    CR 104.3e; "you win the game", 104.2b). ``actor`` is evaluated over that PLAYER, as
+    LifeGainedEvent's is (None = any player).
+
+    Its one consumer is PREVENT_EFFECT, a static's "You can't lose the game and your opponents
+    can't win the game" (Platinum Angel; CR 101.2: the "can't" wins): the state-based losses,
+    LOSE_GAME and WIN_GAME consult it before the player loses or wins. A loss an opponent's win
+    brings is no such event (Lich's Mastery's ruling: you can't lose, an opponent can still win).
+    No trigger, replacement or history reads it: the game is over when it happens (CR 104.1)."""
+
+    won: bool
+    actor: Filter | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.won, bool):
+            raise ValueError(f"GameOutcomeEvent: won must be a bool, got {self.won!r}")
+        if self.actor is not None and not _is_filter(self.actor):
+            raise ValueError(
+                f"GameOutcomeEvent: actor must be a Filter, got {type(self.actor).__name__}"
+            )
+
+
 EventSpec = (
     ZoneChangeEvent
     | CastSpellEvent
@@ -2489,6 +2560,7 @@ EventSpec = (
     | SacrificeEvent
     | AbilityActivatedEvent
     | CounteredEvent
+    | GameOutcomeEvent
 )
 
 
@@ -3262,11 +3334,12 @@ class AtomArgs:
                     f"AtomArgs: role 'quality' must be one of {CHOSEN_QUALITIES} (absent: a card "
                     f"name), got {value!r}"
                 )
-            if role == "event" and getattr(value, "ordinal", None) is not None:
-                # PREVENT_EFFECT's event: no prevention lane counts events (gate round 8, m1)
+            if role == "event" and isinstance(getattr(value, "ordinal", None), int):
+                # PREVENT_EFFECT's event: an exact Nth is a trigger's (gate round 8, m1); the cast
+                # prohibition counts with QAtLeast, "the nth or a later one" (round B12)
                 raise ValueError(
-                    "AtomArgs: an event ordinal is a trigger's (the trigger binder reads it); "
-                    "no prevention lane counts events"
+                    "AtomArgs: an exact event ordinal is a trigger's (the trigger binder reads "
+                    "it); a prohibition counts casts with QAtLeast (\"more than one\")"
                 )
         # The mill lane is defined by TOP-pop; a journal_kind="MILL" site
         # that forgets pop_order would silently fall through to the generic
@@ -3399,6 +3472,23 @@ class Atom:
             fault = _cast_roles_fault(self.verb, roles)
             if fault is not None:
                 raise ValueError(f"Atom: {self.verb.name}: {fault}")
+        if self.verb is Verb.PREVENT_EFFECT:
+            fault = prohibition_fault(roles)
+            if fault is not None:
+                raise ValueError(f"Atom: PREVENT_EFFECT: {fault}")
+        if self.verb in (Verb.LOSE_GAME, Verb.WIN_GAME):
+            # Who loses or wins (CR 104.3e, 104.2b), one form each: "that player" is the
+            # trigger's player (event_player); the plural refs are EachPlayer's, and a referent
+            # of "target" is the designated player's second form (gate round 8, M1).
+            who = roles["controller"]
+            loser = who in LOSERS or who == event_player()
+            if who is not ControllerRef.YOU and (self.verb is Verb.WIN_GAME or not loser):
+                raise ValueError(
+                    f"Atom: {self.verb.name}'s controller must be "
+                    + ("YOU" if self.verb is Verb.WIN_GAME
+                       else f"one of {sorted(r.name for r in LOSERS)} or event_player()")
+                    + f", got {who!r}"
+                )
         if self.verb in (Verb.COPY, Verb.CREATE_TOKEN):
             fault = _copy_roles_fault(self.verb, roles)
             if fault is not None:
@@ -3694,6 +3784,50 @@ def _count_limit(quantity: object) -> int | None:
         return quantity.value
     if isinstance(quantity, QAtMost):
         return quantity.n
+    return None
+
+
+#: The zones a card cannot enter the battlefield from under a prohibition: what the 19 sets print
+#: ("Creature cards in graveyards and libraries can't enter the battlefield."), the moves the
+#: enter lane (verbs._move_all) makes. A spell resolving from the stack, a token and a land play
+#: are other lanes: another zone comes with its card and its consumer.
+PROHIBITED_ENTRY_ZONES = frozenset({ZoneKind.GRAVEYARD, ZoneKind.LIBRARY})
+
+
+def prohibition_fault(roles: dict[str, object]) -> str | None:
+    """Why a PREVENT_EFFECT over a cast, a move onto the battlefield, a life gain or a game
+    outcome (round B12's prohibitions, DESIGN_ATOM_ONTOLOGY §19) says something twice or nothing,
+    else None. Its condition is the event's own subject, the other preventions' mirror ("This
+    creature can't block.": condition and filter name one object): the spell for a cast, the card
+    for a move, the universal filter for a player's life gain or game outcome, whose `actor` says
+    whose; any other condition would be a second place for the same restriction. `step` (Frost
+    Breath's untap step) and `controller` mean nothing here."""
+    event = roles.get("event")
+    if not isinstance(event, (CastSpellEvent, ZoneChangeEvent, LifeGainedEvent, GameOutcomeEvent)):
+        return None
+    if isinstance(event, ZoneChangeEvent):
+        if event.subject is None:
+            return "a prohibited move names the cards that can't move (ZoneChangeEvent.subject)"
+        if event.to_zone.kind is not ZoneKind.BATTLEFIELD or (
+            event.from_zone.kind not in PROHIBITED_ENTRY_ZONES
+        ):
+            return (
+                "a prohibited move is a card's entering the battlefield from "
+                f"{sorted(z.name for z in PROHIBITED_ENTRY_ZONES)} (CR 101.2: it does not happen)"
+            )
+        mirror: object = event.subject
+    elif isinstance(event, CastSpellEvent):
+        mirror = event.filter
+    else:
+        mirror = FAnd(())
+    if roles.get("condition") != mirror:
+        return (
+            f"the condition of a prohibition over {type(event).__name__} is the event's subject "
+            f"({mirror!r}); the event says what is prohibited, once"
+        )
+    extra = sorted({"step", "controller"} & roles.keys())
+    if extra:
+        return f"{extra} mean nothing on a prohibition over {type(event).__name__}"
     return None
 
 
@@ -4072,6 +4206,7 @@ class DelayedTrigger:
                 raise ValueError(
                     f"DelayedTrigger: event must be an EventSpec, got {type(self.event).__name__}"
                 )
+            _check_trigger_event("DelayedTrigger", self.event)
         if self.condition is not None and not _is_filter(self.condition):
             raise ValueError(
                 f"DelayedTrigger: condition must be a Filter, got {type(self.condition).__name__}"
@@ -4164,6 +4299,7 @@ class TriggeredAbility:
             raise ValueError(
                 f"TriggeredAbility: event must be an EventSpec, got {type(self.event).__name__}"
             )
+        _check_trigger_event("TriggeredAbility", self.event)
         if self.condition is not None and not _is_filter(self.condition):
             raise ValueError(
                 f"TriggeredAbility: condition must be a Filter, got {type(self.condition).__name__}"
@@ -4320,6 +4456,11 @@ class ReplacementAbility:
                 "ReplacementAbility: an event ordinal is a trigger's (the trigger binder "
                 "reads it); no replacement lane counts events"
             )
+        if isinstance(self.event, GameOutcomeEvent):
+            # no replacement lane reads it: a "can't lose" is a prohibition (PREVENT_EFFECT)
+            raise ValueError(
+                "ReplacementAbility: a game outcome is a prohibition's event (PREVENT_EFFECT)"
+            )
         if self.condition is not None and not _is_filter(self.condition):
             raise ValueError(
                 f"ReplacementAbility: condition must be a Filter, got {type(self.condition).__name__}"
@@ -4468,6 +4609,77 @@ class EtBState:
 
 
 @dataclass(frozen=True)
+class OpeningHandAbility:
+    """An action a player may take with this card from their opening hand (CR 103.6): once the
+    mulligans are done, the starting player takes theirs, then each other player in turn order,
+    and then the first turn begins. ``effect`` is what is done, with the card in its owner's hand
+    as the source and its owner as "you". It never uses the stack: nobody has priority before
+    the first turn (CR 117), so an ability it triggers waits for the first player who would
+    receive priority, in the first upkeep (CR 603.3).
+
+    The one form the 19 sets print is the Leylines' CR 103.6a "If this card is in your opening
+    hand, you may begin the game with it on the battlefield": :func:`begin_on_battlefield`, the
+    "you may" its OptionalEffect (the decision a may ask puts to the network, its source the
+    card). Another action (Gemstone Caverns' luck counter, the Chancellors' reveal, CR 103.6b)
+    comes with its card. It works from the hand only, so only a permanent card's own abilities
+    hold one (``CardRecord``: :func:`opening_hand_fault`)."""
+
+    effect: Effect
+
+    def __post_init__(self) -> None:
+        if self.effect != begin_on_battlefield():
+            raise ValueError(
+                "OpeningHandAbility: the one opening-hand action the IR holds is CR 103.6a's "
+                "begin_on_battlefield() (\"you may begin the game with it on the battlefield\"), "
+                f"got {self.effect!r}"
+            )
+
+
+def begin_on_battlefield() -> OptionalEffect:
+    """"You may begin the game with it on the battlefield" (CR 103.6a): put this card from your
+    hand onto the battlefield, the move Silversmote Ghoul writes for its own graveyard."""
+    return OptionalEffect(
+        Atom(
+            Verb.MOVE_ZONE,
+            AtomArgs(
+                pairs=(
+                    (
+                        "cards",
+                        Selector(
+                            QConst(1),
+                            SelectorMode.CHOOSE,
+                            FAtom(pred=FAtomPred.IS_SOURCE),
+                            (Zone(ZoneKind.HAND, ControllerRef.YOU),),
+                        ),
+                    ),
+                    ("destination", Zone(ZoneKind.BATTLEFIELD, ControllerRef.YOU)),
+                )
+            ),
+        )
+    )
+
+
+def opening_hand_fault(card: object) -> str | None:
+    """Why a card's opening-hand ability means nothing, else None: one stands only among a
+    card's own abilities (never a back face's, a token's, an emblem's, a copy's or a granted
+    one: none is in an opening hand), on a permanent card that is no token (CR 103.6a: it begins
+    the game on the battlefield; an instant or a sorcery cannot), once."""
+    own = [a for a in card.abilities if isinstance(a, OpeningHandAbility)]
+    nested = sum(isinstance(n, OpeningHandAbility) for n in walk(card)) - len(own)
+    if nested:
+        return "an opening-hand ability stands only among a card's own abilities (CR 103.6)"
+    if len(own) > 1:
+        return "a card holds at most one opening-hand ability (two say it twice)"
+    permanent = {"Artifact", "Creature", "Enchantment", "Land", "Planeswalker", "Battle"}
+    if own and (card.is_token or not permanent & set(card.types)):
+        return (
+            "an opening-hand ability begins the game with a permanent card on the battlefield "
+            "(CR 103.6a): a token or a card with no permanent type holds none"
+        )
+    return None
+
+
+@dataclass(frozen=True)
 class KickerAbility:
     """A kicker head sentence (ZNR): the optional extra cost a
     spell may be cast for. NOT a CostModifier — the printed cost is never
@@ -4528,6 +4740,7 @@ Ability = (
     | ReplacementAbility
     | CostModifier
     | EtBState
+    | OpeningHandAbility
     | KickerAbility
     | BackFace
 )
@@ -5113,6 +5326,7 @@ class CardRecord:
             or permission_fault(self.keywords, self.abilities)
             or event_object_fault(self.keywords, self.abilities)
             or self_copy_fault(self.abilities, bool({"Instant", "Sorcery"} & set(self.types)))
+            or opening_hand_fault(self)
         )
         if fault is not None:
             raise ValueError(f"CardRecord: {fault}")
@@ -5171,6 +5385,7 @@ _A_CLASSES = (
     ReplacementAbility,
     CostModifier,
     EtBState,
+    OpeningHandAbility,
     KickerAbility,
     BackFace,
 )
@@ -5196,6 +5411,7 @@ _EV_CLASSES = (
     SacrificeEvent,
     AbilityActivatedEvent,
     CounteredEvent,
+    GameOutcomeEvent,
 )
 _D_CLASSES = (
     DurationEot,
@@ -5641,8 +5857,10 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     },
     # PAY: pay a cost as an effect ("you may pay {2}", with "if you do").
     Verb.PAY: {"cost": True},
-    # LOSE_GAME: no roles — the effect is the loss itself.
-    Verb.LOSE_GAME: {},
+    # LOSE_GAME / WIN_GAME: `controller` is who loses or wins (GAME_RESULT_PLAYERS; WIN_GAME:
+    # YOU only, what the 19 sets print).
+    Verb.LOSE_GAME: {"controller": True},
+    Verb.WIN_GAME: {"controller": True},
     # FLIP_COIN: no roles — the coin is flipped; the outcome is read by
     # FAtomPred.FLIP_WON, never by an arg.
     Verb.FLIP_COIN: {},
@@ -5778,6 +5996,7 @@ _DATACLASSES: tuple[type, ...] = (
     SacrificeEvent,
     AbilityActivatedEvent,
     CounteredEvent,
+    GameOutcomeEvent,
     LiteralName,
     PtDelta,
     TokenSpec,
@@ -5816,6 +6035,7 @@ _DATACLASSES: tuple[type, ...] = (
     ReplacementAbility,
     CostModifier,
     EtBState,
+    OpeningHandAbility,
     KickerAbility,
     BackFace,
     CardRecord,
@@ -5901,7 +6121,7 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("filter", "filter"),
         ("actor", "opt:filter"),
         ("from_zone", "opt:zone"),
-        ("ordinal", "opt:int"),
+        ("ordinal", "opt:cast_ordinal"),
         ("from_zone_not", "opt:zone"),
     ),
     "DeclareAttackersEvent": (
@@ -5950,6 +6170,7 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("actor", "opt:filter"),
     ),
     "CounteredEvent": (("filter", "filter"),),
+    "GameOutcomeEvent": (("won", "bool"), ("actor", "opt:filter")),
     "LiteralName": (("name", "str"),),
     "PtDelta": (("direction", "enum:PtDirection"), ("magnitude", "quantity")),
     "TokenSpec": (
@@ -6054,6 +6275,7 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("condition", "opt:filter"),
         ("effect", "opt:effect"),
     ),
+    "OpeningHandAbility": (("effect", "effect"),),
     "KickerAbility": (("cost", "cost"),),
     # A face with no abilities serializes as {face_name} only (its text
     # lives in the unparsed register, never in a fake tree).
@@ -6116,6 +6338,7 @@ _ABILITY_TAGS = frozenset(
         "ReplacementAbility",
         "CostModifier",
         "EtBState",
+        "OpeningHandAbility",
         "KickerAbility",
         "BackFace",
     }
@@ -6142,6 +6365,7 @@ _EVENT_TAGS = frozenset(
         "SacrificeEvent",
         "AbilityActivatedEvent",
         "CounteredEvent",
+        "GameOutcomeEvent",
     }
 )
 _COST_DELTA_TAGS = frozenset(
@@ -6251,6 +6475,7 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
     "LifeLostEvent": frozenset({"actor", "ordinal"}),
     "SacrificeEvent": frozenset({"actor"}),
     "AbilityActivatedEvent": frozenset({"actor"}),
+    "GameOutcomeEvent": frozenset({"actor"}),
     "TargetingEvent": frozenset({"actor"}),
     "CounterPlacedEvent": frozenset({"count"}),
     "FAtom": frozenset(
@@ -6294,6 +6519,14 @@ def _decode(conv: str, d: Any) -> Any:
         if not isinstance(d, str):
             raise ValueError(f"expected str, got {type(d).__name__}")
         return d
+    if conv == "cast_ordinal":
+        # CastSpellEvent.ordinal: a trigger's exact Nth stays a bare int; a prohibition's "the
+        # nth or a later one" arrives as its QAtLeast tagged dict.
+        if isinstance(d, bool):
+            raise ValueError("CastSpellEvent ordinal: expected an int or a QAtLeast, got bool")
+        if isinstance(d, int):
+            return d
+        return _decode_union(d, frozenset({"QAtLeast"}), "CastSpellEvent ordinal")
     if conv == "loyalty_delta":
         # a literal int stays bare; a Quantity arrives as its tagged dict
         # (Ugin's "[−X]" dynamic loyalty cost).

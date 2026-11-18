@@ -74,6 +74,7 @@ from MTG_bot.core.ability_tree import (
     BackFace,
     CardRecord,
     ControllerRef,
+    OpeningHandAbility,
     QConst,
     Quantity,
     SpellAbility,
@@ -601,6 +602,36 @@ def mulligans(
     return taken
 
 
+def opening_hand_actions(executor: Executor, order: list[Handle]) -> None:
+    """The opening-hand actions (CR 103.6), after the mulligans and before the first turn: the
+    starting player (``order[0]``) takes theirs, then each other player in turn order (the
+    Leylines' ruling). Each card in a player's hand whose record holds an
+    :class:`OpeningHandAbility` runs that ability's effect, the card its source and its owner
+    "you": the Leylines' "you may begin the game with it on the battlefield" is a may ask
+    (``may:<card>:<digest>``, fire or skip, the network's "may" row with the card as the ask's
+    source) and, fired, the move from the hand onto the battlefield (CR 103.6a), the engine's
+    own zone move (the journal sees it enter, a replacement applies to it).
+
+    It all runs inside :meth:`Executor.atomic`: nobody receives priority before the first turn
+    (CR 117), so the state-based actions wait for the first check and an ability the move
+    triggers waits for the first player who would receive priority, in the first upkeep (CR
+    603.3). A player's cards are taken in handle order: "in any order" would matter only between
+    actions that change one another, and none of the 19 sets' do (each moves its own card; no
+    opening-hand card triggers on another one entering)."""
+    from MTG_bot.core.executor.legality import spell_record
+
+    world = executor.world
+    with executor.atomic():
+        for seat in order:
+            for card in sorted(world.players[seat].zone(ZONE_HAND).entries):
+                record = spell_record(executor, card)
+                for ability in record.abilities if record is not None else ():
+                    if isinstance(ability, OpeningHandAbility) and card in world.players[
+                        seat
+                    ].zone(ZONE_HAND).entries:
+                        executor.apply_effect(ability.effect, source=card, controller=seat)
+
+
 # --------------------------------------------------------------- policy side
 @dataclass
 class Act:
@@ -1058,6 +1089,7 @@ _LOSS_KINDS = {
     "LIFE": "life<=0",
     "EMPTY_LIBRARY": "draw from empty library (CR 704.5b)",
     "LOSE_GAME": "LOSE_GAME",
+    "WIN_GAME": "an opponent won (WIN_GAME, CR 104.2b)",
 }
 
 
@@ -1433,6 +1465,7 @@ def _play_turns(
         if not resumed:
             if game.mulligans_pending:
                 mulligans(executor, order)
+                opening_hand_actions(executor, order)  # CR 103.6, then the first turn
                 game.mulligans_pending = False
             executor.start_turn(order[0])
         while True:

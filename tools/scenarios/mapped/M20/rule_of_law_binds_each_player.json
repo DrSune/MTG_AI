@@ -1,0 +1,93 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "'Each player': seat 1 casts its first spell of the turn (Shock, at instant speed in seat 0's turn) after seat 0 cast one, then cannot cast a second (Disfigure). Red on main eaedfc1b.",
+ "cards": [
+  {
+   "key": "law",
+   "real": "Rule of Law",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bolt",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "disfigure",
+   "real": "Disfigure",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "mine",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  },
+  "1": {
+   "R": 1,
+   "B": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "shock",
+   "real": "Shock",
+   "controller": 0,
+   "targets": [
+    "p1"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "bolt",
+   "real": "Shock",
+   "controller": 1,
+   "targets": [
+    "p0"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "disfigure",
+   "real": "Disfigure",
+   "controller": 1,
+   "targets": [
+    "mine"
+   ],
+   "expect_raise": "prohibited:cast"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "bolt": "graveyard",
+   "disfigure": "hand",
+   "mine": "battlefield"
+  },
+  "life": {
+   "0": 18,
+   "1": 18
+  }
+ }
+}

@@ -825,7 +825,11 @@ def cast_designee_ok(
 
     ``atom`` is the CAST being judged. A CAST casts while its ability resolves and ignores the
     timing the card's type sets (CR 608.2g); a permission to cast later is a PERMIT
-    (executor/permits.py), judged by the act menu."""
+    (executor/permits.py), judged by the act menu. A cast a rule or effect prohibits is never
+    castable (CR 601.3: Grafdigger's Cage's "Players can't cast spells from graveyards" stops
+    Chandra, Flame's Catalyst's recast)."""
+    if executor.replacements.prevents_cast(ctx.controller, handle):
+        return False
     if cast_run_gap(executor, handle):
         return True  # the typed guard owns it: fires, raises, ledgers
     return cast_carrier(executor, handle) is not None and _cast_option_payable(

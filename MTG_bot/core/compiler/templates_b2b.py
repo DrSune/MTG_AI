@@ -1012,7 +1012,8 @@ def _build_nine_lives_leave(m: re.Match[str]) -> SentenceOutcome:
             to_zone=Zone(ZoneKind.ANY, ControllerRef.ANY),
             subject=FAtom(pred=FAtomPred.IS_SOURCE),
         ),
-        Atom(verb=Verb.LOSE_GAME, args=AtomArgs()),
+        # who loses is the role every player verb names ("you", CR 104.3e; round B12)
+        Atom(verb=Verb.LOSE_GAME, args=AtomArgs(pairs=(("controller", ControllerRef.YOU),))),
     )
 
 

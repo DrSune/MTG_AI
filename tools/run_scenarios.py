@@ -48,6 +48,12 @@ Pack vocabulary (all keys required as noted):
                                             "mulligan", or the pack key of the card a mulligan
                                             puts on the bottom ("first-legal" takes the first
                                             offered card)
+  opening_hand: [word...]                   optional (CR 103.6): after the mulligans (if any),
+                                            before the first turn, the opening-hand actions run
+                                            (games.opening_hand_actions) on the cards the pack put
+                                            in the seats' hands. The words answer their asks in
+                                            order, one per ask: "fire" or "skip" (a Leyline's
+                                            "you may begin the game with it on the battlefield")
   steps   : [{"op": "deal_damage"|"fight", "source": key, "target": key
               [, "amount": int]},
              {"op": "cast", "real": name, "x": int?, "targets": [key...],
@@ -337,7 +343,13 @@ from MTG_bot.core.ability_tree import (
 from MTG_bot.core.executor import Executor, GameOver, permits
 from MTG_bot.core.executor.durations import duration_tag
 from MTG_bot.core.executor.events import KIND_CAST, KIND_DAMAGE
-from MTG_bot.core.executor.games import OPENING_HAND, get_supply, identity_of, mulligans
+from MTG_bot.core.executor.games import (
+    OPENING_HAND,
+    get_supply,
+    identity_of,
+    mulligans,
+    opening_hand_actions,
+)
 from MTG_bot.core.executor.legality import (
     BEGIN_COMBAT,
     COMBAT_DAMAGE,
@@ -522,6 +534,8 @@ class ScenarioRunner:
         self._control(pack["cards"])
         if "mulligan" in pack:
             self._mulligans(list(pack["mulligan"]))
+        if "opening_hand" in pack:
+            self._pregame(list(pack["opening_hand"]), "opening_hand", opening_hand_actions)
         self._fill_libraries()
         # The clock opens for real (begin_turn: markers, ledger; turn 1, so in a two-player game
         # seat 0 skips its draw step, CR 103.8a, and with more players nobody does, 103.8c);
@@ -640,23 +654,30 @@ class ScenarioRunner:
         """The pack's ``mulligan`` lane: opening hands, then CR 103.5 answered word for word."""
         for seat in self.seats:
             self.world.draw(seat, OPENING_HAND)
+        self._pregame(words, "mulligan", mulligans)
+
+    def _pregame(self, words: list[str], lane: str, procedure) -> None:
+        """A pregame procedure (the mulligans, CR 103.5; the opening-hand actions, 103.6) run
+        over the seats in turn order, its asks answered word for word: each word must be offered
+        by the ask it answers (a pack key resolves to its handle, "first-legal" takes the first
+        offered word), and every word must be taken."""
 
         def answer(vocab: tuple[str, ...], what: str) -> str:
             if not words:
-                raise PackError(f"mulligan: no word left for {what} {tuple(vocab)}")
+                raise PackError(f"{lane}: no word left for {what} {tuple(vocab)}")
             word = words.pop(0)
             got = vocab[0] if word == FIRST_LEGAL else str(self.handles.get(word, word))
             if got not in vocab:
-                raise PackError(f"mulligan: {what}: word {word!r} not offered in {tuple(vocab)}")
+                raise PackError(f"{lane}: {what}: word {word!r} not offered in {tuple(vocab)}")
             return got
 
         self.ex.decisions.provider = answer
         try:
-            mulligans(self.ex, self.seats)
+            procedure(self.ex, self.seats)
         finally:
             self.ex.decisions.provider = None
         if words:
-            raise PackError(f"mulligan: words no ask took: {words}")
+            raise PackError(f"{lane}: words no ask took: {words}")
 
     def run_step(self, step: dict) -> None:
         if "hold_triggers" in step:

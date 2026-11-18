@@ -1,0 +1,52 @@
+{
+ "set": "M11",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "M11 Platinum Angel (round B12's B21-cant-lose; it compiles whole): 'You can't lose the game and your opponents can't win the game.' At 2 life, Lightning Bolt takes seat 0 to -1 and it keeps playing (the ruling; CR 704.5a's check does nothing for it). Red on main eaedfc1b: the sentence did not parse and the Bolt ended the game.",
+ "cards": [
+  {
+   "key": "angel",
+   "real": "Platinum Angel",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bolt",
+   "real": "Lightning Bolt",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "1": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "life",
+   "seat": 0,
+   "set": 2
+  },
+  {
+   "op": "cast",
+   "key": "bolt",
+   "real": "Lightning Bolt",
+   "controller": 1,
+   "targets": [
+    "p0"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": -1
+  },
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ }
+}

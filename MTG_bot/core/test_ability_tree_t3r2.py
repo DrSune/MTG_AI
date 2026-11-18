@@ -673,14 +673,13 @@ def test_walk_visits_new_fields() -> None:
 
 
 def test_phase_in_prevention_item5() -> None:
-    # Item 5: "can't phase in" is a composition of existing nodes; its
-    # fingerprint is pinned.
-    node = _phase_in_prevention()
-    assert at.fingerprint(node) == (
-        "68e1909dc33bb2798b9212c3a6ebd6b2150009579f79bdac1e08586f3142b3a7"
-    )
-    d = at.to_dict(node)
-    assert at.from_dict(str(d["tag"]), d) == node
+    # Item 5 built "can't phase in" as a prevention of a command-zone card entering, the phantom
+    # round R5-9 retired (D16: phasing is no zone change, PhasingEvent says it). Since round B12 a
+    # prevention of a move is the prohibition "can't enter the battlefield", which reads a named
+    # card entering from a graveyard or a library (ability_tree.prohibition_fault): the phantom
+    # no longer builds.
+    with pytest.raises(ValueError, match="prohibited move"):
+        _phase_in_prevention()
 
 
 def test_ugin_dynamic_loyalty_item6() -> None:

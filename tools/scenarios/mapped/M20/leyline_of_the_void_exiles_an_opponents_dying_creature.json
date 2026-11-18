@@ -1,0 +1,78 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Played on Leyline of the Void's record (round B12). 'If a card would be put into an opponent's graveyard from anywhere, exile it instead.' (CR 614.1a): the opponent's creature card Shock kills is exiled (it never dies, the ruling); its controller's own creature goes to the graveyard. Red on main eaedfc1b: the record was needs-atom and the card a carrier.",
+ "cards": [
+  {
+   "key": "void",
+   "real": "Leyline of the Void",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock1",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "shock2",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "theirs",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "mine",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "shock1",
+   "real": "Shock",
+   "controller": 0,
+   "targets": [
+    "theirs"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "shock2",
+   "real": "Shock",
+   "controller": 0,
+   "targets": [
+    "mine"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "theirs": "exile",
+   "mine": "graveyard",
+   "shock1": "graveyard"
+  }
+ }
+}

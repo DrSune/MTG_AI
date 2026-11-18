@@ -1,0 +1,74 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Played on Rule of Law's record (round B12, DESIGN_ATOM_ONTOLOGY 19; it compiles whole). 'Each player can't cast more than one spell each turn.' Seat 0 casts Shock, then cannot begin to cast Unsummon (CR 601.3, 101.2: the prohibition's QAtLeast(2) ordinal, a second cast). Red on main eaedfc1b: the card was a needs-atom carrier and Unsummon resolved.",
+ "cards": [
+  {
+   "key": "law",
+   "real": "Rule of Law",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "unsummon",
+   "real": "Unsummon",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "power": "2",
+   "toughness": "2",
+   "type": "Creature",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "U": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "shock",
+   "real": "Shock",
+   "controller": 0,
+   "targets": [
+    "p1"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "unsummon",
+   "real": "Unsummon",
+   "controller": 0,
+   "targets": [
+    "bear"
+   ],
+   "expect_raise": "prohibited:cast"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "shock": "graveyard",
+   "unsummon": "hand",
+   "bear": "battlefield"
+  },
+  "life": {
+   "1": 18
+  }
+ }
+}

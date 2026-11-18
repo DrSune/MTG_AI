@@ -1,0 +1,53 @@
+{
+ "set": "M11",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Platinum Angel's ruling: once it leaves the battlefield with its controller still at 0 or less life, they lose at the next state-based-action check (CR 704.5a). The twin of platinum_angel_keeps_its_controller_in_at_zero_life.",
+ "cards": [
+  {
+   "key": "angel",
+   "real": "Platinum Angel",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bolt",
+   "real": "Lightning Bolt",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "1": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "life",
+   "seat": 0,
+   "set": 2
+  },
+  {
+   "op": "cast",
+   "key": "bolt",
+   "real": "Lightning Bolt",
+   "controller": 1,
+   "targets": [
+    "p0"
+   ]
+  },
+  {
+   "op": "move",
+   "key": "angel",
+   "to": "graveyard"
+  }
+ ],
+ "expect": {
+  "lost": {
+   "0": true
+  }
+ }
+}

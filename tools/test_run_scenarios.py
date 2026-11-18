@@ -441,3 +441,28 @@ def test_the_revealed_lane_reads_whose_card_a_reveal_showed(tmp_path) -> None:
     assert _run(tmp_path, pack) == []
     fails = _run(tmp_path, {**pack, "expect": {"revealed": {"beast": False, "theirs": True}}})
     assert fails == ["revealed[beast]: expected False, got True", "revealed[theirs]: expected True, got False"]
+
+
+def _run_set(tmp_path: Path, pack: dict, code: str) -> list[str]:
+    """run_pack's failures for ``pack`` dealt from ``code``'s pool."""
+    path = tmp_path / "pack.json"
+    path.write_text(json.dumps(_pack(pack)))
+    return run_pack(path, get_supply("all", code))
+
+
+def test_the_opening_hand_lane_answers_each_ask_with_one_word(tmp_path) -> None:
+    """The ``opening_hand`` lane (CR 103.6, round B12): before the first turn the opening-hand
+    actions run on the cards the pack put in hand, the words answering their asks in order. M11
+    Leyline of Sanctity's "you may begin the game with it on the battlefield" fired is on the
+    battlefield, skipped in hand; a word the ask does not offer, a word left over and an ask with
+    no word left are refused."""
+    pack = {"set": "M11", "cards": [_card("ley", "Leyline of Sanctity", "hand")],
+            "opening_hand": ["fire"], "expect": {"zone": {"ley": "battlefield"}}}
+    assert _run_set(tmp_path, pack, "M11") == []
+    skipped = {**pack, "opening_hand": ["skip"], "expect": {"zone": {"ley": "hand"}}}
+    assert _run_set(tmp_path, skipped, "M11") == []
+    for words, error in ((["keep"], "word 'keep' not offered in ('fire', 'skip')"),
+                         (["fire", "fire"], "opening_hand: words no ask took: ['fire']"),
+                         ([], "opening_hand: no word left for may:")):
+        fails = _run_set(tmp_path, {**pack, "opening_hand": words, "expect": {}}, "M11")
+        assert _fails_with(fails, error), fails

@@ -1359,7 +1359,7 @@ class TestJournalFingerprintRaises(StackCase):
         # state-based-action check after the effect (CR 104.2a, 704.3).
         with self.assertRaises(GameOver):
             self.ex.execute(
-                atom(Verb.LOSE_GAME),
+                atom(Verb.LOSE_GAME, controller=ControllerRef.YOU),
                 source=self.p0,
                 controller=self.p0,
             )
