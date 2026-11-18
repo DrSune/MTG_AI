@@ -18,6 +18,12 @@ NAMES = {p.stem for p in PATHS}
 RESOLVE_SECONDS = 5.0
 
 
+def test_the_first_wave_has_eight_twin_pairs() -> None:
+    # PLAN_PLANNING §4's first wave: A 2 pairs, B1, B2, B3 one each, C 2 pairs, D one.
+    cats = sorted(P.load(p)["category"] for p in PATHS)
+    assert cats == sorted(["A"] * 4 + ["B1"] * 2 + ["B2"] * 2 + ["B3"] * 2 + ["C"] * 4 + ["D"] * 2)
+
+
 @pytest.mark.parametrize("path", PATHS, ids=[p.stem for p in PATHS])
 def test_a_puzzle_is_proven_and_has_its_twin(path) -> None:
     pz = P.load(path)

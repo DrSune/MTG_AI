@@ -1,0 +1,117 @@
+{
+ "name": "c2_take_it_to_the_sweeper",
+ "set": "M20",
+ "category": "C",
+ "twin": "c2_chump_to_the_sweeper",
+ "note": "Take the hit when the life allows (twin of c2_chump_to_the_sweeper: seat 1 at 7 instead of 6). Not blocking leaves seat 1 at 1; next turn Flame Sweep kills both attackers and spares the flying Warden, which attacks for seat 0's last 2 (1). Blocking loses the Warden (0.5).",
+ "world": {
+  "seed": 7
+ },
+ "life": {
+  "0": 2,
+  "1": 7
+ },
+ "cards": [
+  {
+   "key": "halberdier",
+   "real": "Fearless Halberdier",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "enforcer",
+   "real": "Bastion Enforcer",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "warden",
+   "real": "Warden of Evos Isle",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "mtn",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 1,
+   "start_tapped": true
+  },
+  {
+   "key": "isl1",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1,
+   "start_tapped": true
+  },
+  {
+   "key": "isl2",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1,
+   "start_tapped": true
+  },
+  {
+   "key": "sweep",
+   "real": "Flame Sweep",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "lib0a",
+   "real": "Plains",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib0b",
+   "real": "Plains",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib1a",
+   "real": "Island",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "lib1b",
+   "real": "Island",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "decider": 1,
+ "prelude": [
+  "ATTACK",
+  "ATTACK"
+ ],
+ "world_prior": [
+  {
+   "p": 1.0,
+   "label": "no hidden card in hand",
+   "cards": []
+  }
+ ],
+ "horizon": 2,
+ "objective": "result",
+ "answer": [
+  "NONE"
+ ],
+ "grade": "proven",
+ "solver": {
+  "values": {
+   "halberdier": 0.5,
+   "enforcer": 0.5,
+   "NONE": 1.0
+  },
+  "best": [
+   "NONE"
+  ],
+  "runs": 119,
+  "decisions": 59,
+  "seconds": 0.34,
+  "worlds": 1
+ }
+}

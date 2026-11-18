@@ -130,6 +130,20 @@ def test_pareto_keeps_only_undominated_vectors() -> None:
     assert pareto([(1, 1), (1, 0), (0, 1)]) == [(1, 1)]
 
 
+def test_a_pause_point_is_transparent() -> None:
+    # The solver resumes a game it stopped at a priority ask. Played on from that pause, a line
+    # reaches exactly the state the same line reaches played straight through from the start.
+    pz = P.load(P.SUITE / "b1_counter_the_answer_lethal.json")
+    tree = P.tree(pz)
+    root = P.roots(pz)[0][0][1]
+    node = tree.expand(root)
+    assert node.kind == "priority" and node.children[node.options[1]].cp is not root.cp
+    for word, tok in zip(node.options, node.tokens):
+        paused, _ = tree.play(node.children[word])
+        straight, _ = tree.play(type(root)(root.cp, root.script + (tok,)))
+        assert paused.executor.state_fingerprint() == straight.executor.state_fingerprint()
+
+
 def test_the_worlds_look_the_same_to_the_decider() -> None:
     # B1's worlds differ in the opponent's hidden card only: the decider's observation at the
     # root is one, so the solver may treat them as one information set.

@@ -54,12 +54,12 @@ REPO = Path(__file__).resolve().parents[2]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from MTG_bot.bench.router import SeatRouter  # noqa: E402
-from MTG_bot.bench.view import OracleIndex, SeatLens, ViewOptions  # noqa: E402
-from MTG_bot.core.executor import GameOver  # noqa: E402
-from MTG_bot.core.executor.games import TURN_CAP, _play  # noqa: E402
-from MTG_bot.core.identity import Handle  # noqa: E402
-from tools.search.fork import fork  # noqa: E402
+from MTG_bot.bench.router import SeatRouter
+from MTG_bot.bench.view import OracleIndex, SeatLens, ViewOptions
+from MTG_bot.core.executor import GameOver
+from MTG_bot.core.executor.games import TURN_CAP, _play
+from MTG_bot.core.identity import Handle
+from tools.search.fork import fork
 
 #: The asks the game loop makes at a priority point (``SeatRouter.take_priority``): no engine call
 #: is in flight, so a copy taken there resumes by asking the same decision again.
@@ -173,9 +173,9 @@ class EngineTree:
     def _stop(self, game: Any, boundary: str) -> bool:
         return game.world.turn > self.last_turn
 
-    def play(self, pos: Pos) -> tuple[Any, Any, _Driver]:
-        """Resume a copy of ``pos.cp`` with its script: (the copy, the exception that stopped it
-        or None, the driver)."""
+    def play(self, pos: Pos) -> tuple[Any, Exception | None]:
+        """Resume a copy of ``pos.cp`` with its script: the copy, and the exception that stopped
+        it (None when the game ended or reached the horizon at a boundary)."""
         self.runs += 1
         game = fork(pos.cp, self.supply)
         driver = _Driver(pos.script, self.last_turn)
@@ -190,7 +190,7 @@ class EngineTree:
             stop = e
         except GameOver:  # _play ends a game itself; a loss found outside it ends it the same
             pass
-        return game, stop, driver
+        return game, stop
 
     def value(self, game: Any) -> float:
         order = game.world.player_order
@@ -200,7 +200,7 @@ class EngineTree:
         return self.undecided
 
     def expand(self, pos: Pos) -> Terminal | Decision:
-        game, stop, driver = self.play(pos)
+        game, stop = self.play(pos)
         if not isinstance(stop, Frontier):
             return Terminal(self.value(game))
         ask = stop.ask
@@ -312,7 +312,8 @@ class Solver:
         runs0 = getattr(self.tree, "runs", 0)
         members = [self.tree.expand(pos) for _, pos in roots]
         if not all(isinstance(m, Decision) and m.seat == self.tree.decider for m in members):
-            raise ScriptError(f"a root is not a decision of the decider: {members}")
+            seen = [m if isinstance(m, Terminal) else (m.seat, m.kind, m.options) for m in members]
+            raise ScriptError(f"a root is not a decision of the decider, per world: {seen}")
         if len({m.key for m in members}) != 1:
             raise ScriptError("the worlds' roots look different to the decider: the prior "
                               "contradicts what it sees")

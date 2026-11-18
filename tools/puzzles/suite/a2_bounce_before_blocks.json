@@ -1,0 +1,97 @@
+{
+ "name": "a2_bounce_before_blocks",
+ "set": "M21",
+ "category": "A",
+ "twin": "a2_pump_after_blocks",
+ "note": "Bounce the blocker before blocks (twin of a2_pump_after_blocks: Unsubstantiate in hand instead of Sure Strike). Returning the blocker now lets both attackers through for 4 (1). After blocks the blocked attacker stays blocked: 2 damage (0).",
+ "world": {
+  "seed": 7
+ },
+ "life": {
+  "0": 20,
+  "1": 4
+ },
+ "cards": [
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "watchdog",
+   "real": "Alpine Watchdog",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mtn",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "isl",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "trick",
+   "real": "Unsubstantiate",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "blocker",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "lib0a",
+   "real": "Plains",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib1a",
+   "real": "Swamp",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "decider": 0,
+ "prelude": [
+  "PASS",
+  "PASS",
+  "ATTACK",
+  "ATTACK"
+ ],
+ "world_prior": [
+  {
+   "p": 1.0,
+   "label": "no hidden card in hand",
+   "cards": []
+  }
+ ],
+ "horizon": 1,
+ "objective": "win",
+ "answer": [
+  "cast:trick"
+ ],
+ "grade": "proven",
+ "solver": {
+  "values": {
+   "PASS": 0.0,
+   "cast:trick": 1.0
+  },
+  "best": [
+   "cast:trick"
+  ],
+  "runs": 38,
+  "decisions": 14,
+  "seconds": 0.12,
+  "worlds": 1
+ }
+}
