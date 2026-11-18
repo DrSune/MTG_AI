@@ -70,6 +70,7 @@ from MTG_bot.core.ability_tree import (
     Atom,
     Choose,
     ControllerRef,
+    CopyOf,
     Cost,
     EachPlayer,
     Effect,
@@ -1154,6 +1155,8 @@ def _designated_player_refs(value: object) -> set[ControllerRef]:
     one predicate (:func:`designated_player_refs`)."""
     if isinstance(value, ControllerRef):
         return {value} if value in DESIGNATED_PLAYER_REFS else set()
+    if isinstance(value, CopyOf):
+        return _designated_player_refs(value.source)
     if isinstance(value, Zone):
         return {value.controller} if value.controller in DESIGNATED_PLAYER_REFS else set()
     if isinstance(value, Selector):
@@ -1264,6 +1267,8 @@ def role_target_selectors(value: object) -> list[Selector]:
 
     if isinstance(value, Selector):
         return [value] if value.mode is SelectorMode.TARGET else []
+    if isinstance(value, CopyOf):  # "a copy of target creature" (CR 707.5)
+        return role_target_selectors(value.source)
     if isinstance(value, QProp) and isinstance(value.referent, Selector):
         return role_target_selectors(value.referent)
     if isinstance(value, QBin):

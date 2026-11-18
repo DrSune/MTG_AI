@@ -27,6 +27,7 @@ from MTG_bot.core.ability_tree import (
     Choose,
     Conditional,
     ControllerRef,
+    CopyOf,
     Cost,
     CostManaGeneric,
     CounterKind,
@@ -79,7 +80,6 @@ from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
     EffectOutcome,
     Match,
-    RuleReminderOutcome,
     TemplateRegistry,
 )
 
@@ -525,7 +525,8 @@ class TestB2bCoverage(unittest.TestCase):
         self.assertEqual(total, 76)
 
     def test_public_api_counts(self) -> None:
-        self.assertEqual(len(templates_b2b.TEMPLATES), 62)
+        # 62 until the copy round moved "You may choose new targets for the copy." to B20
+        self.assertEqual(len(templates_b2b.TEMPLATES), 61)
         self.assertEqual(len(templates_b2b.UNCOVERED), 1)
 
     def test_bucket_labels_b2b(self) -> None:
@@ -2423,16 +2424,16 @@ class TestB2bEffectStructure(unittest.TestCase):
         )
         atom = _atom(ability)
         self.assertIs(atom.verb, Verb.COPY)
-        self._referent_selector(atom, "source")
+        copy = atom.args.get("source")
+        assert isinstance(copy, CopyOf) and not copy.has_exceptions  # one CopyOf, §18
+        self.assertEqual(copy.source.referent, "event")
+        self.assertEqual(copy.source.count, QConst(1))
+        self.assertIs(copy.source.mode, SelectorMode.CHOOSE)
 
-    def test_double_vision_new_targets_is_rule_reminder(self) -> None:
-        match = _single_match(
-            self.reg,
-            "You may choose new targets for the copy.",
-        )
-        outcome = match.outcome
-        assert isinstance(outcome, RuleReminderOutcome)
-        self.assertEqual(outcome.reason, "anaphoric_continuation")
+    def test_double_vision_new_targets_is_b20s(self) -> None:
+        # "You may choose new targets for the copy." is no B2b template since the copy round:
+        # templates_b20 folds it into the COPY's new_targets (test_templates_b20.py).
+        self.assertEqual(self.reg.match("You may choose new targets for the copy."), ())
 
     def test_garruks_harbinger_look_at_event_amount(self) -> None:
         ability = _ability(

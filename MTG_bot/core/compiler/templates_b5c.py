@@ -105,6 +105,7 @@ from MTG_bot.core.compiler.templates import (
     SentenceOutcome,
     Template,
 )
+from MTG_bot.core.compiler import templates_b20
 from MTG_bot.core.compiler.templates_b2b import _to_a_player
 from MTG_bot.core.compiler.templates_b5a import (
     _self_selector,
@@ -1845,30 +1846,9 @@ def _build_bullet_create_token(m: re.Match[str]) -> SentenceOutcome:
 
 
 def _build_bullet_copy_token(m: re.Match[str]) -> SentenceOutcome:
-    atom = Atom(
-        verb=Verb.COPY,
-        args=AtomArgs(
-            pairs=(
-                (
-                    "source",
-                    Selector(
-                        QConst(1),
-                        SelectorMode.TARGET,
-                        FAnd(
-                            children=(
-                                FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature"),
-                                FAtom(
-                                    pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU
-                                ),
-                            )
-                        ),
-                        zones=(Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY),),
-                    ),
-                ),
-            )
-        ),
-    )
-    return EffectOutcome(effect=atom)
+    """The bullet of B20's "Create a token that's a copy of target creature you control.": the
+    same tree (CR 707.5)."""
+    return templates_b20.copy_token_sentence(m.group(0).removeprefix("• "))
 
 
 def _build_bullet_cant_block(m: re.Match[str]) -> SentenceOutcome:

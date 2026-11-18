@@ -64,6 +64,7 @@ from MTG_bot.core.ability_tree import (
     Choose,
     Conditional,
     ControllerRef,
+    CopyOf,
     CounteredEvent,
     CounterKind,
     CounterPlacedEvent,
@@ -91,6 +92,8 @@ from MTG_bot.core.ability_tree import (
     PtDirection,
     QAtMost,
     QConst,
+    QProp,
+    QPropField,
     Repeat,
     SacrificeEvent,
     Selector,
@@ -305,6 +308,7 @@ class _Carried(NamedTuple):
     x_value: int | None
     event: object
     event_amount: int | None
+    event_ordinal: int | None = None  # a cast trigger's (QProp ORDINAL)
 
 
 @dataclass
@@ -516,7 +520,7 @@ class TriggerBinder:
         self.executor.layers.attach_source(handle, record, controller=owner)
         return len(triggers)
 
-    def register_token(self, handle: Handle, record: CardRecord) -> None:
+    def register_token(self, handle: Handle, record: CardRecord, *, by_oracle_id: bool = True) -> None:
         """File the token's synthesized record under its synthetic oracle id
         and attach it to the HANDLE, so the battlefield ZONE_CHANGE row's
         lifecycle registration (the SAME :meth:`_lifecycle` path a printed
@@ -524,14 +528,28 @@ class TriggerBinder:
         Pursued Whale Pirate's "can't block" prevention and the mandate layer
         its "creatures you control attack if able" static becomes, anchored to
         the token's CONTROLLER. Pure registration: the world card already
-        exists (CREATE_TOKEN put it there); no zones, no loyalty seed."""
+        exists (CREATE_TOKEN put it there); no zones, no loyalty seed.
+        ``by_oracle_id`` False: the record is the handle's alone, a token copy's (its oracle id is
+        the copied card's, whose own record a copy's exceptions must not replace)."""
         if handle not in self.world.cards:
             raise ValueError(f"register_token: unknown world card {handle}")
         for ability in record.abilities:
             if isinstance(ability, TriggeredAbility):
                 self._check_trigger(ability, record.name)
-        self.records.setdefault(record.oracle_id, record)
+        if by_oracle_id:
+            self.records.setdefault(record.oracle_id, record)
         self.handle_record[handle] = record
+
+    def rebind(self, handle: Handle, record: CardRecord | None) -> None:
+        """A permanent's abilities become ``record``'s as it becomes, or stops being, a copy (CR
+        707.2, 613.2a): with no zone change (CR 707.4), nothing enters and no loyalty is seeded.
+        None: an object with no ability (a vanilla token)."""
+        if record is None:
+            self.handle_record.pop(handle, None)
+            self.detach(handle, leaving=False)
+            return
+        self.handle_record[handle] = record
+        self._register(handle, record, enters=False)
 
     def attach_card(self, handle: Handle, compiled: object) -> int:
         """Register the compiled record for the world card ``handle`` and
@@ -596,14 +614,15 @@ class TriggerBinder:
                 n += 1
         return n
 
-    def _register(self, handle: Handle, record: CardRecord) -> int:
+    def _register(self, handle: Handle, record: CardRecord, *, enters: bool = True) -> int:
         """Bind the record's TriggeredAbility nodes at (handle, idx), and
         register the record's CONTINUOUS half (KeywordAbility +
         StaticAbility nodes → the layer registry; ReplacementAbility nodes
         → the replacement registry) — one battlefield lifecycle for every
         ability shape. Check-then-commit: an unsupported event kind raises
         BEFORE the old bindings are dropped (flag, never degrade into a
-        silent unlink)."""
+        silent unlink). ``enters`` False: the permanent did not enter (:meth:`rebind`), so its
+        printed loyalty is not seeded."""
         triggers = []
         aura = "Aura" in record.subtypes
         for idx, ability in enumerate(record.abilities):
@@ -615,7 +634,8 @@ class TriggerBinder:
         self.detach(handle, leaving=False)
         for idx, ability in triggers:
             self.attached[(handle, idx)] = ability
-        self.seed_loyalty(handle)
+        if enters:
+            self.seed_loyalty(handle)
         # ORDER MATTERS: replacements.attach_source opens with its own
         # detach_source sweep (its idempotence rule), which would expire
         # the PreventionRecords that layers.attach_source registers for a
@@ -1670,6 +1690,16 @@ class TriggerBinder:
             ctx.bindings.update(payload.carried.bindings)
             ctx.x_value = payload.carried.x_value
             ctx.event, ctx.event_amount = payload.carried.event, payload.carried.event_amount
+            ctx.event_ordinal = payload.carried.event_ordinal
+        elif isinstance(payload.node.event, CastSpellEvent) and any(
+            isinstance(n, QProp) and n.field is QPropField.ORDINAL for n in walk(payload.node.effect)
+        ):
+            # "each other instant and sorcery spell you've cast before it this turn" (Thousand-Year
+            # Storm): the cast's ordinal among those its event describes, the spells cast after it
+            # not counted, fixed as the trigger goes on the stack.
+            ctx.event_ordinal = self._fitting_cast_ordinal(
+                payload.node.event, event, payload.source, payload.controller
+            )
         if payload.gathered is not None:
             # CR 603.2c: a gathered event names every object it gathered (_queue), not
             # one row's: "they" (Selector(referent="event"), Angelic Guardian) is all of
@@ -2044,6 +2074,8 @@ class TriggerBinder:
             if not isinstance(inner, Atom):
                 continue
             for _role, value in inner.args.pairs:
+                if isinstance(value, CopyOf):
+                    value = value.source  # "a copy of target creature": the copy's target
                 if (
                     isinstance(value, Selector)
                     and value.mode is SelectorMode.TARGET
@@ -2402,6 +2434,7 @@ class TriggerBinder:
             ctx.x_value,
             ctx.event,
             ctx.event_amount,
+            ctx.event_ordinal,
         )
         event = GameEvent(
             clock=self.executor.journal.clock,

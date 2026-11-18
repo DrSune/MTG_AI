@@ -237,6 +237,14 @@ class RiderOutcome:
     rider: ReplacementAbility
 
 
+@dataclass(frozen=True)
+class NewTargetsOutcome:
+    """"You may choose new targets for the copy." (CR 707.10c): no ability of its own. The
+    compiler folds it into the ``new_targets`` role of the one COPY put onto the stack by the
+    ability printed before it, and leaves it unparsed when there is none
+    (DESIGN_ATOM_ONTOLOGY §18)."""
+
+
 SentenceOutcome = Union[
     KeywordOutcome,
     RuleReminderOutcome,
@@ -247,6 +255,7 @@ SentenceOutcome = Union[
     AdditionalCostOutcome,
     ActivationGateOutcome,
     RiderOutcome,
+    NewTargetsOutcome,
 ]
 
 # ---------------------------------------------------------------------------

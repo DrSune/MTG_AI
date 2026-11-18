@@ -164,6 +164,11 @@ class SpellStack:
     dump the fingerprint folds."""
 
     frames: list[StackObject] = field(default_factory=list)
+    # The objects that left the stack this turn, by handle, as they last existed there (CR
+    # 608.2h): "copy that spell" copies a spell countered before its copy trigger resolved
+    # (copies.stack_object). Cleared as each turn begins: no trigger waits across turns for one.
+    # History, not position: never in the dump.
+    left: dict[Handle, StackObject] = field(default_factory=dict)
 
     def push(self, frame: StackObject) -> None:
         self.frames.append(frame)
@@ -171,7 +176,14 @@ class SpellStack:
     def pop(self) -> StackObject:
         if not self.frames:
             raise ValueError("executor: stack resolution with an empty stack")
-        return self.frames.pop()
+        frame = self.frames.pop()
+        self.left[frame.handle] = frame
+        return frame
+
+    def remove(self, frame: StackObject) -> None:
+        """Take ``frame`` off the stack without resolving it (countered, moved off, exiled)."""
+        self.frames.remove(frame)
+        self.left[frame.handle] = frame
 
     def dump(self) -> tuple[tuple[object, ...], ...]:
         """Canonical LIFO view (bottom → top) for the replay fingerprint:

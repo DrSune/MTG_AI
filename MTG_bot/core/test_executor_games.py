@@ -167,7 +167,8 @@ class DeckSupplyTest(unittest.TestCase):
         # report 305. Re-pin it only after diffing the gated compile with and
         # without the change: a change must move exactly the cards it affects.
         # R13 (Verb.PERMIT): 300 -> 303, exactly the two Chandras and Demonic Embrace.
-        self.assertEqual(len(self.supply.engine_ids), 303)
+        # The copy round (Verb.COPY's handler, §18): 303 -> 305, Double Vision, Sublime Epiphany.
+        self.assertEqual(len(self.supply.engine_ids), 305)
 
 
 class ShapeGapSupplyExclusionTest(unittest.TestCase):
@@ -201,7 +202,8 @@ class ShapeGapSupplyExclusionTest(unittest.TestCase):
     def test_m21_supply_untouched_by_the_lane(self) -> None:
         m21 = get_supply("engine")
         self.assertEqual(m21.shape_gaps, ())
-        self.assertEqual(len(m21.deckable), 283)  # R13: + the two Chandras, Demonic Embrace
+        # R13: + the two Chandras, Demonic Embrace; the copy round: + Double Vision, Sublime Epiphany
+        self.assertEqual(len(m21.deckable), 285)
 
 
 class KickerLaneTest(unittest.TestCase):

@@ -155,7 +155,10 @@ class Verb(Enum):
     SEARCH = "SEARCH"  # Grim Tutor, Cultivate
     SHUFFLE = "SHUFFLE"  # Grim Tutor ("then shuffle"), Necromentia
     COUNTER_SPELL = "COUNTER_SPELL"  # Cancel, Lofty Denial
-    COPY = "COPY"  # Double Vision ("copy that spell"); the executor has no handler for it
+    # COPY: "copy that spell" (Double Vision; CR 707.10), "each other artifact you control becomes a
+    # copy of that artifact until end of turn" (Masterful Replication; CR 707.2, 613.2a). The copied
+    # object is a CopyOf value, which CREATE_TOKEN takes too for "a token that's a copy" (707.5).
+    COPY = "COPY"
     SACRIFICE = "SACRIFICE"  # Goremand ("each opponent sacrifices a creature")
     DISCARD = "DISCARD"  # Teferi, Master of Time [+1] ("draw a card, then discard a card")
     SCRY = "SCRY"  # Opt ("scry 1"), Riddleform
@@ -347,7 +350,7 @@ class QPropField(Enum):
     (FAtomPred.QTY_GE) reads POWER, TOUGHNESS, MANA_VALUE or COLOR of the object it judges
     (``FAtom.field``); QDistinct counts the different COLOR, NAME or MANA_VALUE values among a
     population. The player fields (LIFE, STARTING_LIFE) only make sense with the "controller"
-    referent; AMOUNT, THIS_WAY_COUNT and THAT_MANY_COUNT only with "event"; COUNTER_COUNT with
+    referent; AMOUNT, THIS_WAY_COUNT, THAT_MANY_COUNT and ORDINAL only with "event"; COUNTER_COUNT with
     "event", "source" (SOUL counters on the source Equipment, Malefic Scythe) or "target"
     (counters on the chosen target, Invigorating Surge); COLOR and NAME are no number QProp reads
     — all validated in QProp.__post_init__. The number of cards in a zone is a QCount over the
@@ -374,6 +377,10 @@ class QPropField(Enum):
     # THAT_MANY_COUNT: the count chosen by the preceding up-to-X choice ("discard
     # up to two … draw that many", Kinetic Augur).
     THAT_MANY_COUNT = "THAT_MANY_COUNT"
+    # ORDINAL: which one of the turn's spells its cast trigger describes the triggering spell is,
+    # the number CastSpellEvent.ordinal compares ("each other instant and sorcery spell you've cast
+    # before it this turn" is ORDINAL - 1, Thousand-Year Storm). Only a cast trigger's.
+    ORDINAL = "ORDINAL"
 
 
 class QAgg(Enum):
@@ -890,6 +897,7 @@ class QProp:
             QPropField.AMOUNT,
             QPropField.THIS_WAY_COUNT,
             QPropField.THAT_MANY_COUNT,
+            QPropField.ORDINAL,
         )
         if self.field in event_fields and self.referent != "event":
             raise ValueError(f"QProp: {self.field.name} requires the 'event' referent")
@@ -1179,26 +1187,29 @@ class Selector:
                     "Selector: referent convention C2 requires the neutral "
                     f"zone set (Zone(ANY, ANY),), got {self.zones!r}"
                 )
-        if _filter_names(self.filter, FAtomPred.IS_RESULT):
+        if _filter_names(self.filter, FAtomPred.IS_RESULT, negated=False):
             # one meaning, one encoding: "the objects the previous instruction acted
-            # on" as a selection is Selector(referent="result")
+            # on" as a selection is Selector(referent="result"). Their complement ("all
+            # other Nightmare tokens you control", Abyssal Harvester) has no referent form:
+            # FNot(IS_RESULT) stands (in a resolving instruction only, _is_result_misplaced).
             raise ValueError(
                 "Selector: IS_RESULT in a selector's filter is a second form of "
                 "Selector(referent='result')"
             )
 
 
-def _filter_names(filter_: object, pred: FAtomPred) -> bool:
+def _filter_names(filter_: object, pred: FAtomPred, negated: bool | None = None) -> bool:
     """Does ``pred`` occur anywhere in the Filter tree ``filter_`` (children, negations
-    and the inner filters of counting atoms)?"""
+    and the inner filters of counting atoms)? ``negated`` False: only where an even number of
+    negations reaches it (under an odd number it names the complement, another meaning)."""
     if isinstance(filter_, FAtom):
-        return filter_.pred is pred or (
-            filter_.inner_filter is not None and _filter_names(filter_.inner_filter, pred)
+        return (filter_.pred is pred and negated is not True) or (
+            filter_.inner_filter is not None and _filter_names(filter_.inner_filter, pred, negated)
         )
     if isinstance(filter_, (FAnd, FOr)):
-        return any(_filter_names(child, pred) for child in filter_.children)
+        return any(_filter_names(child, pred, negated) for child in filter_.children)
     if isinstance(filter_, FNot):
-        return _filter_names(filter_.inner, pred)
+        return _filter_names(filter_.inner, pred, None if negated is None else not negated)
     return False
 
 
@@ -2625,6 +2636,75 @@ class EmblemSpec:
                 )
 
 
+#: The card types and supertypes (CR 205.2a, 205.4a): the words of a type line that are no subtype.
+TYPE_LINE_KINDS = frozenset({
+    "Artifact", "Battle", "Conspiracy", "Creature", "Dungeon", "Enchantment", "Instant", "Kindred",
+    "Land", "Phenomenon", "Plane", "Planeswalker", "Scheme", "Sorcery", "Tribal", "Vanguard",
+    "Basic", "Legendary", "Ongoing", "Snow", "World"})
+
+
+@dataclass(frozen=True)
+class CopyOf:
+    """"A copy of <source>": the copiable values of one object (CR 707.2: what is printed on it,
+    as modified by other copy effects; for a spell or an ability on the stack, also the choices
+    made for it, 707.10), never its counters, status or other effects. The fields after
+    ``source`` are the copy effect's exceptions, which become part of the copy's copiable values
+    (CR 707.9a-b): "except it's a Nightmare in addition to its other types" (``subtypes``),
+    "except it has haste and 'At the beginning of the end step, sacrifice this token.'"
+    (``keywords``, ``abilities``). Another kind of exception ("isn't legendary", "it's 1/1",
+    "enters with an additional +1/+1 counter") comes with the card that prints it.
+
+    Where it stands (``Atom``): CREATE_TOKEN's ``tokens`` (a token that's a copy, CR 707.5) and
+    COPY's ``source`` (a copy put onto the stack, CR 707.10, or permanents that become copies,
+    613.2a). DESIGN_ATOM_ONTOLOGY §18."""
+
+    source: Selector
+    subtypes: tuple[str, ...] = ()
+    keywords: tuple[Keyword, ...] = ()
+    abilities: tuple[Ability, ...] = ()
+
+    def __post_init__(self) -> None:
+        sel = self.source
+        if not isinstance(sel, Selector):
+            raise ValueError(f"CopyOf: source must be a Selector, got {type(sel).__name__}")
+        # One object is copied: a designation of one, "this creature", or a referent ("it",
+        # "that spell"). A population would leave the copied object unnamed.
+        if sel.referent is None and not (
+            sel.mode in (SelectorMode.TARGET, SelectorMode.CHOOSE) and sel.count == QConst(1)
+        ):
+            raise ValueError(
+                "CopyOf: source names one object (a TARGET or CHOOSE of one, or a referent), "
+                f"got {sel.mode.name} of {sel.count!r}"
+            )
+        for word in self.subtypes:
+            if not isinstance(word, str) or not word.strip() or word in TYPE_LINE_KINDS:
+                raise ValueError(
+                    f"CopyOf: subtypes are subtype words (no card type or supertype), got {word!r}"
+                )
+        for keyword in self.keywords:
+            if not isinstance(keyword, Keyword):
+                raise ValueError(f"CopyOf: keywords must be Keyword, got {keyword!r}")
+        for ability in self.abilities:
+            # A keyword is the `keywords` field's (one encoding); an exception gains a triggered,
+            # activated or static ability (CR 707.9a).
+            if not isinstance(ability, (TriggeredAbility, ActivatedAbility, StaticAbility)):
+                raise ValueError(
+                    "CopyOf: an exception's ability is a triggered, activated or static ability, "
+                    f"got {type(ability).__name__}"
+                )
+        for fld in ("subtypes", "keywords"):  # SET fields (§3): order-free, canonical when sorted
+            value = getattr(self, fld)
+            if len(set(value)) != len(value):
+                raise ValueError(f"CopyOf: {fld} must be distinct, got {value!r}")
+            canonical = _set_sorted(value)
+            if canonical != value:
+                object.__setattr__(self, fld, canonical)
+
+    @property
+    def has_exceptions(self) -> bool:
+        return bool(self.subtypes or self.keywords or self.abilities)
+
+
 # ---- Costs ----
 
 
@@ -3274,8 +3354,18 @@ class Atom:
             raise ValueError(
                 "Atom: CHOOSE_NAME's name_filter narrows card names; a quality choice takes none"
             )
+        # `source` is COPY's CopyOf and the cast verbs' Selector: one type per verb.
+        if isinstance(roles.get("source"), CopyOf) != (self.verb is Verb.COPY):
+            raise ValueError(
+                f"Atom: {self.verb.name}'s `source` is "
+                + ("a CopyOf" if self.verb is Verb.COPY else "a Selector (a CopyOf is COPY's)")
+            )
         if self.verb in (Verb.CAST, Verb.PERMIT):
             fault = _cast_roles_fault(self.verb, roles)
+            if fault is not None:
+                raise ValueError(f"Atom: {self.verb.name}: {fault}")
+        if self.verb in (Verb.COPY, Verb.CREATE_TOKEN):
+            fault = _copy_roles_fault(self.verb, roles)
             if fault is not None:
                 raise ValueError(f"Atom: {self.verb.name}: {fault}")
         # Per-verb scope vocabulary (AtomArgs validates the union
@@ -3665,6 +3755,55 @@ def _cast_roles_fault(verb: Verb, roles: dict[str, object]) -> str | None:
             "playing a land is a special action with no cost (CR 116.2a, 305.1): `alternative` "
             "and `additional` mean nothing here"
         )
+    return None
+
+
+def _names_the_stack(sel: Selector) -> bool:
+    """Does ``sel`` look on the stack (one of its zones is the stack's)? A referent's object is
+    judged with its trigger's event (:func:`event_object_fault`)."""
+    return any(z.kind is ZoneKind.STACK for z in sel.zones)
+
+
+def _copy_roles_fault(verb: Verb, roles: dict[str, object]) -> str | None:
+    """Why a COPY's roles, or a CREATE_TOKEN's copy, say one thing two ways or nothing at all,
+    else None (DESIGN_ATOM_ONTOLOGY §18). A copy is put onto the stack (COPY with no `cards`),
+    made a token (CREATE_TOKEN), or permanents become it (COPY's `cards`)."""
+    copy = roles.get("tokens" if verb is Verb.CREATE_TOKEN else "source")
+    if not isinstance(copy, CopyOf):
+        return None if verb is Verb.CREATE_TOKEN else "`source` is the CopyOf: what is copied"
+    if verb is Verb.CREATE_TOKEN:
+        if _names_the_stack(copy.source):
+            return "a copy of a spell or an ability is put onto the stack (COPY), never a token"
+        return None
+    target = roles.get("cards")
+    if target is None:
+        sel = copy.source
+        if not (sel.referent == "event" or (sel.referent is None and sel.zones and all(
+            z.kind is ZoneKind.STACK for z in sel.zones
+        ))):
+            return (
+                "a COPY with no `cards` puts a copy of a spell or an ability onto the stack (CR "
+                "707.10): its source is a stack object, or the trigger's spell or ability "
+                "(`event`); a token that's a copy is CREATE_TOKEN's"
+            )
+        if copy.has_exceptions:
+            return "a copy of a spell or an ability takes no exception (none printed)"
+        if "duration" in roles:
+            return "a copy put onto the stack lasts until it leaves it: `duration` means nothing"
+        if roles.get("new_targets") is False:
+            return "`new_targets` is True or absent (the copy keeps its targets, CR 707.10)"
+        count = roles.get("count")
+        if isinstance(count, QConst) and count.value < 2:
+            return "`count` absent is one copy; a literal count is 2 or more"
+        return None
+    assert isinstance(target, Selector)
+    if _names_the_stack(target) or _names_the_stack(copy.source):
+        return "a permanent becomes a copy of a permanent or a card (CR 613.2a), no stack object"
+    if "count" in roles or "new_targets" in roles:
+        return "`count` and `new_targets` are a copy put onto the stack's"
+    if not isinstance(roles.get("duration"), DurationEot):
+        # Valki's and Protean Thaumaturge's lasting copies bring theirs with their cards and tests.
+        return "a permanent becomes a copy \"until end of turn\" (DurationEot), none other yet"
     return None
 
 
@@ -4348,25 +4487,35 @@ def _is_result_role(role: str) -> bool:
     return Selector not in allowed and all(t in (*_F_CLASSES, *_EV_CLASSES) for t in allowed)
 
 
-def _is_result_misplaced(node: Any, allowed: bool) -> bool:
+def _is_result_misplaced(node: Any, allowed: bool, in_atom: bool = False) -> bool:
     """Is an IS_RESULT atom reachable from ``node`` outside the Atom roles
     :func:`_is_result_role` admits? ``allowed`` is whether ``node`` sits in one.
     Everywhere else (a selector, an ability's or a Conditional's condition, a
-    trigger's event, a duration) no resolution has a ``result`` register to read."""
+    trigger's event, a duration) no resolution has a ``result`` register to read.
+    One exception, ``in_atom`` (a role of a resolving instruction): "all other <objects>"
+    after an instruction that made or moved one ("Then exile all other Nightmare tokens you
+    control", Abyssal Harvester) is FNot(IS_RESULT) in a selector's filter, the complement of
+    the register, which has no referent form."""
     if isinstance(node, tuple):
-        return any(_is_result_misplaced(item, allowed) for item in node)
+        return any(_is_result_misplaced(item, allowed, in_atom) for item in node)
     if not dataclasses.is_dataclass(node) or isinstance(node, type):
         return False
     if isinstance(node, Atom):
         return any(
-            _is_result_misplaced(value, _is_result_role(role)) for role, value in node.args.pairs
+            _is_result_misplaced(value, _is_result_role(role), True)
+            for role, value in node.args.pairs
         )
+    if isinstance(node, (*_A_CLASSES, DelayedTrigger)):
+        in_atom = False  # another ability's parts: read when it triggers or resolves
     if isinstance(node, FAtom) and node.pred is FAtomPred.IS_RESULT and not allowed:
         return True
+    if in_atom and isinstance(node, FNot) and node.inner == FAtom(pred=FAtomPred.IS_RESULT):
+        return False
     if isinstance(node, Selector):
         allowed = False
     return any(
-        _is_result_misplaced(getattr(node, f.name), allowed) for f in dataclasses.fields(node)
+        _is_result_misplaced(getattr(node, f.name), allowed, in_atom)
+        for f in dataclasses.fields(node)
     )
 
 
@@ -4491,6 +4640,56 @@ def permission_fault(*nodes: Any) -> str | None:
 
     visit(nodes, None, False, False)
     return faults[0] if faults else None
+
+
+def event_object_fault(*nodes: Any) -> str | None:
+    """Why an effect under ``nodes`` reads its trigger's event as something it is not, else None
+    (DESIGN_ATOM_ONTOLOGY §18). A COPY with no ``cards`` of ``event`` copies the stack object its
+    trigger's event made, the cast spell or the activated ability ("copy that spell", "copy that
+    ability", CR 707.10), so it stands only under a cast or an activation trigger; a cast
+    trigger's object is that spell, which no token copies and no permanent becomes (CR 707.5,
+    613.2a); only a cast trigger counts its spell (QProp ORDINAL). A reflexive trigger reads its
+    creator's event."""
+    stack_events = (CastSpellEvent, AbilityActivatedEvent)
+
+    def reads_event(sel: object) -> bool:
+        return isinstance(sel, Selector) and sel.referent == "event"
+
+    def visit(node: Any, event: Any) -> str | None:
+        if isinstance(node, tuple):
+            return next((f for f in (visit(item, event) for item in node) if f), None)
+        if not dataclasses.is_dataclass(node) or isinstance(node, type):
+            return None
+        if isinstance(node, (TriggeredAbility, DelayedTrigger)):
+            event = node.event if node.event is not None else event
+        elif isinstance(node, _A_CLASSES):
+            event = None
+        if isinstance(node, QProp) and node.field is QPropField.ORDINAL and not isinstance(
+            event, CastSpellEvent
+        ):
+            return "QProp ORDINAL counts a cast trigger's spell: it stands only in one"
+        if isinstance(node, Atom) and isinstance(copy := node.args.get(
+            "tokens" if node.verb is Verb.CREATE_TOKEN else "source"
+        ), CopyOf):
+            stack_copy = node.verb is Verb.COPY and node.args.get("cards") is None
+            if stack_copy and reads_event(copy.source) and not isinstance(event, stack_events):
+                return (
+                    "a COPY puts a copy of a spell or an ability onto the stack: its `event` "
+                    "is a cast or an activation trigger's"
+                )
+            if not stack_copy and isinstance(event, CastSpellEvent) and (
+                reads_event(copy.source) or reads_event(node.args.get("cards"))
+            ):
+                return (
+                    "a cast trigger's `event` is a spell: a token copy, or a permanent that "
+                    "becomes a copy, names a permanent or a card"
+                )
+        return next(
+            (f for f in (visit(getattr(node, fld.name), event) for fld in dataclasses.fields(node)) if f),
+            None,
+        )
+
+    return visit(nodes, None)
 
 
 def _cast_verb_misplaced(atom: Atom, host: Any, rotated: bool, granted: bool) -> str | None:
@@ -4785,8 +4984,10 @@ class CardRecord:
                 "of a spell, activated, triggered or delayed ability, with no EachPlayer or "
                 "Repeat between"
             )
-        fault = chosen_quality_fault(self.keywords, self.abilities) or permission_fault(
-            self.keywords, self.abilities
+        fault = (
+            chosen_quality_fault(self.keywords, self.abilities)
+            or permission_fault(self.keywords, self.abilities)
+            or event_object_fault(self.keywords, self.abilities)
         )
         if fault is not None:
             raise ValueError(f"CardRecord: {fault}")
@@ -5059,7 +5260,9 @@ _FATOM_STRING_VOCAB: dict[FAtomPred, tuple[str, ...]] = {
 # AtomArgs.__post_init__).
 _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     "target": (Selector,),
-    "source": (Selector,),
+    # source: the cast verbs' cards (a Selector), COPY's copied object (a CopyOf): one type per
+    # verb (Atom.__post_init__).
+    "source": (Selector, CopyOf),
     "cards": (Selector,),
     "equipment": (Selector,),
     # "controller" takes a referent Selector too: Gloom Sower's "its
@@ -5073,7 +5276,9 @@ _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     "toughness": (*_Q_CLASSES, PtDelta),
     "destination": (Zone,),
     "zone": (Zone,),
-    "tokens": (TokenSpec,),
+    # tokens: what CREATE_TOKEN makes, a token the effect defines (CR 111.3) or a copy of an
+    # object (CR 707.5, 707.2).
+    "tokens": (TokenSpec, CopyOf),
     # emblem: GET_EMBLEM's emblem, its abilities (EmblemSpec).
     "emblem": (EmblemSpec,),
     "card_spec": (LiteralName,),
@@ -5098,6 +5303,9 @@ _ROLE_TYPES: dict[str, tuple[type, ...]] = {
     # lands: PERMIT's "play" (True): a land among its cards may be played (CR 305.1, 116.2a), as
     # well as a spell cast; absent, "cast" (spells only, CR 305.9).
     "lands": (bool,),
+    # new_targets: COPY's "You may choose new targets for the copy" (CR 707.10c), True or absent
+    # (absent: the copy has the targets of what it copies, 707.10).
+    "new_targets": (bool,),
     "tapped_on_enter": (bool,),  # MOVE_ZONE/SEARCH: "put it on the battlefield tapped"
     "unless": (Cost,),  # COUNTER_SPELL's "unless its controller pays X" role
     # name_filter: CHOOSE_NAME's name restriction ("choose a nonbasic card
@@ -5239,7 +5447,19 @@ _VERB_ROLES: dict[Verb, dict[str, bool]] = {
     },
     Verb.SHUFFLE: {"zone": True},
     Verb.COUNTER_SPELL: {"target": True, "unless": False},
-    Verb.COPY: {"source": True},
+    # COPY (CR 707): `source` is the CopyOf. With no `cards`, copies of the spell or ability it
+    # names are put onto the stack (707.10): `count` of them ("copy it twice"; absent, one), each
+    # with new targets if `new_targets` (707.10c). With `cards` (the permanents, ATTACK_POLICY's
+    # subject role), those become copies of it (layer 1, CR 613.2a) for `duration`: no
+    # designation reads `cards`, so "target artifact" in the CopyOf stays its own (Masterful
+    # Replication). _copy_roles_fault.
+    Verb.COPY: {
+        "source": True,
+        "cards": False,
+        "duration": False,
+        "count": False,
+        "new_targets": False,
+    },
     Verb.SACRIFICE: {"target": True},
     Verb.DISCARD: {"controller": True, "cards": True},
     Verb.SCRY: {"controller": True, "count": True},
@@ -5435,6 +5655,7 @@ _DATACLASSES: tuple[type, ...] = (
     PtDelta,
     TokenSpec,
     EmblemSpec,
+    CopyOf,
     CostTap,
     CostManaColor,
     CostManaGeneric,
@@ -5618,6 +5839,12 @@ _SPECS: dict[str, tuple[tuple[str, str], ...]] = {
         ("enters_attacking", "opt:bool"),
     ),
     "EmblemSpec": (("abilities", "tup:ability"),),
+    "CopyOf": (
+        ("source", "selector"),
+        ("subtypes", "tup:str"),
+        ("keywords", "tup:enum:Keyword"),
+        ("abilities", "tup:ability"),
+    ),
     "CostTap": (("target", "opt:selector"),),
     "CostManaColor": (("color", "str"), ("amount", "quantity")),
     "CostManaGeneric": (("amount", "quantity"),),
@@ -5837,6 +6064,7 @@ _ATOM_VALUE_TAGS = (
             "Zone",
             "TokenSpec",
             "EmblemSpec",
+            "CopyOf",
             "LiteralName",
             "PtDelta",
             "ControllerRef",
@@ -5902,6 +6130,8 @@ _OMIT_IF_EMPTY: dict[str, frozenset[str]] = {
         {"zone", "from_zone", "to_zone", "referent", "event", "field", "quantity"}
     ),
     "TokenSpec": frozenset({"colors", "enters_tapped", "enters_attacking"}),
+    # A copy with no exception is its source alone.
+    "CopyOf": frozenset({"subtypes", "keywords", "abilities"}),
     "DamageDealtEvent": frozenset({"source", "combat"}),
     "CostModifier": frozenset({"condition", "extra_deltas"}),
     "SpellAbility": frozenset({"effect", "additional_costs"}),

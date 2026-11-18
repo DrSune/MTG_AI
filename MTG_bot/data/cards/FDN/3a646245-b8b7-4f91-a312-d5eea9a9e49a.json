@@ -4,9 +4,184 @@
  "oracle_id": "3a646245-b8b7-4f91-a312-d5eea9a9e49a",
  "name": "Extravagant Replication",
  "text_sha": "e45c17ebc7d678fb092b448c0c2a57c7d5b948898ee3421bde2fd627075ec2a0",
- "needs_atom": {
-  "missing": "At the beginning of your upkeep, create a token that's a copy of another target nonland permanent you control.: token copy of a permanent. The IR's form is Verb.COPY{source: TARGET selector} (M21 Sublime Epiphany's bullet), but COPY is not in SUPPORTED_VERBS_V2 (G0 fails it), and CREATE_TOKEN needs a fixed TokenSpec, so no executable node copies a permanent's copiable values into a token. The upkeep trigger (TurnPhaseEvent UPKEEP actor you) and the target (another nonland permanent you control: IS_PERMANENT, FNot Land, CONTROLLER_IS you, FNot IS_SOURCE) are expressible; carrier SpellAbility(ENCHANTMENT) would be needed.",
-  "author": "claude-mapper-B",
-  "date": "2026-10-29"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "TriggeredAbility",
+    "event": {
+     "tag": "TurnPhaseEvent",
+     "phase": {
+      "tag": "Phase",
+      "name": "UPKEEP"
+     },
+     "actor": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "CONTROLLER_IS"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": {
+       "tag": "ControllerRef",
+       "name": "YOU"
+      },
+      "inner_filter": null
+     }
+    },
+    "condition": null,
+    "effect": {
+     "tag": "Atom",
+     "verb": {
+      "tag": "Verb",
+      "name": "CREATE_TOKEN"
+     },
+     "args": {
+      "tag": "AtomArgs",
+      "pairs": [
+       [
+        "count",
+        {
+         "tag": "QConst",
+         "value": 1
+        }
+       ],
+       [
+        "tokens",
+        {
+         "tag": "CopyOf",
+         "source": {
+          "tag": "Selector",
+          "count": {
+           "tag": "QConst",
+           "value": 1
+          },
+          "mode": {
+           "tag": "SelectorMode",
+           "name": "TARGET"
+          },
+          "filter": {
+           "tag": "FAnd",
+           "children": [
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "CONTROLLER_IS"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": {
+              "tag": "ControllerRef",
+              "name": "YOU"
+             },
+             "inner_filter": null
+            },
+            {
+             "tag": "FAtom",
+             "pred": {
+              "tag": "FAtomPred",
+              "name": "IS_PERMANENT"
+             },
+             "string_value": null,
+             "color": null,
+             "colors": [],
+             "count": null,
+             "counter_kind": null,
+             "keyword": null,
+             "who": null,
+             "inner_filter": null
+            },
+            {
+             "tag": "FNot",
+             "inner": {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "IS_SOURCE"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            },
+            {
+             "tag": "FNot",
+             "inner": {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Land",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             }
+            }
+           ]
+          },
+          "zones": [
+           {
+            "tag": "Zone",
+            "kind": {
+             "tag": "ZoneKind",
+             "name": "BATTLEFIELD"
+            },
+            "controller": {
+             "tag": "ControllerRef",
+             "name": "ANY"
+            }
+           }
+          ]
+         }
+        }
+       ]
+      ]
+     }
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "ENCHANTMENT"
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-b3-copies",
+  "date": "2026-11-18",
+  "draft_py": "# FDN Extravagant Replication: the compiler's tree is whole (B13-upkeep + B20-copy-token, copy\n# round B3, DESIGN_ATOM_ONTOLOGY §18).\nabilities = [*compiled]\n",
+  "clauses": [
+   {
+    "clause": "At the beginning of your upkeep, create a token that's a copy of another target nonland permanent you control.",
+    "ir": "abilities[0]"
+   }
+  ],
+  "g0_warnings": [],
+  "notes": "Was needs-atom (COPY had no executor). Copy round B3 (DESIGN_ATOM_ONTOLOGY §18): the compiler's tree is whole, B13-upkeep framing B20-copy-token (CREATE_TOKEN(CopyOf(another target nonland permanent you control)), CR 707.5). Packs: tools/scenarios/mapped/FDN/extravagant_replication_*.json."
+ },
+ "probe": {
+  "sha": "9f0d593b784e725d65160e69c08b5f3ab260402e0b20c01f58e2676394fa5f5d"
  }
 }

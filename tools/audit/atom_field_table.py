@@ -46,6 +46,11 @@ CLASSIFY: dict[tuple[str, str], str] = {
     ("BackFace", "abilities"): "IDENTITY",
     ("TokenSpec", "abilities"): "IDENTITY",
     ("EmblemSpec", "abilities"): "IDENTITY",
+    # a copy's exceptions (CR 707.9a-b): the abilities in printed order, the subtype and
+    # keyword words a set (construction-sorted, as TokenSpec's are)
+    ("CopyOf", "abilities"): "IDENTITY",
+    ("CopyOf", "subtypes"): "SET-R1a",
+    ("CopyOf", "keywords"): "SET-R1a",
     ("CardRecord", "types"): "IDENTITY",
     ("CardRecord", "subtypes"): "IDENTITY",
     ("CardRecord", "supertypes"): "IDENTITY",

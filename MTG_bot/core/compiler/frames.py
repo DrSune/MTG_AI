@@ -30,6 +30,7 @@ from dataclasses import replace
 from typing import Any, Final
 
 from MTG_bot.core.ability_tree import (
+    CardDrawnEvent,
     CastSpellEvent,
     Conditional,
     ControllerRef,
@@ -66,6 +67,11 @@ _BUCKET: Final[str] = "B13"
 _PRONOUN: Final[re.Pattern[str]] = re.compile(
     r"\b(?:it|itself|its(?! owner)|they|them|their|that(?! was dealt damage\b)|those)\b",
     re.IGNORECASE,
+)
+#: A copy's own words, whose referent is in the clause: "a token that's a copy of", and "except
+#: it ..." (the token, CR 707.9). Struck out before the pronoun test.
+_OWN_COPY_WORDS: Final[re.Pattern[str]] = re.compile(
+    r"a token that's a copy of|, except it(?:'s| has)\b"
 )
 _ABILITY_WORD: Final[re.Pattern[str]] = re.compile(conditions.ABILITY_WORD)
 #: An intervening "if" at the head of a trigger's clause (CR 603.4).
@@ -163,6 +169,12 @@ FRAMES: Final[tuple[tuple[Template, Callable[[re.Match[str], Any, Any], Sentence
      )),
     # "Whenever you gain|lose life [for the first time each turn], <clause>" (Attended Healer,
     # Cat Collector): B9's life head and event (templates_b9.life_event, the ordinal included).
+    # "Whenever you draw your second card each turn, <clause>" (Homunculus Horde): B2b's head
+    # (Jolrael, Mwonvuli Recluse), CardDrawnEvent.ordinal 2.
+    (_frame("B13-second-draw", "whenever you draw your second card each turn, <clause>",
+            r"Whenever you draw your second card each turn, (?P<clause>.+)"),
+     _triggered(lambda: CardDrawnEvent(
+         actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU), ordinal=2))),
     (_frame("B13-life", "when(ever) you gain|lose life [for the first time each turn], <clause>",
             rf"{templates_b9.LIFE_TRIGGER_RE}, (?P<clause>.+)"),
      lambda m, effect, condition: templates_b2a._ability(
@@ -236,7 +248,7 @@ def compose(sentence: str, registry: TemplateRegistry) -> tuple[Match, ...]:
             if condition is None:
                 return ()  # an intervening "if" this grammar cannot read
             clause, tid = head.group("clause"), f"{tid}+if"
-        if _PRONOUN.search(clause):
+        if _PRONOUN.search(_OWN_COPY_WORDS.sub("", clause)):
             return ()
         clause = clause[0].upper() + clause[1:]
         return tuple(

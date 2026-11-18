@@ -1,0 +1,206 @@
+{
+ "schema": 1,
+ "set": "FDN",
+ "oracle_id": "fb60739e-1dc3-481d-a056-ad72e665c680",
+ "name": "Rite of Replication",
+ "text_sha": "06557da1f85c89114da36c35d8110aea7c1d640a46b9828c162c488ab085e002",
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "KickerAbility",
+    "cost": {
+     "tag": "Cost",
+     "parts": [
+      {
+       "tag": "CostManaGeneric",
+       "amount": {
+        "tag": "QConst",
+        "value": 5
+       }
+      }
+     ]
+    }
+   },
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "SORCERY"
+    },
+    "effect": {
+     "tag": "Conditional",
+     "pred": {
+      "tag": "FAtom",
+      "pred": {
+       "tag": "FAtomPred",
+       "name": "WAS_KICKED"
+      },
+      "string_value": null,
+      "color": null,
+      "colors": [],
+      "count": null,
+      "counter_kind": null,
+      "keyword": null,
+      "who": null,
+      "inner_filter": null
+     },
+     "then_effect": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "CREATE_TOKEN"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "count",
+         {
+          "tag": "QConst",
+          "value": 5
+         }
+        ],
+        [
+         "tokens",
+         {
+          "tag": "CopyOf",
+          "source": {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         }
+        ]
+       ]
+      }
+     },
+     "else_effect": {
+      "tag": "Atom",
+      "verb": {
+       "tag": "Verb",
+       "name": "CREATE_TOKEN"
+      },
+      "args": {
+       "tag": "AtomArgs",
+       "pairs": [
+        [
+         "count",
+         {
+          "tag": "QConst",
+          "value": 1
+         }
+        ],
+        [
+         "tokens",
+         {
+          "tag": "CopyOf",
+          "source": {
+           "tag": "Selector",
+           "count": {
+            "tag": "QConst",
+            "value": 1
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "TARGET"
+           },
+           "filter": {
+            "tag": "FAtom",
+            "pred": {
+             "tag": "FAtomPred",
+             "name": "TYPE_EQ"
+            },
+            "string_value": "Creature",
+            "color": null,
+            "colors": [],
+            "count": null,
+            "counter_kind": null,
+            "keyword": null,
+            "who": null,
+            "inner_filter": null
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         }
+        ]
+       ]
+      }
+     }
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-b3-copies",
+  "date": "2026-11-18",
+  "draft_py": "# FDN Rite of Replication (copy round B3, DESIGN_ATOM_ONTOLOGY §18)\n# compiled = [KickerAbility(Kicker {5}), SpellAbility(SORCERY, CREATE_TOKEN(copy of target creature))]\nkicker, spell = compiled\ncopy = spell.effect.args.get('tokens')  # B20-copy-token's CopyOf of \"target creature\"\n# \"If this spell was kicked, create five of those tokens instead.\" (B6's kicker \"instead\" form)\nabilities = [\n    kicker,\n    SpellAbility(\n        kind=SpellKind.SORCERY,\n        effect=Conditional(\n            pred=FAtom(pred=FAtomPred.WAS_KICKED),\n            then_effect=A(Verb.CREATE_TOKEN, {'count': QConst(value=5), 'tokens': copy}),\n            else_effect=spell.effect,\n        ),\n    ),\n]\n",
+  "clauses": [
+   {
+    "clause": "Kicker {5}",
+    "ir": "abilities[0]"
+   },
+   {
+    "clause": "Create a token that's a copy of target creature.",
+    "ir": "abilities[1].effect.else_effect"
+   },
+   {
+    "clause": "If this spell was kicked, create five of those tokens instead.",
+    "ir": "abilities[1].effect"
+   }
+  ],
+  "g0_warnings": [
+   "MTGJSON keywords with no Keyword atom (check how the tree expresses them): ['KICKER']"
+  ],
+  "notes": "Copy round B3 (DESIGN_ATOM_ONTOLOGY §18): B20-copy-token's CREATE_TOKEN(CopyOf(target creature)), and the kicker's 'instead' as B6 writes it: Conditional(WAS_KICKED, the same copy with count 5, else count 1); one target slot (the same selector in both arms). Packs: tools/scenarios/mapped/FDN/rite_of_replication_*.json."
+ },
+ "probe": {
+  "sha": "3ccda84b7a9c27d73aa7deb1cfee328c0b1b015df0227fcd39f84a8a735c2305"
+ }
+}

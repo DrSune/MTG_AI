@@ -46,7 +46,7 @@ per-entry Duration meta in the ledger and expire object-correctly there.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, NamedTuple, cast
 
 from MTG_bot.core.ability_tree import (
@@ -79,15 +79,29 @@ from MTG_bot.core.ability_tree import (
     TriggeredAbility,
     Verb,
     at_least,
+    fingerprint,
     number_you_control,
 )
 from MTG_bot.core.executor.durations import duration_tag
 from MTG_bot.core.executor.quantity import ExecCtx, eval_filter
-from MTG_bot.core.identity import Handle
+from MTG_bot.core.identity import CardIdentity, Handle
 
 if TYPE_CHECKING:  # pragma: no cover - typing-only, dodges the import cycle
     from MTG_bot.core.compiler.compiler import CardRecord
     from MTG_bot.core.executor import Executor
+
+
+@dataclass(frozen=True)
+class CopiedValues:
+    """An object's copiable values (CR 707.2): its identity and its compiled record (None: no
+    ability). A "copy" record's payload, and a permanent's own while a copy effect applies."""
+
+    identity: CardIdentity
+    record: CardRecord | None
+
+    def __repr__(self) -> str:  # the dump's row: the card copied, its abilities by fingerprint
+        record = fingerprint(self.record) if self.record is not None else None
+        return f"CopiedValues({self.identity.oracle_id}, {self.identity.type_line!r}, {record})"
 
 
 class GrantedAbility(NamedTuple):
@@ -244,7 +258,9 @@ class LayerRecord:
     ``cards`` shape: "can attack as though it didn't have defender",
     read by the attack legality), and
     ``"disclosure"`` (REVEAL/LOOK_AT payload statics — the recorded zone-
-    knowledge fact, selector-less and inert at re-apply by rules right).
+    knowledge fact, selector-less and inert at re-apply by rules right),
+    ``"copy"`` (a resolved COPY with targets: layer 1, CR 613.2a, its payload the
+    :class:`CopiedValues` its fixed targets take, :meth:`LayerRegistry._apply_copies`).
     ``status`` — ``live`` | ``dormant`` (a condition currently false — the
     record survives, its effect does not apply) | ``expired`` (terminal; the
     record stays for the audit dump). ``ledger_ids`` maps each materialized
@@ -310,6 +326,9 @@ class LayerRegistry:
         # The ``resolved`` records (a subset of ``records``), so the
         # per-departure :meth:`forget_departed` scan stays O(resolved).
         self._resolved: list[LayerRecord] = []
+        # A permanent's own copiable values while a copy effect applies to it (layer 1,
+        # :meth:`_apply_copies`): what it is again when the effect ends or it leaves.
+        self._copy_base: dict[Handle, CopiedValues] = {}
         # Has a layer of this game granted a triggered ability (Infernal Scarring's
         # "When this creature dies")? Until one has, no permanent has a granted trigger,
         # so the binder need not bring the layers up to date to look for one.
@@ -454,6 +473,16 @@ class LayerRegistry:
                 if not layer.targets:
                     self._expire_layer(layer)
                 touched += 1
+        base = self._copy_base.pop(handle, None)
+        if base is not None and handle in self.world.cards:
+            # A copy effect ends as its object leaves (CR 400.7): the card in its new zone is the
+            # printed one. Its last known information kept the copy (Executor._on_zone_changes);
+            # the binder's departure drops the copy's bindings.
+            self.world.cards[handle].identity = base.identity
+            if base.record is None:
+                self.executor.binder.handle_record.pop(handle, None)
+            else:
+                self.executor.binder.handle_record[handle] = base.record
         return touched
 
     def forget_materialized(self, handle: Handle) -> None:
@@ -477,6 +506,50 @@ class LayerRegistry:
         designated objects; durations respected incl. until-end-of-turn
         grants (an Embercleave-style EoT keyword grant)."""
         return self._new_resolved("grant", source, controller, ability, targets, duration)
+
+    def register_copy(
+        self,
+        source: Handle,
+        controller: Handle,
+        targets: tuple[Handle, ...],
+        values: tuple[CardIdentity, CardRecord | None],
+        duration: Duration | None,
+    ) -> LayerRecord:
+        """A resolving COPY with ``target`` (``copies.become_copies``): ``targets`` take ``values``
+        as their copiable values for ``duration`` (CR 707.2, 613.2a), applied now
+        (:meth:`_apply_copies`)."""
+        layer = self._new_resolved("copy", source, controller, CopiedValues(*values), targets, duration)
+        self._apply_copies()
+        return layer
+
+    def _apply_copies(self) -> None:
+        """Layer 1 (CR 613.2a): a permanent's copiable values are those of the latest live copy
+        effect on it (timestamp order, CR 613.7), else its own. The engine's characteristics are
+        its identity and its record, so as an effect begins or ends they are swapped and its
+        abilities rebound (``binder.rebind``; CR 707.4: no zone change, so nothing enters or
+        leaves). Its token-ness is its own (CR 707.2: not a copiable value). Its counters, status,
+        attachments and every other effect stay on the handle (707.2)."""
+        wanted: dict[Handle, CopiedValues] = {}
+        for layer in sorted(self.records, key=lambda l: l.seq):
+            if layer.kind == "copy" and layer.status != "expired":
+                for target in layer.targets:
+                    wanted[target] = layer.payload
+        for handle in sorted(set(wanted) | set(self._copy_base)):
+            card = self.world.cards.get(handle)
+            if card is None:  # a token that ceased to exist
+                self._copy_base.pop(handle, None)
+                continue
+            binder = self.executor.binder
+            base = self._copy_base.setdefault(
+                handle, CopiedValues(card.identity, binder.handle_record.get(handle))
+            )
+            values = wanted.get(handle, base)
+            identity = replace(values.identity, is_token=base.identity.is_token)
+            if handle not in wanted:
+                del self._copy_base[handle]
+            if card.identity != identity or binder.handle_record.get(handle) is not values.record:
+                card.identity = identity
+                binder.rebind(handle, values.record)
 
     def register_permit(
         self,
@@ -1031,6 +1104,8 @@ class LayerRegistry:
             if layer.tag == "Eot" and layer.status != "expired":
                 self._expire_layer(layer)
                 expired += 1
+        if self._copy_base:
+            self._apply_copies()  # a copy "until end of turn" ends: the permanents are themselves
         return expired
 
     def expire_leaves(self, anchor: Handle) -> int:

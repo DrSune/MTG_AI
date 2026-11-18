@@ -76,6 +76,7 @@ from MTG_bot.core.ability_tree import (
     CastSpellEvent,
     Choose,
     ControllerRef,
+    CopyOf,
     Cost,
     CostManaGeneric,
     CounterKind,
@@ -123,7 +124,6 @@ from MTG_bot.core.ability_tree import (
 from MTG_bot.core.compiler.templates import (
     AbilityOutcome,
     EffectOutcome,
-    RuleReminderOutcome,
     SentenceOutcome,
     Template,
     and_or_zone_search,
@@ -1967,7 +1967,9 @@ def _build_double_vision_copy(m: re.Match[str]) -> SentenceOutcome:
 
     CastSpellEvent.ordinal=1 counts the first cast matching the event's
     instant/sorcery filter this turn; "that spell" binds via the event
-    referent on COPY.source (cast → the cast spell)."""
+    referent in COPY's CopyOf (cast → the cast spell). The copy is put onto
+    the stack, never cast (CR 707.10), so it is no cast the ordinal counts.
+    "You may choose new targets for the copy." is B20's fold."""
     return _ability(
         CastSpellEvent(
             filter=FOr(
@@ -1981,17 +1983,9 @@ def _build_double_vision_copy(m: re.Match[str]) -> SentenceOutcome:
         ),
         Atom(
             verb=Verb.COPY,
-            args=AtomArgs(pairs=(("source", _event_reference()),)),
+            args=AtomArgs(pairs=(("source", CopyOf(_event_reference())),)),
         ),
     )
-
-
-def _build_double_vision_new_targets(m: re.Match[str]) -> RuleReminderOutcome:
-    """"You may choose new targets for the copy." — the continuation of
-    Double Vision's copy sentence; the anaphoric "the copy" cannot be
-    resolved standalone. The concrete row lives in the B4 bucket, but the
-    template is registered here."""
-    return RuleReminderOutcome(reason="anaphoric_continuation")
 
 
 def _build_garruks_harbinger(m: re.Match[str]) -> SentenceOutcome:
@@ -2730,12 +2724,6 @@ TEMPLATES: Final[tuple[Template, ...]] = (
             "turn, copy that spell."
         ),
         _build_double_vision_copy,
-    ),
-    _template(
-        "B2b-double-vision-new-targets",
-        "Double Vision New Targets",
-        _exact("You may choose new targets for the copy."),
-        _build_double_vision_new_targets,
     ),
     _template(
         "B2b-garruks-harbinger",

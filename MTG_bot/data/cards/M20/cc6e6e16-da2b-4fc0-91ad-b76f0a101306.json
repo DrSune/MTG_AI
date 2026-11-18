@@ -4,9 +4,267 @@
  "oracle_id": "cc6e6e16-da2b-4fc0-91ad-b76f0a101306",
  "name": "Masterful Replication",
  "text_sha": "e3f0e246b0bc70bf657bfb93c65258d645529cf500b255c9d83ffc036857e116",
- "needs_atom": {
-  "missing": "Mode 2, 'Choose target artifact you control. Each other artifact you control becomes a copy of that artifact until end of turn.': no node makes a permanent become a copy of another permanent (CR 707.2, layer 1) for a duration. Verb.COPY has only a 'source' role, no target/affected set and no duration, and is not in SUPPORTED_VERBS_V2. Mode 1 ('Create two 3/3 colorless Golem artifact creature tokens.') is expressible as CREATE_TOKEN, but a modal spell cannot be written with one of its two modes dropped.",
-  "author": "claude-mapper-m20-0",
-  "date": "2026-11-05"
+ "ir": {
+  "keywords": [],
+  "abilities": [
+   {
+    "tag": "SpellAbility",
+    "kind": {
+     "tag": "SpellKind",
+     "name": "INSTANT"
+    },
+    "effect": {
+     "tag": "Choose",
+     "count": {
+      "tag": "QConst",
+      "value": 1
+     },
+     "options": [
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "CREATE_TOKEN"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "count",
+          {
+           "tag": "QConst",
+           "value": 2
+          }
+         ],
+         [
+          "tokens",
+          {
+           "tag": "TokenSpec",
+           "name": "Golem",
+           "type_line": "Artifact Creature — Golem",
+           "types": [
+            "Artifact",
+            "Creature"
+           ],
+           "subtypes": [
+            "Golem"
+           ],
+           "power": {
+            "tag": "QConst",
+            "value": 3
+           },
+           "toughness": {
+            "tag": "QConst",
+            "value": 3
+           },
+           "keywords": [],
+           "abilities": []
+          }
+         ]
+        ]
+       }
+      },
+      {
+       "tag": "Atom",
+       "verb": {
+        "tag": "Verb",
+        "name": "COPY"
+       },
+       "args": {
+        "tag": "AtomArgs",
+        "pairs": [
+         [
+          "cards",
+          {
+           "tag": "Selector",
+           "count": {
+            "tag": "QUnbounded"
+           },
+           "mode": {
+            "tag": "SelectorMode",
+            "name": "ALL"
+           },
+           "filter": {
+            "tag": "FAnd",
+            "children": [
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "CONTROLLER_IS"
+              },
+              "string_value": null,
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": {
+               "tag": "ControllerRef",
+               "name": "YOU"
+              },
+              "inner_filter": null
+             },
+             {
+              "tag": "FAtom",
+              "pred": {
+               "tag": "FAtomPred",
+               "name": "TYPE_EQ"
+              },
+              "string_value": "Artifact",
+              "color": null,
+              "colors": [],
+              "count": null,
+              "counter_kind": null,
+              "keyword": null,
+              "who": null,
+              "inner_filter": null
+             },
+             {
+              "tag": "FNot",
+              "inner": {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "IS_ANY_TARGET"
+               },
+               "string_value": null,
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              }
+             }
+            ]
+           },
+           "zones": [
+            {
+             "tag": "Zone",
+             "kind": {
+              "tag": "ZoneKind",
+              "name": "BATTLEFIELD"
+             },
+             "controller": {
+              "tag": "ControllerRef",
+              "name": "ANY"
+             }
+            }
+           ]
+          }
+         ],
+         [
+          "duration",
+          {
+           "tag": "DurationEot"
+          }
+         ],
+         [
+          "source",
+          {
+           "tag": "CopyOf",
+           "source": {
+            "tag": "Selector",
+            "count": {
+             "tag": "QConst",
+             "value": 1
+            },
+            "mode": {
+             "tag": "SelectorMode",
+             "name": "TARGET"
+            },
+            "filter": {
+             "tag": "FAnd",
+             "children": [
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "CONTROLLER_IS"
+               },
+               "string_value": null,
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": {
+                "tag": "ControllerRef",
+                "name": "YOU"
+               },
+               "inner_filter": null
+              },
+              {
+               "tag": "FAtom",
+               "pred": {
+                "tag": "FAtomPred",
+                "name": "TYPE_EQ"
+               },
+               "string_value": "Artifact",
+               "color": null,
+               "colors": [],
+               "count": null,
+               "counter_kind": null,
+               "keyword": null,
+               "who": null,
+               "inner_filter": null
+              }
+             ]
+            },
+            "zones": [
+             {
+              "tag": "Zone",
+              "kind": {
+               "tag": "ZoneKind",
+               "name": "BATTLEFIELD"
+              },
+              "controller": {
+               "tag": "ControllerRef",
+               "name": "ANY"
+              }
+             }
+            ]
+           }
+          }
+         ]
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "mapping": {
+  "author": "claude-b3-copies",
+  "date": "2026-11-18",
+  "draft_py": "# M20 Masterful Replication (copy round B3, DESIGN_ATOM_ONTOLOGY §18)\n_bf = Zone(kind=ZoneKind.BATTLEFIELD, controller=ControllerRef.ANY)\n_artifact_you = FAnd(children=(\n    FAtom(pred=FAtomPred.TYPE_EQ, string_value='Artifact'),\n    FAtom(pred=FAtomPred.CONTROLLER_IS, who=ControllerRef.YOU),\n))\ngolems = A(Verb.CREATE_TOKEN, {\n    'count': QConst(value=2),\n    'tokens': TokenSpec(\n        name='Golem', type_line='Artifact Creature — Golem', types=('Artifact', 'Creature'),\n        subtypes=('Golem',), power=QConst(value=3), toughness=QConst(value=3), keywords=(),\n        abilities=(),\n    ),\n})\n# \"Choose target artifact you control. Each other artifact you control becomes a copy of that\n# artifact until end of turn.\": the target is the copy's source (the one designation, T1), the\n# other artifacts you control the permanents that become copies, until end of turn.\nbecome = A(Verb.COPY, {\n    'duration': DurationEot(),\n    'source': CopyOf(source=Selector(count=QConst(value=1), mode=SelectorMode.TARGET,\n                                     filter=_artifact_you, zones=(_bf,))),\n    'cards': Selector(\n        count=QUnbounded(),\n        mode=SelectorMode.ALL,\n        filter=FAnd(children=(_artifact_you, FNot(inner=FAtom(pred=FAtomPred.IS_ANY_TARGET)))),\n        zones=(_bf,),\n    ),\n})\nabilities = [SpellAbility(kind=SpellKind.INSTANT, effect=Choose(count=QConst(value=1), options=(golems, become)))]\n",
+  "clauses": [
+   {
+    "clause": "Choose one —",
+    "ir": "abilities[0].effect"
+   },
+   {
+    "clause": "• Create two 3/3 colorless Golem artifact creature tokens.",
+    "ir": "abilities[0].effect.options[0]"
+   },
+   {
+    "clause": "• Choose target artifact you control.",
+    "ir": "abilities[0].effect.options[1]"
+   },
+   {
+    "clause": "Each other artifact you control becomes a copy of that artifact until end of turn.",
+    "ir": "abilities[0].effect.options[1]"
+   }
+  ],
+  "g0_warnings": [
+   "component shapes no compiled card has (review them in the probe): atom COPY(cards,duration,source)"
+  ],
+  "notes": "Was needs-atom (no become-a-copy). Copy round B3 (DESIGN_ATOM_ONTOLOGY §18): mode 2 is COPY(source=CopyOf(target artifact you control), cards=ALL other artifacts you control (FNot IS_ANY_TARGET), duration=Eot): a layer-1 copy effect (CR 613.2a, 707.2) on the artifacts fixed as it resolves (CR 611.2c), ending at end of turn. Packs: tools/scenarios/mapped/M20/masterful_replication_*.json."
+ },
+ "probe": {
+  "sha": "f28dfee75d054495b8ae38b410c8a6b93ee31a6e9d421869feabe66fdec25ff5"
  }
 }

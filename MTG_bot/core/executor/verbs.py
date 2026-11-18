@@ -31,6 +31,7 @@ from MTG_bot.core.ability_tree import (
     AtomArgs,
     CardRecord,
     ControllerRef,
+    CopyOf,
     Cost,
     CounterKind,
     Duration,
@@ -63,6 +64,7 @@ from MTG_bot.core.ability_tree import (
     ZonePosition,
     canonical_json,
 )
+from MTG_bot.core.executor.copies import become_copies, copiable_values, put_copies
 from MTG_bot.core.executor.decisions import site_digest
 from MTG_bot.core.executor.offers import offer_or_autopick
 from MTG_bot.core.executor.durations import duration_tag
@@ -155,7 +157,7 @@ def _off_the_stack(
     for card, player, kind in moves:
         frame = next((f for f in ex.stack.frames if f.handle == card), None)
         if frame is not None and ctx.world.zone_of(card).kind == ZONE_STACK:
-            ex.stack.frames.remove(frame)
+            ex.stack.remove(frame)
             kind = exit_zone(frame, kind)
         out.append((card, player, kind))
     return out
@@ -1397,7 +1399,16 @@ def token_oracle_id(name: str) -> str:
 
 def _v_create_token(ctx: ExecCtx, atom: Atom) -> None:
     spec = atom.args.get("tokens")
-    assert isinstance(spec, TokenSpec)
+    assert isinstance(spec, (TokenSpec, CopyOf))
+    copied = None
+    if isinstance(spec, CopyOf):
+        # "Create a token that's a copy of <it>": the token is created a copy (CR 707.5), with the
+        # copiable values of the object, the exceptions included (copies.copiable_values); a
+        # token all the same (CR 111.1). Nothing to copy, no token.
+        copied = copiable_values(ctx, spec)
+        if copied is None:
+            ctx.bindings["result"] = []
+            return
     count_quantity = atom.args.get("count")
     assert count_quantity is None or isinstance(count_quantity, Quantity)
     n = 1 if count_quantity is None else effect_number(count_quantity, ctx)
@@ -1420,80 +1431,104 @@ def _v_create_token(ctx: ExecCtx, atom: Atom) -> None:
         creator = resolved[0]
     created: list[Handle] = []
     for _ in range(n):
-        power = None if spec.power is None else resolve(spec.power, ctx)
-        toughness = None if spec.toughness is None else resolve(spec.toughness, ctx)
-        oracle_id = token_oracle_id(spec.name)
-        identity = CardIdentity(
-            oracle_id=oracle_id,
-            name=spec.name,
-            type_line=spec.type_line,
-            colors=spec.colors,  # every printed colour (WUBRG order)
-            power=None if power is None else str(power),
-            toughness=None if toughness is None else str(toughness),
-            keywords=tuple(k.name for k in spec.keywords),
-            is_token=True,
-        )
-        handle = ctx.world.add_card(identity, creator, ZONE_BATTLEFIELD)
+        if copied is not None:
+            identity, record = copied
+            handle = ctx.world.add_card(replace(identity, is_token=True), creator, ZONE_BATTLEFIELD)
+            if ctx.executor is not None and record is not None:
+                ctx.executor.binder.register_token(handle, record, by_oracle_id=False)
+        else:
+            assert isinstance(spec, TokenSpec)
+            handle = _new_spec_token(ctx, spec, creator)
         created.append(handle)
-        # The token's own rule lines ("This token can't block", "Creatures
-        # you control attack each combat if able" — the Pursued Whale
-        # Pirate) are STATIC/TRIGGERED ability nodes on the TokenSpec. The
-        # binder needs a record under the token's synthetic oracle id BEFORE
-        # the battlefield row is journalled (record_atom's diff runs after
-        # this atom), so the ZONE_CHANGE lifecycle finds it and registers
-        # the statics (prevention registry + mandate layers) and binds any
-        # trigger exactly like a printed permanent. The CardRecord is syn-
-        # thesized from the spec (the same shape the compiler builds a token
-        # record into) the first time its name is seen.
-        if ctx.executor is not None and spec.abilities:
-            record = ctx.executor.binder.records.get(oracle_id)
-            if record is None:
-                record = CardRecord(
-                    oracle_id=oracle_id,
-                    name=spec.name,
-                    type_line=spec.type_line,
-                    types=spec.types,
-                    subtypes=spec.subtypes,
-                    supertypes=(),
-                    colors=spec.colors,
-                    color_identity=frozenset(spec.colors),
-                    mana_cost=None,
-                    mana_value=0,
-                    power=spec.power,
-                    toughness=spec.toughness,
-                    loyalty=None,
-                    keywords=tuple(KeywordAbility(keyword=k) for k in spec.keywords),
-                    abilities=spec.abilities,
-                    is_token=True,
-                )
-            ctx.executor.binder.register_token(handle, record)
-        if spec.enters_tapped:
-            ctx.world.cards[handle].tapped = True
-        if spec.enters_attacking:
-            # CR 508.4 ("put those creatures onto the battlefield
-            # attacking", Falconer Adept's Bird, Basri Ket's [-2] Soldier):
-            # a token created DURING the declare-attackers window joins the
-            # attack record without any legality pass. It was never
-            # declared, it ENTERS attacking, so it has no declare row
-            # (Executor.join_attack). Created outside the window (an ETB in
-            # a main phase) the flag is inert: there is no attack to join.
-            ex = ctx.executor
-            if ex is not None and ex.declaring:
-                ex.join_attack(handle)
-        seq = ctx.token_counts.get(spec.name, 0)
-        ctx.token_counts[spec.name] = seq + 1
+        name = ctx.world.cards[handle].identity.name
+        seq = ctx.token_counts.get(name, 0)
+        ctx.token_counts[name] = seq + 1
         ctx.events.append(
-            (
-                len(ctx.events),
-                "CREATE_TOKEN",
-                spec.name,
-                f"token:{spec.name}:{seq}",
-                str(handle),
-            )
+            (len(ctx.events), "CREATE_TOKEN", name, f"token:{name}:{seq}", str(handle))
         )
     # The tokens are the objects this instruction acted on, so a later one names
     # them ("create a 1/1 Soldier creature token, then attach this Equipment to it").
     ctx.bindings["result"] = created
+
+
+def _new_spec_token(ctx: ExecCtx, spec: TokenSpec, creator: Handle) -> Handle:
+    """One token the effect defines (CR 111.3), put onto the battlefield under ``creator``."""
+    power = None if spec.power is None else resolve(spec.power, ctx)
+    toughness = None if spec.toughness is None else resolve(spec.toughness, ctx)
+    oracle_id = token_oracle_id(spec.name)
+    identity = CardIdentity(
+        oracle_id=oracle_id,
+        name=spec.name,
+        type_line=spec.type_line,
+        colors=spec.colors,  # every printed colour (WUBRG order)
+        power=None if power is None else str(power),
+        toughness=None if toughness is None else str(toughness),
+        keywords=tuple(k.name for k in spec.keywords),
+        is_token=True,
+    )
+    handle = ctx.world.add_card(identity, creator, ZONE_BATTLEFIELD)
+    # The token's own rule lines ("This token can't block", "Creatures
+    # you control attack each combat if able" — the Pursued Whale
+    # Pirate) are STATIC/TRIGGERED ability nodes on the TokenSpec. The
+    # binder needs a record under the token's synthetic oracle id BEFORE
+    # the battlefield row is journalled (record_atom's diff runs after
+    # this atom), so the ZONE_CHANGE lifecycle finds it and registers
+    # the statics (prevention registry + mandate layers) and binds any
+    # trigger exactly like a printed permanent. The CardRecord is syn-
+    # thesized from the spec (the same shape the compiler builds a token
+    # record into) the first time its name is seen.
+    if ctx.executor is not None and spec.abilities:
+        record = ctx.executor.binder.records.get(oracle_id)
+        if record is None:
+            record = CardRecord(
+                oracle_id=oracle_id,
+                name=spec.name,
+                type_line=spec.type_line,
+                types=spec.types,
+                subtypes=spec.subtypes,
+                supertypes=(),
+                colors=spec.colors,
+                color_identity=frozenset(spec.colors),
+                mana_cost=None,
+                mana_value=0,
+                power=spec.power,
+                toughness=spec.toughness,
+                loyalty=None,
+                keywords=tuple(KeywordAbility(keyword=k) for k in spec.keywords),
+                abilities=spec.abilities,
+                is_token=True,
+            )
+        ctx.executor.binder.register_token(handle, record)
+    if spec.enters_tapped:
+        ctx.world.cards[handle].tapped = True
+    if spec.enters_attacking:
+        # CR 508.4 ("put those creatures onto the battlefield
+        # attacking", Falconer Adept's Bird, Basri Ket's [-2] Soldier):
+        # a token created DURING the declare-attackers window joins the
+        # attack record without any legality pass. It was never
+        # declared, it ENTERS attacking, so it has no declare row
+        # (Executor.join_attack). Created outside the window (an ETB in
+        # a main phase) the flag is inert: there is no attack to join.
+        ex = ctx.executor
+        if ex is not None and ex.declaring:
+            ex.join_attack(handle)
+    return handle
+
+
+def _v_copy(ctx: ExecCtx, atom: Atom) -> None:
+    """COPY (CR 707; executor/copies.py): with ``cards``, those permanents become copies of the
+    CopyOf's object for ``duration`` (layer 1, CR 613.2a); with none, ``count`` copies of the spell
+    or ability it names are put onto the stack (CR 707.10), each with new targets if the effect
+    says so (707.10c)."""
+    copy = atom.args.get("source")
+    assert isinstance(copy, CopyOf)
+    cards = atom.args.get("cards")
+    if isinstance(cards, Selector):
+        ctx.bindings["result"] = become_copies(ctx, copy, cards, atom.args.get("duration"))
+        return
+    count = atom.args.get("count")
+    n = 1 if count is None else effect_number(count, ctx)
+    ctx.bindings["result"] = put_copies(ctx, copy, n, atom.args.get("new_targets") is True)
 
 
 def _v_add_mana(ctx: ExecCtx, atom: Atom) -> None:
@@ -2759,7 +2794,7 @@ def _v_counter_spell(ctx: ExecCtx, atom: Atom) -> None:
         ctx.events.append((len(ctx.events), "NOT_COUNTERED", str(spell), str(ctx.source)))
         return
     if ability:  # CR 701.6a-b: a countered ability leaves the stack and ceases to exist
-        ex.stack.frames.remove(frame)
+        ex.stack.remove(frame)
     if ctx.journal is not None:
         ctx.journal.emit(KIND_COUNTER, spell, ctx.source, "COUNTER_SPELL", ())
     if not ability:
@@ -2785,6 +2820,7 @@ HANDLERS: dict[Verb, Callable[[ExecCtx, Atom], None]] = {
     Verb.MODIFY_PT: _v_modify_pt,
     Verb.SET_PT: _v_set_pt,
     Verb.CREATE_TOKEN: _v_create_token,
+    Verb.COPY: _v_copy,
     Verb.ADD_MANA: _v_add_mana,
     Verb.SCRY: _v_scry,
     Verb.SHUFFLE: _v_shuffle,

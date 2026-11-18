@@ -82,6 +82,7 @@ from MTG_bot.core.compiler.templates import (
     KickerEffectOutcome,
     KeywordOutcome,
     MetaOutcome,
+    NewTargetsOutcome,
     RiderOutcome,
     RuleReminderOutcome,
     SentenceOutcome,
@@ -987,18 +988,24 @@ def _append_optional_to_seq(effect: Effect, inner: Effect) -> Effect:
     return Seq(steps=(effect, OptionalEffect(inner)))
 
 
-def _cast_atoms(effect: object) -> list[Atom]:
-    """The cast verbs (CAST, PERMIT) among ``effect``'s own nodes."""
-    return [
-        n for n in own_nodes(effect) if isinstance(n, Atom) and n.verb in (Verb.CAST, Verb.PERMIT)
-    ]
+#: The sentences that set a role of the one verb printed before them (``_role_host_idx``): a
+#: spell's rider on a cast verb (DESIGN_ATOM_ONTOLOGY §17), new targets on a COPY put onto the
+#: stack (§18).
+_FOLD_VERBS: dict[type, tuple[Verb, ...]] = {
+    RiderOutcome: (Verb.CAST, Verb.PERMIT),
+    NewTargetsOutcome: (Verb.COPY,),
+}
 
 
-def _rider_host_idx(processed: list[_OutcomeSlot]) -> int | None:
-    """The slot whose ability or effect holds the one cast verb a rider sentence follows: the
-    nearest meaningful slot before it (rule reminders skipped), if it holds exactly one cast
-    verb without a rider; else None (the sentence stays unparsed: a rider whose spell did not
-    compile has no antecedent, and two cast verbs leave "that spell" ambiguous)."""
+def _role_host_idx(
+    processed: list[_OutcomeSlot], verbs: tuple[Verb, ...], role: str
+) -> int | None:
+    """The slot whose ability or effect holds the one atom of ``verbs`` a role sentence follows
+    (a spell's rider, "You may choose new targets for the copy"): the nearest meaningful slot
+    before it (rule reminders skipped), if it holds exactly one such atom with ``role`` unset
+    (and, a COPY, put onto the stack: no ``cards``); else None (the sentence stays unparsed: a
+    rider whose spell did not compile has no antecedent, and two cast verbs leave "that spell"
+    ambiguous)."""
     for j in range(len(processed) - 1, -1, -1):
         prev = processed[j]
         if prev is None:
@@ -1008,21 +1015,25 @@ def _rider_host_idx(processed: list[_OutcomeSlot]) -> int | None:
         node = getattr(prev.ability, "effect", None) if isinstance(prev, AbilityOutcome) else (
             prev.effect if isinstance(prev, EffectOutcome) else None
         )
-        atoms = _cast_atoms(node) if node is not None else []
-        if len(atoms) != 1 or atoms[0].args.get("replace") is not None:
+        atoms = [
+            n for n in own_nodes(node) if isinstance(n, Atom) and n.verb in verbs
+        ] if node is not None else []
+        if len(atoms) != 1 or atoms[0].args.get(role) is not None or (
+            atoms[0].verb is Verb.COPY and atoms[0].args.get("cards") is not None
+        ):
             return None
         return j
     return None
 
 
-def _with_rider(slot: _OutcomeSlot, rider: object) -> _OutcomeSlot:
-    """``slot`` with its one cast verb given ``rider`` as its ``replace`` role."""
+def _with_role(slot: _OutcomeSlot, verbs: tuple[Verb, ...], role: str, value: object) -> _OutcomeSlot:
+    """``slot`` with its one atom of ``verbs`` given ``value`` as its ``role``."""
 
     def rebuild(node: object) -> object:
         if isinstance(node, Atom):  # a role's value is no step of this ability
-            if node.verb not in (Verb.CAST, Verb.PERMIT):
+            if node.verb not in verbs:
                 return node
-            return Atom(verb=node.verb, args=AtomArgs(pairs=(*node.args.pairs, ("replace", rider))))
+            return Atom(verb=node.verb, args=AtomArgs(pairs=(*node.args.pairs, (role, value))))
         if isinstance(node, tuple):
             return tuple(rebuild(x) for x in node)
         if is_dataclass(node) and not isinstance(node, type) and not isinstance(
@@ -1875,13 +1886,20 @@ def compile_card(
             continue
         # A spell's rider ("If that spell would be put into your graveyard, exile it
         # instead.") is the ``replace`` role of the cast verb printed before it
-        # (DESIGN_ATOM_ONTOLOGY §17); with none, the sentence stays unparsed.
-        if isinstance(outcome, RiderOutcome):
-            j = _rider_host_idx(processed)
+        # (DESIGN_ATOM_ONTOLOGY §17), "You may choose new targets for the copy." the
+        # ``new_targets`` role of the COPY before it (§18); with none, the sentence stays
+        # unparsed.
+        if isinstance(outcome, (RiderOutcome, NewTargetsOutcome)):
+            verbs = _FOLD_VERBS[type(outcome)]
+            role, value = (
+                ("replace", outcome.rider) if isinstance(outcome, RiderOutcome)
+                else ("new_targets", True)
+            )
+            j = _role_host_idx(processed, verbs, role)
             if j is None:
                 unparsed.append((raw.sentences[i], _bucket_hint(raw.sentences[i])))
                 continue
-            processed[j] = _with_rider(processed[j], outcome.rider)
+            processed[j] = _with_role(processed[j], verbs, role, value)
             continue
         # Non-effect entries pass through unchanged.
         if outcome is None or not isinstance(outcome, EffectOutcome):

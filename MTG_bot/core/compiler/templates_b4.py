@@ -1469,7 +1469,7 @@ _MOVED_TO_B19: Final[str] = (
 UNCOVERED: tuple[tuple[str, str], ...] = (
     (
         "You may choose new targets for the copy.",
-        "No copy-targeting grammar construct",
+        "templates_b20 reads it (DESIGN_ATOM_ONTOLOGY §18: the new_targets of the COPY before it)",
     ),
     ("You may cast Goblin spells from the top of your library.", _MOVED_TO_B19),
     ("You may cast them this turn.", _MOVED_TO_B19),

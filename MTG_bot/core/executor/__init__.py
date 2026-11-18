@@ -1227,6 +1227,8 @@ class Executor:
         "PERMIT knows the cards it named off the battlefield by its clock (permits._found, "
         "moved_since); expired records stay for the fingerprint",
         "LayerRegistry._resolved": "departure: as records",
+        "LayerRegistry._copy_base": "departure: forget_departed ends a copy effect on a permanent "
+        "that leaves and gives the card its own identity and record back (CR 400.7)",
         "LayerRegistry._keywords": "derived: at every recompute",
         "LayerRegistry._granted": "derived: at every recompute",
         "LayerRegistry._types": "derived: at every recompute",
@@ -1247,6 +1249,8 @@ class Executor:
         "EventJournal._open": "kept: the open atom boundaries' snapshots, empty between ops",
         "SpellStack.frames": "stack: a frame ends as its object leaves the stack: it resolves, is "
         "countered or fizzles (stack.resolve_top), or an effect moves it (verbs._off_the_stack)",
+        "SpellStack.left": "lki: the frames that left the stack this turn, as they last existed "
+        "there (a copy of 'that spell' after it left, CR 608.2h); cleared as each turn begins",
         "GameWorld.cards": "kept: the object map, one CardState per card in every zone; the "
         "departure hook clears its counters (CR 122.2) and tapped flag (CR 110.5d), and a token "
         "off the battlefield ceases (CR 704.5d)",
@@ -1314,6 +1318,8 @@ class Executor:
                 tuple(sorted(a for a, host in self.attachments.items() if host == event.subject)),
                 state.tapped,  # before it is untapped below
                 event.clock,
+                # its abilities with its identity: a copy effect on it ends below (CR 707.2)
+                self.binder.handle_record.get(event.subject),
             )
         due: list[ReturnRow] = []
         for event in moves:
@@ -2165,7 +2171,8 @@ class Executor:
         frames = list(self.stack.frames)
         if not frames:
             return
-        self.stack.frames.clear()  # removed from the stack: none resolves
+        for frame in frames:  # removed from the stack: none resolves
+            self.stack.remove(frame)
         before = self.journal.snapshot()
         start = len(self.events)
         spells = [
@@ -2258,6 +2265,7 @@ class Executor:
         self._turn_started = True
         self.world.active_player = player
         self.turn_open = True
+        self.stack.left.clear()  # SpellStack.left: last turn's departed stack objects
         self.journal.begin_turn(player)
         self._begin_step(UNTAP)
 

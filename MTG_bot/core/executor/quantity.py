@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Final, NamedTuple, Union
 
 if TYPE_CHECKING:  # pragma: no cover - typing-only, dodges runtime cycles
+    from MTG_bot.core.ability_tree import CardRecord
     from MTG_bot.core.executor import Executor
     from MTG_bot.core.executor.events import EventJournal
     from MTG_bot.core.executor.layers import GrantedAbility, LayerRegistry
@@ -30,6 +31,7 @@ if TYPE_CHECKING:  # pragma: no cover - typing-only, dodges runtime cycles
 
 from MTG_bot.core.ability_tree import (
     QX,
+    TYPE_LINE_KINDS,
     ControllerRef,
     CounterKind,
     FAnd,
@@ -104,6 +106,9 @@ class ExecCtx:
     # a life-gain replacement's action, the replaced gain's amount.
     event: object = None
     event_amount: int | None = None
+    # A cast trigger's spell's ordinal among the spells its event describes this turn (QProp
+    # ("event", ORDINAL), Thousand-Year Storm), set as the trigger goes on the stack.
+    event_ordinal: int | None = None
     # The counter count a CounterPlacedEvent replacement is rewriting
     # (Conclave Mentor): QProp("event", COUNTER_COUNT) reads it inside a
     # counter replacement's action ("that many plus one"), where the card's
@@ -512,7 +517,9 @@ class LastKnown(NamedTuple):
     printed characteristics, all that is left of a token once it ceased to exist (CR 704.5d);
     ``attached`` the Auras and Equipment attached to it then, sorted (Malefic Scythe's
     "Whenever equipped creature dies", CR 603.10a); ``tapped`` whether it was tapped; ``left``
-    the clock of the journal row of that departure, the one this snapshot answers for."""
+    the clock of the journal row of that departure, the one this snapshot answers for;
+    ``record`` its compiled record then, the abilities beside ``identity`` (a copy of it made
+    after it left copies both, CR 707.2, 608.2h)."""
 
     power: int | None
     toughness: int | None
@@ -528,6 +535,7 @@ class LastKnown(NamedTuple):
     attached: tuple[Handle, ...] = ()
     tapped: bool = False
     left: int = 0
+    record: CardRecord | None = None
 
 
 def departed_lki(handle: Handle, ctx: ExecCtx) -> LastKnown | None:
@@ -660,11 +668,18 @@ def _prop_value(field: QPropField, handle: Handle, ctx: ExecCtx) -> int:
 #: for them, so a gathered event whose objects have all left since still has its count (Woodland
 #: Champion's and Basri Ket's rulings: those that left are counted).
 _REGISTER_FIELDS = frozenset(
-    {QPropField.AMOUNT, QPropField.THIS_WAY_COUNT, QPropField.THAT_MANY_COUNT}
+    {QPropField.AMOUNT, QPropField.THIS_WAY_COUNT, QPropField.THAT_MANY_COUNT, QPropField.ORDINAL}
 )
 
 
 def _register_value(field: QPropField, ctx: ExecCtx) -> int:
+    if field is QPropField.ORDINAL:
+        # Which of the turn's spells its trigger describes the triggering one is: "for each other
+        # instant and sorcery spell you've cast before it this turn" is this minus one, the spells
+        # cast after it not counted (Thousand-Year Storm; binding.TriggerBinder._put).
+        if ctx.event_ordinal is None:
+            raise NotImplementedError("executor: QProp ORDINAL needs a cast trigger's firing")
+        return ctx.event_ordinal
     if field is QPropField.AMOUNT:
         # The triggering event's damage or life amount (Brash Taunter, Light of
         # Promise), or the replaced gain's (Angel of Vitality).
@@ -846,13 +861,6 @@ _OTHER_SUBTYPES = {
 }
 
 
-#: The card types and supertypes (CR 205.2a, 205.4a): the words of a type line that are no subtype.
-_TYPE_LINE_KINDS = frozenset({
-    "Artifact", "Battle", "Conspiracy", "Creature", "Dungeon", "Enchantment", "Instant", "Kindred",
-    "Land", "Phenomenon", "Plane", "Planeswalker", "Scheme", "Sorcery", "Tribal", "Vanguard",
-    "Basic", "Legendary", "Ongoing", "Snow", "World"})
-
-
 def creature_types(type_line: str) -> list[str]:
     """The creature types a printed type line gives: the subtypes of each face that is a creature
     or kindred card, less those of its other card types (CR 205.3d: each subtype is one of its
@@ -872,7 +880,7 @@ def granted_creature_types(words: tuple[str, ...]) -> list[str]:
     Dub's "is a Knight"): every word that is no card type or supertype and no artifact,
     enchantment or land type (CR 205.3g-i)."""
     other = frozenset().union(*_OTHER_SUBTYPES.values())
-    return [w for w in words if w not in _TYPE_LINE_KINDS and w not in other]
+    return [w for w in words if w not in TYPE_LINE_KINDS and w not in other]
 
 
 def eval_filter(filter_: Filter, handle: Handle, ctx: ExecCtx) -> bool:
@@ -1473,6 +1481,14 @@ def _eval_atom(atom: FAtom, handle: Handle, ctx: ExecCtx) -> bool:
             return _permanent_was_kicked(ctx, handle)
         from MTG_bot.core.executor.events import KIND_CAST
 
+        state = world.cards.get(handle)
+        if ctx.executor is not None and state is not None and state.identity.is_token:
+            # A copy of a spell (copies.put_copies) is never cast, so has no CAST row; it
+            # copies the original's kick (CR 707.10), which its stack object carries, as it
+            # resolves too (SpellStack.left).
+            stack = ctx.executor.stack
+            frame = next((f for f in stack.frames if f.handle == handle), stack.left.get(handle))
+            return frame is not None and frame.kicked
         kicked = False
         for e in _turn_rows(ctx, pred.name):
             if e.kind == KIND_CAST and e.subject == handle:
