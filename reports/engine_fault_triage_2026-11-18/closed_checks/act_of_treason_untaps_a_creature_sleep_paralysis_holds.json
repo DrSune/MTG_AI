@@ -1,0 +1,20 @@
+{
+ "set": "M20",
+ "notes": "CLOSED CHECK for BACKLOG 'Starlight Snare's doesn't untap ... blocks every untap of the creature' (215, F49). Expected to PASS on main 8d85e0a7: the static's prevention is read by the untap step alone (Executor._untap_step -> ReplacementRegistry.prevents_untap), and the UNTAP verb (verbs._set_tapped) never consults it, as CR 502.3 has it. Sleep Paralysis (verified, M20; Starlight Snare's and Capture Sphere's wording) taps seat 1's Bear as it enters; Act of Treason (verified, M20) gains control of it and untaps it: the Bear is untapped under seat 0.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "sp", "real": "Sleep Paralysis", "zone": "hand", "controller": 0},
+  {"key": "aot", "real": "Act of Treason", "zone": "hand", "controller": 0},
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 1}
+ ],
+ "mana": {"0": {"R": 3}},
+ "steps": [
+  {"op": "enchant", "aura": "sp", "host": "bear"},
+  {"op": "cast", "key": "aot", "targets": ["bear"]}
+ ],
+ "expect": {
+  "zone": {"aot": "graveyard", "sp": "battlefield"},
+  "tapped": {"bear": false},
+  "controller": {"bear": 0}
+ }
+}

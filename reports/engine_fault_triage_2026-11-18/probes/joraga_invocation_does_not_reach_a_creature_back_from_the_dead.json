@@ -1,0 +1,23 @@
+{
+ "set": "FDN",
+ "notes": "probe for the FDN soak's d6 hit (a live mandate_block layer bound to a dead card): does Joraga Invocation's +3/+3 or its 'must be blocked' reach a creature that died and came back the same turn (Fake Your Own Death)?",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "fyod", "real": "Fake Your Own Death", "zone": "hand", "controller": 0},
+  {"key": "jor", "real": "Joraga Invocation", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"B": 2, "G": 6}},
+ "steps": [
+  {"op": "cast", "key": "fyod", "targets": ["bear"]},
+  {"op": "cast", "key": "jor"},
+  {"op": "move", "key": "bear", "to": "graveyard"}
+ ],
+ "expect": {
+  "zone": {"bear": "battlefield"},
+  "tapped": {"bear": true},
+  "power": {"bear": 2},
+  "toughness": {"bear": 2},
+  "tokens": {"Treasure": 1}
+ }
+}

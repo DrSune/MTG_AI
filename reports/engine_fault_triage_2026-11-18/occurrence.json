@@ -1,0 +1,27 @@
+{
+ "games": {
+  "M21": 200,
+  "M20": 200,
+  "FDN": 200
+ },
+ "counts": {
+  "activated abilities resolved": 21568,
+  "triggered abilities resolving": 4601,
+  "Auras entering by an effect": 159,
+  "F14 triggered: source changed zones while waiting": 10
+ },
+ "examples": {
+  "F14 triggered: source changed zones while waiting": [
+   "M20:111 Overgrowth Elemental back=False",
+   "M20:157 Overgrowth Elemental back=False",
+   "M20:157 Overgrowth Elemental back=False",
+   "FDN:5 Midnight Reaper back=False",
+   "FDN:5 Midnight Reaper back=False",
+   "FDN:113 High-Society Hunter back=False",
+   "FDN:113 High-Society Hunter back=False",
+   "FDN:121 Marauding Blight-Priest back=False",
+   "FDN:132 Massacre Wurm back=False",
+   "FDN:183 Crossway Troublemakers back=False"
+  ]
+ }
+}
