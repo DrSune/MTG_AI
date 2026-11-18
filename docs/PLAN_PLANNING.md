@@ -23,11 +23,24 @@ The owner, 2026-11-18:
 > doing the no-ceiling scenario where we likely have to remove direct incentives, hardcodings and
 > rules ... Then make a plan ... how and when we implement this alongside the other stuff."
 
-**In discussion with the owner (2026-11-18, OWNER_VISION_LEARNING §12):**
-- the network paying its own mana, which would replace §3's O1;
-- a turn-plan module (plan tokens, repeated reasoning, revise or execute).
-
-No meaningful work starts until the plan is settled; the card work and r29 go on.
+**Settled with the owner, second round (2026-11-18; OWNER_VISION_LEARNING §12):**
+- **Payment stays the engine's for now; O1 is dropped.** The owner: "making the network
+  high-quality and mature is the priority, realism-of-play is a later learning point, and not our
+  current bottleneck". The end state is the network paying for itself with no auto-pay option
+  (BACKLOG "Automatic payment").
+- **The plan module joins P1** (§5):
+  - a carried plan that runs through the opponent's turn;
+  - trained by hindsight and by the search's lines;
+  - explored by committing to a sampled plan;
+  - tested in two scopes: this action sequence, and one or two sequences ahead, revised at
+    execution.
+- **Repeated reasoning ("think again") and a game clock are BACKLOG.** They come before network
+  size limits quality.
+- **Puzzle answers are proven by exact solving wherever the puzzle is small enough** (§4). The
+  owner's point: a ceiling cannot be measured with a model that is not good at the skill.
+- **The order is the coordinator's**, for the best information first: P0 first.
+- **Open:** the plan slots' readable intended-action heads (§5), explained to the owner and waiting
+  for an answer.
 
 ## Summary for the owner
 
@@ -71,14 +84,15 @@ never what it is paid for, so none caps the ceiling. The last rung removes them.
 | Rung | What | Why it keeps the ceiling |
 |---|---|---|
 | P0 | **Measure planning**: the puzzle suite, its runner and a planning dashboard | changes no training |
-| P1 | **Remove the representational limits**: payment as a decision where it matters (O1); memory v1, explicit history features | adds choices and information; removes a scaffold |
+| P1 | **Remove the representational limits**: memory v1 (explicit history features); the plan module (a carried plan through the round, trained by hindsight and later by the search's lines, explored by commitment) | adds information and a carried intention; the reward is unchanged |
 | P2 | **Frequency nudges**: puzzle states as training starts (a reverse curriculum), replayed by their learning value; frozen specialists in the league | the reward stays ±1; only the starting positions and opponents change |
 | P3 | **Planning as policy improvement**: search-improved training (expert iteration with Gumbel search over sampled worlds), PLAN_CEILING's F1 and gates A/B | value targets stay real results; the search's pull anneals |
 | P4 | **The no-ceiling run** (PLAN_CEILING's H2): every nudge annealed to zero; outcome self-play with a league, exploiters and search at play time | nothing hand-made left in training; puzzles and L guard against regression |
 
 **When** (§6). This week: the puzzle suite (CPU, mine), beside the card work and r29. At r29's
-FDN segment: the zero-fallback fix and the engine fixes. Next week, after the budget reset: O1
-and memory v1 as one registered A/B, then the curriculum arm, then P3's gates.
+FDN segment: the zero-fallback fix and the engine fixes. Next week, after the budget reset:
+memory v1 and the plan module as registered A/B arms (the plan in its two scopes), then the
+curriculum arm, then P3's gates.
 
 ## 1. How options reach the network today (read in the code, 2026-11-18)
 
@@ -128,7 +142,9 @@ observation holds no turn history"), or what the opponent revealed earlier.
      - it plays each candidate out with the network on both seats;
      - it scores by result or value, with a Gumbel root and sequential halving.
    - Searched at n = 4 it wins 0.566 against its own raw network on coherent decks (205 §9).
-     That gap is planning the policy has not absorbed.
+     That gap is planning the policy has not absorbed. It is a lower bound: it counts only what a
+     one-turn lookahead over today's network finds. The same holds for every "headroom" read in 205.
+     A skill neither the network nor its search plays cannot show up in it.
 3. **No memory.** In a game with hidden cards, history is evidence: what they held mana up for,
    declined to block with, or revealed (OWNER_VISION_LEARNING §3). A board-only network cannot
    tell "they surely hold a counter" from "they might".
@@ -146,25 +162,21 @@ observation holds no turn history"), or what the opponent revealed earlier.
 ## 3. How options should be presented: decisions
 
 - **Keep** the sequential, legal-only menu and the pointer policy (§2.5).
-- **O1, payment as a decision where it matters (build now, ship with memory v1).**
-  - **When it is asked.** When a chosen row can be paid in ways that leave different things open,
-    the engine asks `pay`.
-  - **Its options.** The distinct outcomes, not tap orders. An outcome is the set of untapped
-    sources left, deduplicated by the mana those sources can still make together. Each option
-    points at the sources it taps.
-  - **When it is not asked.** If every payment leaves the same, nothing is asked: most casts stay
-    one decision.
-  - This removes the scaffold's real cost: "pay with Mountains so Cancel's {1}{U}{U} stays open".
-    It starts from DESIGN_ACTION_SPACE §1.3's PAYMENT asks.
-  - **Kept for now: mana abilities for side effects.** That needs instant-speed mana rows, the
-    menu-cost problem of DESIGN_PRIORITY §2.7.
+- **Payment stays the engine's for now (owner, 2026-11-18).** The first draft's O1 (outcome-level
+  payment options) is dropped.
+  - **The end state** (BACKLOG "Automatic payment"): the network activates its own mana abilities,
+    one at a time as CR 601.2g has it, at any priority point too. There is no auto-pay option.
+  - It covers what O1 could not: tap triggers (M20's Leyline of Abundance; Manabarbs), convoke,
+    and spend restrictions.
+  - **When:** when realism of play becomes the bottleneck, not before. The owner: network quality
+    and maturity first.
 - **O2, consequence previews (measure first, do not ship blind).** Each act row could carry what
   it leaves:
   - mana left after paying;
   - how many other rows stay affordable.
 
   That is a one-step lookahead read from the menu's own pricing. Built only if the puzzle suite
-  shows within-turn sequencing failures that O1 and training do not fix. It is an input change,
+  shows within-turn sequencing failures that training does not fix. It is an input change,
   so it gets a registered A/B.
 - **Not now: the plan decoder** (DESIGN_ACTION_SPACE: K moves from one forward pass).
   - Its value is latency, actions per forward pass, for the match clock (King, tied).
@@ -184,14 +196,24 @@ observation holds no turn history"), or what the opponent revealed earlier.
 - `world_prior`: the distribution of the opponent's hidden cards that the evidence supports, used
   to draw the verification futures.
 
-**How a puzzle is verified (before it counts).** The right line and every plausible alternative
-are forced at their decisions and played to the end on shared futures drawn from `world_prior`
-(the labeller's machinery, horizon 0, as in `linevalue.py`). Two reference continuations play it:
-the heuristic, and the searched network.
-- The right line must beat every alternative by a registered margin with its standard error.
-- A puzzle whose answer depends on the reference player is labelled so, or dropped.
-- This keeps the suite honest: our engine and our cards decide the answer, not the author's
-  intuition.
+**How a puzzle's answer is known (before it counts).** A ceiling cannot be measured with a
+model that is not good at the skill (the owner, 2026-11-18). So the answer must not come from our
+networks. Three grades, recorded with each puzzle:
+1. **Proven.** The puzzle is small enough to solve exactly in our engine:
+   - every line for both players is played (`tools/search/fork.py`, about 6 ms a fork, NUMBERS
+     2026-10-10), as a chess endgame table is built;
+   - the opponent's hidden cards are enumerated over `world_prior`;
+   - our own choices are fixed per information set, so the solver never uses knowledge we lack
+     (no strategy fusion).
+
+   A first-wave puzzle has a few cards a side and a horizon of one or two turns: about 10^5 lines,
+   minutes on one core.
+2. **Dominant.** Too big to solve, but built so the right move is at least as good in every world
+   of the prior and strictly better in one, each world solved as above.
+3. **Model-verified.** The right line beats every alternative in forced-line playouts against the
+   heuristic and the searched network (the labeller's machinery, horizon 0, as in `linevalue.py`).
+   This is weaker evidence: a continuation that fails to follow through undervalues a deep line.
+   The suite reports grade 3 separately and never counts it toward a gate.
 
 **Twins.** Every puzzle has a counterfactual twin: the same board, one piece of evidence changed,
 the right move changed. A network that holds Cancel by habit passes one twin and fails the other.
@@ -202,7 +224,7 @@ The headline number is the twin-consistent pass rate.
 | Cat. | Skill | Example (one twin pair) |
 |---|---|---|
 | A | Within-turn sequencing | Draw first, then pick the land (an Opt-like draw before the land drop) / the land first when the draw cannot change it. Removal before combat to clear the blocker / after combat when the attack is safe either way |
-| A-pay | Colours kept open (needs O1) | Pay the creature with Mountains so Cancel stays castable on their turn / with Islands when no counter is held |
+| A-pay (later, with the network paying: BACKLOG) | Colours kept open | Pay the creature with Mountains so Cancel stays castable on their turn / with Islands when no counter is held |
 | B1 | **Counter for the immediate win** (the owner's first example) | You attack for lethal; they cast the one spell that stops it (a flash blocker or removal): counter it with Cancel or Rewind and win now / the same spell when your attack is not lethal anyway, where the counter is better kept |
 | B2 | **Hold the counter so your plan sticks: slow but best** (the owner's second example) | You hold your bomb and Cancel; their open blue mana and the evidence say they hold a counter. Pass with Cancel up or bait first, and win two turns later / the same board with them tapped out: cast the bomb now |
 | B3 | Save the answer for the real threat | Hold Negate or Bone to Ash through a minor spell for the bomb their board demands / counter the minor spell when nothing bigger is possible |
@@ -230,8 +252,28 @@ uses generated variants (§5, P2).
 - Pair the suite with the line-value tool's barrier list (PLAN_CEILING §14.2): a line with
   positive value and near-zero use is an exploration barrier.
 
-**P1, remove the representational limits (build next; one registered A/B at a run boundary).**
-- **O1, payment decisions** (§3).
+**P1, remove the representational limits (build next; registered A/B arms at a run boundary).**
+- **The plan module** (the owner's idea, settled 2026-11-18). A few plan slots ride in the input
+  beside the board.
+  - **What a decision does with them.** Every decision reads the slots and writes them anew: the
+    plan is revised at every new event, a counter, a trigger or a draw.
+  - **Scope, both tested:** (a) the current action sequence; (b) one or two sequences ahead,
+    through the opponent's turn. Holding Cancel, or letting the opponent act more before the stack
+    resolves, is a plan that spans their turn. Variant (b) is revised when it is executed, since the
+    state can change a lot during the opponent's turn.
+  - **What trains it:**
+    - *hindsight*: the slots learn to predict what the seat actually did later in the plan's scope,
+      so the plan becomes a commitment the policy follows;
+    - *the search's best line* wherever the search ran (P3), so the plan becomes a cheap stand-in
+      for the search, which also serves the match clock;
+    - and, through the decisions that read it, the game's result.
+  - **Exploration by commitment.** At a plan's first decision the plan is sampled, and the moves
+    follow it. A whole line is tried consistently instead of one decision at a time: holding Cancel
+    takes the right pass at many priority decisions, which are 42% of the learner's decisions and
+    are passed 97% of the time.
+  - **Not in this step: repeated reasoning ("think again") and its game clock** (BACKLOG). The
+    capacity probe (194) found a deeper or wider network fits r27's value no better, so more
+    passes per decision wait until network size limits quality.
 - **Memory v1, explicit history features**, cheapest first, as OWNER_VISION_LEARNING §3 and §4
   order them:
   - the opponent's untapped mana at each of their last two end steps and passes;
@@ -243,8 +285,9 @@ uses generated variants (§5, P2).
   Card-level facts go in zero-initialised columns, so an older network computes what it did.
 - **Memory v2** comes later: an encoder over the event journal (attention over recent events), to
   share with the opponent simulator. It goes in only if E-category puzzles still fail with v1.
-- **Gate.** The arm with O1 + v1 passes A-pay and E (puzzle readouts), and holds or beats the
-  control on L (no regression).
+- **Gate.** Each arm raises the twin-consistent pass rates of the categories it targets above
+  the control's (memory v1: E; the plan module: B and D), and holds or beats the control on L (no
+  regression).
 
 **P2, frequency nudges (the curriculum).**
 - **Puzzle starts, a reverse curriculum** (Florensa et al. 2017; Salimans & Chen 2018).
@@ -322,9 +365,9 @@ and it resets 2026-11-23. So the planning work this week is the coordinator's ow
 |---|---|---|---|
 | 2026-11-18 | r29: arm B ends ~10:20; the reads B1 and B2; decide.py resumes the main run | the engine faults (counters CR 122.2, the class-D audit, C1) and wave 5's mapping of the round-13 cards, running; zero fallback merged (213) | this plan; the puzzle format and runner (P0) |
 | 11-19 | the main run toward B8 (update 300) | wave 5's blind verification and stamps; copy round B3 (Double Vision, Sublime Epiphany, Chandra's Regulator, Masterful Replication) | the first 16 puzzles, verified by playouts; r28 v2 and r29's snapshots read |
-| ~11-20 | B8 read; the **FDN segment** registered and launched: FDN, the engine fixes, zero fallback, every public card, wave 5's cards | FDN's last verification batches; B3's gate review | O1 designed (a note with the engine's payment code read), memory v1's columns listed |
-| 11-21 to 22 | the FDN segment | B6 (5 M20: Cerulean Drake, Gargos, Loaming Shaman, Scheming Symmetry, Vivien), then B4 and B12 (B4 first: they share the state-based actions; B12 has 6 M20: the Leylines, Grafdigger's Cage, Rule of Law) | O1 and memory v1 built behind flags, CPU-smoked and GPU-smoked with the real flags; the E-category puzzles |
-| from 11-23 (budget reset) | **the planning A/B** (O1 + memory v1 against control, from the FDN segment's checkpoint), registered | the remaining M20 rounds, by M20 cards completed and 209 §6's file-conflict rules (B13 with I5's names fold, B14, B18, B8, B9, B15, B17 with I2, B11 with I6, B2, B7, B10, B16, B19) | P2's generator; puzzle starts as the next arm |
+| ~11-20 | B8 read; the **FDN segment** registered and launched: FDN, the engine fixes, zero fallback, every public card, wave 5's cards | FDN's last verification batches; B3's gate review | the exact solver and the first proven puzzles; memory v1's columns listed; the plan module's design note (slots, both scopes, the hindsight target) |
+| 11-21 to 22 | the FDN segment | B6 (5 M20: Cerulean Drake, Gargos, Loaming Shaman, Scheming Symmetry, Vivien), then B4 and B12 (B4 first: they share the state-based actions; B12 has 6 M20: the Leylines, Grafdigger's Cage, Rule of Law) | memory v1 and the plan module built behind flags, CPU-smoked and GPU-smoked with the real flags; the E-category puzzles |
+| from 11-23 (budget reset) | **the planning A/B arms** (memory v1; the plan module in its two scopes; against control, from the FDN segment's checkpoint), registered | the remaining M20 rounds, by M20 cards completed and 209 §6's file-conflict rules (B13 with I5's names fold, B14, B18, B8, B9, B15, B17 with I2, B11 with I6, B2, B7, B10, B16, B19) | P2's generator; puzzle starts as the next arm |
 | then | P3's gate B (the reopening condition is a stalled rate, 196 §10, or the puzzles' B and D categories stalling) | rounds continue to M20's end | P3, then P4 |
 
 **A change to the registered card order (coordinator, 2026-11-18).** 209 §9 put the folds next:
@@ -337,7 +380,7 @@ wordings.
   re-verification measured about 3 agent-minutes a card (207 §4).
 
 **What waits on what.**
-- **E puzzles wait on memory v1, A-pay on O1.**
+- **E puzzles wait on memory v1; A-pay waits on the network paying (BACKLOG).**
 - **P2's starts wait on P0's generator and verifier.**
 - **P3 reuses the search and labeller already built.**
 - **M20's completion is the long pole.**

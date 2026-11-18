@@ -297,3 +297,24 @@ meaningful work."
     what a sequence of choices can express, not for deliberation or commitment.
   - D3's binding "multi-step planning with every step trained" (2026-09-10) is not in today's
     network. DESIGN_ACTION_SPACE's decoder was never built.
+
+**The owner's answers (2026-11-18, second round).**
+- **Payment.** The owner: "I dont like 'auto-pay' that much, so mark it as backlog fix item, because
+  I think it is right now, but at a later point we want the network to actually know how to use
+  lands too. For now making the network high-quality and mature is the priority, realism-of-play is
+  a later learning point, and not our current bottleneck." The engine keeps paying, and the
+  network's own payment is BACKLOG ("Automatic payment").
+- **Plans.**
+  - The plan runs through the opponent's turn (saving Cancel for the instant round, or letting the
+    opponent act more before the stack resolves). Both scopes are tested: "this action sequence
+    just now, or ... one or two action sequences in the future, but revise them when you actually
+    need to execute since state can have changed significantly during opponents turn".
+  - The owner agrees "very very much" with what trains the plan: hindsight, and the search's lines.
+- **"Think again".** Repeated reasoning paid by a game clock goes to the BACKLOG, "before we are
+  limited on quality from network-size".
+- **Measurement.** The owner: "Not sure how you are sure the cieling reading works at all. I can
+  see how we can use theory for it, cant see how we can measure it without a good model at doing
+  it." Agreed. Every headroom read so far (205) is a lower bound: what a one-turn lookahead over
+  today's network finds. Puzzle answers are therefore proven by exact solving in our engine where
+  the puzzle is small enough, and model-verified puzzles are reported apart (PLAN_PLANNING §4).
+- **Order.** Left to the coordinator: P0 first, as the best information.
