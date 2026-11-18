@@ -127,6 +127,15 @@ Nothing here is built until it has been sparred, planned and red-teamed.
     - Still to measure: how often "10 actions per player per step" binds, and the trigger
       quarantine.
 
+**The weakness scan** (the owner, 2026-11-18): weaker-than-printed play ranks with stronger-than-printed
+play, because a weakened card loses its gradient, its critic rank and its place in decks, and then
+disappears from what the network learns (docs/SYSTEM_MAP.md §3). The scan is the exploit scan's
+mirror:
+- **Per card:** cast or activated rate when drawn, abilities never used, effect when played, and
+  critic rank against mana value.
+- **Each flag** is read against the printed text.
+- **When:** in every bug hunt. The fix waves rank weaker faults beside stronger ones.
+
 ## Not before the long run (by decision)
 - **Mana payment by the network** (the owner: later; BACKLOG "Automatic payment").
 - **Repeated reasoning with a game clock** (BACKLOG, until size limits quality).
