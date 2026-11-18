@@ -142,3 +142,12 @@ mirror:
 - **Search over plans** (DESIGN_PLANNER v3, after the planner's A/B).
 - **Commander and multiplayer items.**
 - **The LLM benchmark items.**
+
+## The owner, 2026-11-18, later
+- **M21 and M20 in full before FDN.** "Focus on finishing M21 and M20 FULLY before moving to FDN
+  (I want tests and self-play with full sets)." So:
+  - the segment after B8 trains on M21 and M20 only, with today's fixes;
+  - FDN's card work and FDN's training segment wait until both sets are complete.
+
+  This replaces 208 §9's "FDN joins after B8".
+- **Usage and draft statistics trigger the strength checks** (SYSTEM_MAP §5).

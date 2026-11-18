@@ -108,3 +108,15 @@ this: no pilot can make it good.
 | Planning puzzles (proven) | Whether the network plans | Every gate checkpoint |
 | L ratings | Strength against a frozen pool | Registered reads |
 | Iter-row counts (voids, rails, fallback, overflow) | Artificial outcomes in training | Every update, target 0 |
+
+## 5. Card statistics drive the checks (the owner, 2026-11-18)
+
+"Cards that are never used/drafted should be eligible for checks on weaker-than-real evaluation.
+Same the other way for strong and often-picked cards."
+- Each card's rates are kept per set, from training games and the drafter:
+  - drafted or picked;
+  - cast or activated when available;
+  - each ability used.
+- A card at the bottom of these rates is queued for the weakness scan (§3). A card at the top is
+  queued for the exploit scan.
+- The same statistics are an input to the drafter (DESIGN_LEAGUE) and to every bug hunt.

@@ -1250,3 +1250,13 @@ pauses for measurement windows pays it at every pause. The fix is small, and mak
 - Brown, N., Bakhtin, A., Lerer, A., Gong, Q. Combining Deep Reinforcement Learning and Search for Imperfect-Information Games (ReBeL). NeurIPS 2020.
 - Kingma, D., Ba, J. Adam: A Method for Stochastic Optimization. ICLR 2015.
 - Loshchilov, I., Hutter, F. Decoupled Weight Decay Regularization. ICLR 2019.
+
+## The owner's constraint on merging options (2026-11-18)
+"You cant just merge the decisions available. Or at least we must make sure the model knows it has
+the option twice ... Merging them removes (or risks it at least) the possibility of considering
+using that option multiple times in the same turn."
+- **Binding on F3:** options are never merged inside a menu that holds other choices. Every copy
+  stays its own entity, with its own planner label (A1, A2), and its own option.
+- **Where skipping is allowed:** only a decision whose options are ALL interchangeable copies (which
+  of two identical Forests to play) may be skipped, and the copies stay visible as entities.
+- **The red team** checks F3 against this.
