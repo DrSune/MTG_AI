@@ -1,0 +1,17 @@
+{
+ "set": "M20",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "mr", "real": "Masterful Replication", "zone": "hand", "controller": 0},
+  {"key": "oak", "real": "Oakenform", "zone": "battlefield", "controller": 0},
+  {"key": "beta", "name": "Beta Construct", "type": "Artifact Creature — Construct", "power": "1", "toughness": "1", "zone": "battlefield", "controller": 0},
+  {"key": "trinket", "name": "Trinket", "type": "Artifact", "zone": "battlefield", "controller": 0}
+ ],
+ "mana": {"0": {"U": 6}},
+ "steps": [
+  {"op": "enchant", "aura": "oak", "host": "beta"},
+  {"op": "act", "seat": 0, "words": ["cast:mr", "1", "trinket"]}
+ ],
+ "expect": {"attached": {"oak": null}, "zone": {"oak": "graveyard"}},
+ "notes": "Engine wave W1 (KNOWLEDGE/2026-11-18/215, fault F44, the acceptance pack blind verification wave 7 found: runs/verify_wave7_2026-11-18/packs/A/OPENFAULT_aura_host_stops_matching_enchant_restriction.json; a known bug, failing, until W1). Oakenform ('Enchant creature') is on Beta Construct (an artifact creature). Masterful Replication (mode two, target the noncreature Trinket) makes Beta a copy of the Trinket until end of turn: not a creature, so the Aura is attached to an illegal permanent and is put into its owner's graveyard as a state-based action (CR 303.4c, 704.5m). Before W1 it stayed attached, stronger than printed: the Aura was back in force when the copy effect ended at cleanup. Here in mapped/M20 because Masterful Replication is not verified at this branch's base (main stamped it in verification wave 7); it moves to cards/M20 with the stamp."
+}

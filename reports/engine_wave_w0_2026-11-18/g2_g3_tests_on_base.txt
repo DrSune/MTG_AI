@@ -1,0 +1,38 @@
+F.FFFFFF                                                                 [100%]
+=================================== FAILURES ===================================
+E   assert False
+     +  where False = _fails_with([], "cast: decision words no ask took: ['bottom']")
+     +    where [] = _run(PosixPath('/tmp/pytest-of-sune/pytest-1311/test_the_words_of_a_held_cast_0'), {'cards': [{'key': 'opt', 'real': 'Opt', 'zone': 'hand', 'controller': 0}, {'key': 'lib', 'real': 'Shock', 'zone': 'li...eps': [{'op': 'cast', 'key': 'opt', 'hold': True, 'decisions': ['bottom']}, {'op': 'pass', 'decisions': ['top']}], ...})
+/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w0/base/tools/test_run_scenarios.py:349: assert False
+E   AssertionError: []
+    assert False
+     +  where False = _fails_with([], "enter: decision words no ask took: ['hit']")
+/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w0/base/tools/test_run_scenarios.py:461: AssertionError: []
+E   IndexError: list index out of range
+/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w0/base/tools/test_run_scenarios.py:477: IndexError: list index out of range
+E   AssertionError: []
+    assert False
+     +  where False = _fails_with([], "setup: card key 'p1' is a word the runner reads itself")
+/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w0/base/tools/test_run_scenarios.py:489: AssertionError: []
+E   AssertionError: []
+    assert False
+     +  where False = _fails_with([], "setup: card key 'p0' is a word the runner reads itself")
+/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w0/base/tools/test_run_scenarios.py:489: AssertionError: []
+E   AssertionError: []
+    assert False
+     +  where False = _fails_with([], "setup: card key 'first-legal' is a word the runner reads itself")
+/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w0/base/tools/test_run_scenarios.py:489: AssertionError: []
+E   assert ["step {'op':...: ['tapped']"] == []
+      
+      Left contains 2 more items, first extra item: "step {'op': 'cast', 'key': 'stt', 'tap': True, 'expect_raise': 'illegal cast: window:not_your_turn'}: expected raise 'illegal cast: window:not_your_turn', got PackError: cast stt: its mana sources cannot pay it"
+      Use -v to get more diff
+/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w0/base/tools/test_run_scenarios.py:504: assert ["step {'op':...: ['tapped']"] == []
+=========================== short test summary info ============================
+FAILED tools/test_run_scenarios.py::test_the_words_of_a_held_cast_answer_no_later_step
+FAILED tools/test_run_scenarios.py::test_a_word_for_a_one_candidate_target_fails_the_pack
+FAILED tools/test_run_scenarios.py::test_a_game_that_ends_before_the_last_step_fails_the_pack
+FAILED tools/test_run_scenarios.py::test_a_card_key_may_not_shadow_a_word_the_runner_reads[p1]
+FAILED tools/test_run_scenarios.py::test_a_card_key_may_not_shadow_a_word_the_runner_reads[p0]
+FAILED tools/test_run_scenarios.py::test_a_card_key_may_not_shadow_a_word_the_runner_reads[first-legal]
+FAILED tools/test_run_scenarios.py::test_a_tap_cast_reports_the_engines_own_refusal
+7 failed, 1 passed, 48 deselected in 3.21s

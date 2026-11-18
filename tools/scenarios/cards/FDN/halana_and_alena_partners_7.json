@@ -43,9 +43,6 @@
     "ha": false,
     "bear": false
    },
-   "decisions": [
-    "bear"
-   ],
    "respond_to_triggers": {
     "COMBAT": [
      {

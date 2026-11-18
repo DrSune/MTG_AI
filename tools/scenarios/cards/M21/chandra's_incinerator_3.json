@@ -6,7 +6,7 @@
  ],
  "mana": {"0": {"R": 1}},
  "steps": [
-  {"op": "cast", "key": "s1", "decisions": ["player:1"]},
+  {"op": "cast", "key": "s1", "targets": ["p1"]},
   {"op": "advance_turn"},
   {"op": "advance_turn"},
   {"op": "mana", "seat": 0, "add": {"R": 1, "C": 5}},

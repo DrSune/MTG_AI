@@ -35,8 +35,8 @@
       "op": "cast",
       "real": "Peer into the Abyss",
       "key": "sp",
-      "decisions": [
-        "player:0"
+      "targets": [
+        "p0"
       ]
     }
   ],

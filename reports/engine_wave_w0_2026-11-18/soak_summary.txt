@@ -1,0 +1,3 @@
+M21: 300 games, 0 crashes, 0 hit rows: []
+M20: 300 games, 0 crashes, 0 hit rows: []
+FDN: 300 games, 0 crashes, 2 hit rows: [('d6_lifecycle', "live layer #20 kind=mandate_block tag=Eot bound to card:14 ended in 'graveyard'", 1), ('d6_lifecycle', "live layer #56 kind=mandate_block tag=Eot bound to card:119 ended in 'graveyard'", 1)]

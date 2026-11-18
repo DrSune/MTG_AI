@@ -1,0 +1,33 @@
+== base
+FAIL brought_back_aura_cannot_enchant_the_creature_returning_with_it.json
+     zone[oak]: expected graveyard, got battlefield
+     attached[oak]: expected None, got card:0
+     power[bear]: expected 2, got 5
+     toughness[bear]: expected 2, got 5
+FAIL colossus_hammer_equip_misses_the_hammer_brought_back.json
+     attached[hammer]: expected None, got card:1
+     power[bear]: expected 2, got 12
+     toughness[bear]: expected 2, got 12
+PASS diviners_lockbox_disenchanted_in_response_still_draws.json
+FAIL dub_falls_off_riddleform_when_its_animation_ends.json
+     zone[dub]: expected graveyard, got battlefield
+     attached[dub]: expected None, got card:0
+FAIL griffin_protector_pump_misses_the_protector_brought_back.json
+     power[gp]: expected 2, got 3
+     toughness[gp]: expected 3, got 4
+FAIL watcher_of_the_spheres_pump_misses_the_watcher_stitched_back.json
+     power[w]: expected 2, got 3
+     toughness[w]: expected 2, got 3
+1/6 packs passed
+FAIL masterful_replication_turns_oakenforms_host_into_a_noncreature.json
+     zone[oak]: expected graveyard, got battlefield
+     attached[oak]: expected None, got card:2
+== branch
+PASS brought_back_aura_cannot_enchant_the_creature_returning_with_it.json
+PASS colossus_hammer_equip_misses_the_hammer_brought_back.json
+PASS diviners_lockbox_disenchanted_in_response_still_draws.json
+PASS dub_falls_off_riddleform_when_its_animation_ends.json
+PASS griffin_protector_pump_misses_the_protector_brought_back.json
+PASS watcher_of_the_spheres_pump_misses_the_watcher_stitched_back.json
+6/6 packs passed
+PASS masterful_replication_turns_oakenforms_host_into_a_noncreature.json

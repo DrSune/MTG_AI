@@ -20,7 +20,7 @@ for _p in (REPO, REPO / "tools"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
-from probe import WINDOW, Probe
+from probe import WINDOW, Probe, hand_rows
 
 from MTG_bot.core.ability_tree import ActivatedAbility
 from MTG_bot.core.executor import GameOver
@@ -29,7 +29,6 @@ from MTG_bot.core.executor.legality import activate
 from MTG_bot.core.executor.query import (
     activation_target_slots,
     legal_activations,
-    legal_casts,
     spell_target_slots,
 )
 from MTG_bot.core.executor.stack import cast
@@ -77,7 +76,7 @@ def card_findings(probe: Probe) -> tuple[int, list[str]]:
     r = probe.runner("hand")
     h = r.handles["card"]
     keys = {v: k for k, v in r.handles.items()}
-    for row in [row for row in legal_casts(r.world, r.ex, r.p0) if row.handle == h and not row.land]:
+    for row in [row for row in hand_rows(r, h) if row.kind == "cast"]:
         for modes in probe._modes(row.node):
             slots = list(spell_target_slots(r.ex, probe._mode_node(row.node, modes), spell_handle=h,
                                             seat=r.p0))

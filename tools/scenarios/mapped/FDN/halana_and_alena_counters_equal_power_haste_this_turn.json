@@ -10,7 +10,7 @@
  "mana": {"0": {"G": 1, "C": 1}},
  "steps": [
   {"op": "cast", "real": "Bear Cub", "key": "cub", "controller": 0},
-  {"op": "combat", "seat": 0, "attack": {"cub": true, "ha": false}, "decisions": ["cub"]},
+  {"op": "combat", "seat": 0, "attack": {"cub": true, "ha": false}},
   {"op": "end_turn"},
   {"op": "advance_turn"}
  ],

@@ -35,10 +35,7 @@
    "op": "activate",
    "key": "pilf",
    "idx": 2,
-   "seat": 0,
-   "decisions": [
-    "silk"
-   ]
+   "seat": 0
   },
   {
    "op": "combat",

@@ -6,5 +6,5 @@
   {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": 2, "toughness": 2, "zone": "hand", "controller": 0}
  ],
  "mana": {"0": {"W": 1, "U": 1, "C": 1}},
- "steps": [{"op": "activate", "key": "niambi", "idx": 1, "seat": 0, "decisions": ["leg"]}],
+ "steps": [{"op": "activate", "key": "niambi", "idx": 1, "seat": 0}],
  "expect": {"zone": {"leg": "graveyard", "bear": "hand", "niambi": "battlefield"}, "tapped": {"niambi": true}, "hand": {"0": 3}, "mana_pool": {"0": {}}}}

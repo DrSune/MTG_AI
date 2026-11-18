@@ -1,0 +1,15 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "F01 CONTROL of f01_activated_steward_with_no_legal_opponent_is_refused.json: the Halo names Opt, so seat 1 is a legal target. The menu offers the Steward's ability, the act op activates it (its one opponent designated without an ask), the Steward is sacrificed and seat 1 discards its only card, Opt: the check's refusal is the protection's.",
+ "cards": [
+  {"key": "halo", "real": "Runed Halo", "zone": "hand", "controller": 1},
+  {"key": "stew", "real": "Liliana's Steward", "zone": "battlefield", "controller": 0},
+  {"key": "opt", "real": "Opt", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "halo", "decisions": ["Opt"]},
+  {"op": "act", "seat": 0, "words": ["act:stew:0"]}
+ ],
+ "expect": {"zone": {"stew": "graveyard", "opt": "graveyard"}}
+}

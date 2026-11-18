@@ -3,7 +3,7 @@
   "world": {"life": 20, "seed": 7},
   "cards": [
     {"key": "fp", "real": "Fabled Passage", "zone": "battlefield", "controller": 0},
-    {"key": "p1", "real": "Plains", "zone": "battlefield", "controller": 0},
+    {"key": "plains1", "real": "Plains", "zone": "battlefield", "controller": 0},
     {"key": "i1", "real": "Island", "zone": "battlefield", "controller": 0, "start_tapped": true},
     {"key": "s1", "real": "Swamp", "zone": "battlefield", "controller": 0},
     {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},
@@ -15,7 +15,7 @@
   ],
   "expect": {
     "zone": {"fp": "graveyard", "forest": "battlefield", "caves": "library"},
-    "tapped": {"forest": false, "i1": true, "p1": false, "s1": false}
+    "tapped": {"forest": false, "i1": true, "plains1": false, "s1": false}
   },
   "notes": "Verifier I, wave 4 (batch I, I06). Printed: 'Then if you control four or more lands, untap that land.' Fabled Passage plus three other lands of yours (Plains, a TAPPED Island, Swamp): after the sacrifice and the fetch you control four (three plus the Forest), so THAT land, the fetched Forest, is untapped; the already tapped Island is not untapped by it."
 }

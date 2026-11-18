@@ -47,8 +47,10 @@
    "key": "mr",
    "decisions": [
     "c2",
-    "c3",
-    "player:1"
+    "c3"
+   ],
+   "targets": [
+    "p1"
    ]
   }
  ],
@@ -63,5 +65,5 @@
    "1": 1
   }
  },
- "notes": "V10 (2026-10-29). Printed Mind Rot: 'Target player discards two cards.' CR 701.9b: the discarding player chooses which. The opponent holds three cards and answers its own two asks with c2 and c3, so c1 (the lowest handle, which the engine used to discard) stays in hand. re-pinned 2026-10-29: V21 makes 'target player' any player (CR 115.1), so the opponent is no longer the only, forced choice and the step designates it ('player:1', listed last so the step's other answers keep their order)."
+ "notes": "V10 (2026-10-29). Printed Mind Rot: 'Target player discards two cards.' CR 701.9b: the discarding player chooses which. The opponent holds three cards and answers its own two asks with c2 and c3, so c1 (the lowest handle, which the engine used to discard) stays in hand. re-pinned 2026-10-29: V21 makes 'target player' any player (CR 115.1), so the opponent is no longer the only, forced choice and the step designates it (\"targets\": [\"p1\"])."
 }

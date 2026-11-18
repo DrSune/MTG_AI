@@ -20,7 +20,7 @@
       "type": "Creature"
     },
     {
-      "key": "p2",
+      "key": "prey2",
       "zone": "battlefield",
       "controller": 0,
       "name": "Prey Two",
@@ -39,7 +39,7 @@
     "zone": {
       "g": "battlefield",
       "o1": "graveyard",
-      "p2": "battlefield"
+      "prey2": "battlefield"
     },
     "life": {
       "0": 20,

@@ -10,7 +10,7 @@
  ],
  "steps": [
   {"op": "enter", "key": "k1", "decisions": ["zap"]},
-  {"op": "enter", "key": "k2", "decisions": ["salve"]},
+  {"op": "enter", "key": "k2"},
   {"op": "deal_damage", "source": "ogre", "target": "k1", "amount": 2}
  ],
  "expect": {

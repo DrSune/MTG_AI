@@ -1,0 +1,5 @@
+M21: deckable 280 / 280; taken out 0; games 5; identical digests 5, journals 5, event logs 5; crashes 0 / 0
+M20: deckable 286 / 286; taken out 0; games 5; identical digests 5, journals 5, event logs 5; crashes 0 / 0
+FDN: deckable 261 / 261; taken out 0; games 5; identical digests 5, journals 5, event logs 5; crashes 0 / 0
+games that differ: 0 of 15
+games per CPU-second: base 2.14, branch 2.13 (-0.8%; 215 §8 f asks within 5%)

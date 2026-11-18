@@ -4,7 +4,7 @@
   "life": 20,
   "seed": 7
  },
- "notes": "V23, nested journal boundaries: Chandra, Flame's Catalyst's -2 casts Crash Through from your graveyard while the -2 resolves ('Creatures you control gain trample until end of turn. Draw a card.'). That is one draw, so Teferi's Tutelage ('Whenever you draw a card, target opponent mills two cards') mills two cards, not four: the CAST atom that holds the whole cast must not journal the draw a second time. (Chandra's 'If that spell would be put into your graveyard, exile it instead' is not applied on this lane today: Crash Through lands in the graveyard. That is a separate finding, not asserted here.) Top Junk is listed last so the runner's opening draw takes it before the filler exists.",
+ "notes": "V23, nested journal boundaries: Chandra, Flame's Catalyst's \u22122 ('You may cast target red instant or sorcery card from your graveyard. If that spell would be put into your graveyard, exile it instead.') casts Crash Through ('Creatures you control gain trample until end of turn. Draw a card.') from the graveyard while the \u22122 resolves. That is one draw, so Teferi's Tutelage ('Whenever you draw a card, target opponent mills two cards') mills two cards, not four: the CAST atom that holds the whole cast must not journal the draw a second time. Crash Through is exiled instead of going to the graveyard: the \u22122's replacement applies on this lane since round 13, pinned here. Top Junk starts in hand, so the hand ends with it and the one card drawn.",
  "cards": [
   {
    "key": "ch",
@@ -56,7 +56,8 @@
  "expect": {
   "zone": {
    "ch": "battlefield",
-   "junk": "hand"
+   "junk": "hand",
+   "crash": "exile"
   },
   "counters": {
    "ch": {

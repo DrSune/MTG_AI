@@ -8,7 +8,7 @@
  ],
  "mana": {"0": {"G": 1}},
  "steps": [
-  {"op": "cast", "real": "Primal Might", "key": "pm", "x": 0, "targets": ["bear"], "decisions": ["NONE"]}
+  {"op": "cast", "real": "Primal Might", "key": "pm", "x": 0, "targets": ["bear"]}
  ],
  "expect": {
   "zone": {"pm": "graveyard", "bear": "battlefield", "giant": "battlefield"},

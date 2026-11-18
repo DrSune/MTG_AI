@@ -8,6 +8,6 @@
  "mana": {"0": {"W": 1, "C": 1}},
  "steps": [
   {"op": "enter", "key": "idol"},
-  {"op": "activate", "key": "idol", "idx": 1, "seat": 0, "decisions": ["skip"]}
+  {"op": "activate", "key": "idol", "idx": 1, "seat": 0}
  ],
  "expect": {"zone": {"idol": "battlefield", "aw": "exile"}, "tapped": {"idol": true}, "mana_pool": {"0": {}}}}

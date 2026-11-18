@@ -5,9 +5,9 @@
   {"key": "att", "name": "Attacker", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
   {"key": "home", "name": "Home Guard", "power": "2", "toughness": "2", "type": "Creature", "zone": "battlefield", "controller": 0},
   {"key": "stand", "real": "Make a Stand", "zone": "hand", "controller": 0},
-  {"key": "p1", "real": "Plains", "zone": "battlefield", "controller": 0},
-  {"key": "p2", "real": "Plains", "zone": "battlefield", "controller": 0},
-  {"key": "p3", "real": "Plains", "zone": "battlefield", "controller": 0},
+  {"key": "plains1", "real": "Plains", "zone": "battlefield", "controller": 0},
+  {"key": "plains2", "real": "Plains", "zone": "battlefield", "controller": 0},
+  {"key": "plains3", "real": "Plains", "zone": "battlefield", "controller": 0},
   {"key": "blk", "name": "Big Blocker", "power": "4", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 1}
  ],
  "steps": [

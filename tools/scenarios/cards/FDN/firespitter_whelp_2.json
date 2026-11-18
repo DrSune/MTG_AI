@@ -9,7 +9,7 @@
  ],
  "mana": {"0": {"C": 2}},
  "steps": [
-  {"op": "cast", "key": "tome", "controller": 0, "decisions": ["first-legal"]}
+  {"op": "cast", "key": "tome", "controller": 0}
  ],
  "expect": {
   "zone": {"tome": "battlefield"},

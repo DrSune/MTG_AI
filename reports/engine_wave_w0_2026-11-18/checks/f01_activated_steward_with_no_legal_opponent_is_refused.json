@@ -1,0 +1,16 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "F01 CHECK, activated lane (CR 602.2b -> 601.2c: an ability needing a target it cannot have is not activated). Seat 1's Runed Halo names Liliana's Steward ('You have protection from the chosen card name'), so seat 0's Steward ('{T}, Sacrifice this creature: Target opponent discards a card. Activate only as a sorcery.') has no legal player. The menu a game acts from (menu.menu, read through the bench router by the act op) offers seat 0 nothing, so it is never asked and the act op's word is left over; activating it is refused with nothing paid: the Steward stays, seat 1 keeps its Opt. Control: f01_activated_control_steward_with_a_legal_opponent.json.",
+ "cards": [
+  {"key": "halo", "real": "Runed Halo", "zone": "hand", "controller": 1},
+  {"key": "stew", "real": "Liliana's Steward", "zone": "battlefield", "controller": 0},
+  {"key": "opt", "real": "Opt", "zone": "hand", "controller": 1}
+ ],
+ "steps": [
+  {"op": "enter", "key": "halo", "decisions": ["Liliana's Steward"]},
+  {"op": "act", "seat": 0, "words": ["act:stew:0"], "expect_raise": "words no ask took: ['act:"},
+  {"op": "activate", "key": "stew", "idx": 0, "seat": 0, "expect_raise": "target"}
+ ],
+ "expect": {"zone": {"stew": "battlefield", "opt": "hand"}, "tapped": {"stew": false}}
+}

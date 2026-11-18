@@ -1,7 +1,7 @@
 """Tests for templates_b8 (the party family): every printed row matches exactly one template
 and the deferred rows match nothing; the party census on live boards (distinct classes, your
 creatures only, the class grant through the layers overlay, full party); the discount price on
-legal_casts; the QPartyCount node."""
+spell_castable; the QPartyCount node."""
 
 from __future__ import annotations
 
@@ -41,9 +41,8 @@ from MTG_bot.core.compiler.templates_b8 import (
     _party_count,
 )
 from MTG_bot.core.executor import Executor
-from MTG_bot.core.executor.legality import ctx_for
+from MTG_bot.core.executor.legality import ctx_for, spell_castable
 from MTG_bot.core.executor.quantity import eval_filter, resolve
-from MTG_bot.core.executor.query import legal_casts
 from MTG_bot.core.state import ZONE_BATTLEFIELD, ZONE_HAND, GameWorld
 from MTG_bot.core.test_executor_stack import spell_rec
 
@@ -314,7 +313,7 @@ class TestPartyCensus(PartyCase):
 
 
 # ---------------------------------------------------------------------------
-# Discount price visible on legal_casts
+# Discount price visible on the cast's payment plan
 # ---------------------------------------------------------------------------
 
 
@@ -363,35 +362,30 @@ class TestDiscountPrice(unittest.TestCase):
         for key, amount in keys.items():
             pool[key] = pool.get(key, 0) + amount
 
-    def _row(self):
-        return next(
-            (
-                o
-                for o in legal_casts(self.world, self.ex, self.p0)
-                if o.handle == self.spell
-            ),
-            None,
-        )
+    def _plan(self):
+        """The cast's payment plan from the pool (legality.spell_castable), None when the pool
+        cannot pay it."""
+        return spell_castable(self.ex, self.p0, self.spell)[3]
 
     def test_price_folds_the_party_census(self) -> None:
-        """Party of two: {4}{B} is priced as 2 generic + 1 black on legal_casts (the ask shows
-        the real total, CR 601.2f)."""
+        """Party of two: {4}{B} is priced as 2 generic + 1 black (the ask shows the real total,
+        CR 601.2f)."""
         self.place_party_members()
         self.mana(G=2, B=1)
-        row = self._row()
-        self.assertIsNotNone(row, "discounted row must be enumerable at 2G+1B")
-        assert row is not None and row.payment is not None
-        self.assertEqual(dict(row.payment.mana), {"G": 2, "B": 1})
+        plan = self._plan()
+        self.assertIsNotNone(plan, "the discounted cast must be payable at 2G+1B")
+        assert plan is not None
+        self.assertEqual(dict(plan.mana), {"G": 2, "B": 1})
 
     def test_boundary_falsifies_both_wrong_encodings(self) -> None:
-        """Without a party the row needs the full price: 2G+1B does not list it, 4G+1B does."""
+        """Without a party the cast needs the full price: 2G+1B does not pay it, 4G+1B does."""
         self.mana(G=2, B=1)
-        self.assertIsNone(self._row())
+        self.assertIsNone(self._plan())
         self.mana(G=2)  # now the full 4G+1B is available
-        row = self._row()
-        self.assertIsNotNone(row)
-        assert row is not None and row.payment is not None
-        self.assertEqual(dict(row.payment.mana), {"G": 4, "B": 1})
+        plan = self._plan()
+        self.assertIsNotNone(plan)
+        assert plan is not None
+        self.assertEqual(dict(plan.mana), {"G": 4, "B": 1})
 
     def place_party_members(self) -> None:
         """A Cleric and a Wizard: party 2."""

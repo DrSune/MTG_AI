@@ -15,7 +15,7 @@
   {"op": "cast", "real": "Dive Down", "key": "dive", "controller": 0, "targets": ["ha"]},
   {"op": "cast", "real": "Stab", "key": "stab1", "controller": 0, "targets": ["ha"]},
   {"op": "cast", "real": "Stab", "key": "stab2", "controller": 0, "targets": ["ha"]},
-  {"op": "combat", "seat": 0, "attack": {"ha": false, "bear": false}, "decisions": ["bear"]}
+  {"op": "combat", "seat": 0, "attack": {"ha": false, "bear": false}}
  ],
  "expect": {
   "power": {"ha": -2},

@@ -8,7 +8,7 @@
   {"key": "wall", "name": "Wall", "type": "Creature", "power": 1, "toughness": 4, "zone": "battlefield", "controller": 1}
  ],
  "steps": [
-  {"op": "activate", "key": "gp", "idx": 2, "seat": 0, "decisions": ["silk"]},
+  {"op": "activate", "key": "gp", "idx": 2, "seat": 0},
   {"op": "combat", "seat": 0, "attack": {"gp": true}, "block": {"wall": "gp"}},
   {"op": "advance_turn"},
   {"op": "advance_turn"},

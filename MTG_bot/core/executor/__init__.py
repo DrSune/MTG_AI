@@ -74,6 +74,7 @@ from MTG_bot.core.ability_tree import (
     ZoneKind,
 )
 from MTG_bot.core.compiler.compiler import PoolCompile
+from MTG_bot.core.executor.aura_entry import enchant_filter
 from MTG_bot.core.executor.binding import TriggerBinder
 from MTG_bot.core.executor.decisions import DecisionStream, site_digest
 from MTG_bot.core.executor.durations import DurationLedger
@@ -1243,9 +1244,8 @@ class Executor:
         "refuses a new object (CR 610.3)",
         "ReturnRegistry._staged": "lki: rows within one atom, before their entry clock is known",
         "EventJournal.events": "lki: the game's history; a read of one object keeps the rows of "
-        "its life (_object_cast_row, _last_battlefield_entry, IS_EXILED_WITH_SOURCE by "
-        "GameEvent.origin, departure_lki); CAST_THIS_TURN_FROM off the stack and the "
-        "battlefield does not yet (BACKLOG)",
+        "its life (_object_cast_row, off the stack and the battlefield its last residency's; "
+        "_last_battlefield_entry, IS_EXILED_WITH_SOURCE by GameEvent.origin, departure_lki)",
         "EventJournal._open": "kept: the open atom boundaries' snapshots, empty between ops",
         "SpellStack.frames": "stack: a frame ends as its object leaves the stack: it resolves, is "
         "countered or fizzles (stack.resolve_top), or an effect moves it (verbs._off_the_stack)",
@@ -1320,6 +1320,8 @@ class Executor:
                 event.clock,
                 # its abilities with its identity: a copy effect on it ends below (CR 707.2)
                 self.binder.handle_record.get(event.subject),
+                # what it was attached to, before the binder's leave-detach drops the edge
+                self.attachments.get(event.subject),
             )
         due: list[ReturnRow] = []
         for event in moves:
@@ -1689,11 +1691,15 @@ class Executor:
         return sorted(gone)
 
     def _unattached_auras(self) -> list[Handle]:
-        """CR 704.5m: an Aura on the battlefield that isn't attached
-        is put into its owner's graveyard. Attachment state is the
+        """CR 704.5m: an Aura on the battlefield that isn't attached, or is attached to an illegal
+        object, is put into its owner's graveyard. Attachment state is the
         executor's one ``attachments`` table (the IS_ATTACHED_TO_SOURCE
         oracle); the binder drops edges whose host left, so a MISSING edge
-        is the unattached read. Detection is the ENCHANT keyword on the
+        is the unattached read. An illegal host is one its enchant ability no longer allows (CR
+        303.4c: an "Enchant creature" Aura on a permanent that stopped being a creature, Dub on
+        Riddleform once its animation ends; "Enchant creature you control" once its controller
+        lost control of the creature, read as the Aura's controller sees it) or one with
+        protection from it (CR 702.16c). Detection is the ENCHANT keyword on the
         printed identity (the aura marker — equipment carry EQUIP and are
         NOT swept: an unattached Equipment legally stays on the
         battlefield, CR 301.5). The Aura goes to the graveyard of the player
@@ -1711,8 +1717,16 @@ class Executor:
                     host is None
                     or host not in world.cards
                     or world.zone_of(host).kind != ZONE_BATTLEFIELD
-                    # CR 702.16c, 704.5m: an Aura attached to a permanent with
-                    # protection from it is attached to an illegal object.
+                    or not eval_filter(
+                        enchant_filter(self, card),
+                        host,
+                        self._ctx(
+                            source=card,
+                            controller=self.controller_of(card),
+                            bindings=None,
+                            decisions=(),
+                        ),
+                    )
                     or protected_from(self, host, card)
                 ):
                     out.append(card)
@@ -1897,10 +1911,15 @@ class Executor:
             # CR 704.5n, 704.5p: checked in the same snapshot as the other actions
             # (CR 704.3, simultaneous); the permanent stays on the battlefield and
             # the next pass, after the recompute, sees the equipped bonuses gone.
+            # Its edge ends below, after the departures are snapshotted.
             for card in freed:
-                host = self.attachments.pop(card)
                 self.events.append(
-                    (len(self.events), "STATE_CHECK", str(card), f"UNATTACHED:{host}")
+                    (
+                        len(self.events),
+                        "STATE_CHECK",
+                        str(card),
+                        f"UNATTACHED:{self.attachments[card]}",
+                    )
                 )
             # Every lane below puts permanents into their owners' graveyards,
             # and the moves ask the replacements first, as the verbs' moves do
@@ -1947,8 +1966,7 @@ class Executor:
             for card in unattached:
                 if card not in self.world.cards:
                     continue  # an aura killed in this same batch
-                self.attachments.pop(card, None)
-                to_graveyard(card, "UNATTACHED", "UNATTACHED_REPLACED")
+                to_graveyard(card, "UNATTACHED", "UNATTACHED_REPLACED")  # its edge ends below
             for card in walkers:
                 if card not in self.world.cards:
                     continue  # a walker killed in this same batch
@@ -1982,6 +2000,14 @@ class Executor:
             # it shares the check's batch.
             with self._one_event(new_events):
                 self._on_zone_changes(new_events)
+                # CR 704.3: the attachments this check ends (an Aura put into its owner's
+                # graveyard, 704.5m; an Equipment unattached, 704.5n, 704.5p) still held as the
+                # objects leaving in it left, so their last known information keeps them
+                # (LastKnown.attached: Malefic Scythe's "Whenever equipped creature dies" sees a
+                # creature with protection from it dying of lethal damage in the same check;
+                # LastKnown.host: what the buried Aura enchanted).
+                for card in (*freed, *unattached):
+                    self.attachments.pop(card, None)
                 for card, repl in replaced:
                     self.replace_move(repl, card)
             # Queue the triggers this batch caused; they resolve once the

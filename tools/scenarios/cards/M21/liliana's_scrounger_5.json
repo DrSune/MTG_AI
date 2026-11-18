@@ -10,10 +10,10 @@
  "steps": [
   {"op": "enter", "key": "lili"},
   {"op": "loyalty", "key": "lili", "set": 3},
-  {"op": "end_turn", "decisions": ["fire", "lili"]},
+  {"op": "end_turn"},
   {"op": "advance_turn"},
   {"op": "deal_damage", "source": "sc", "target": "obear", "amount": 99},
-  {"op": "end_turn", "decisions": ["fire", "lili"]}
+  {"op": "end_turn", "decisions": ["fire"]}
  ],
  "expect": {
   "zone": {"obear": "graveyard"},

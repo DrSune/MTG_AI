@@ -17,7 +17,7 @@
  ],
  "steps": [
   {"op": "loyalty", "key": "ugin", "set": 10},
-  {"op": "activate", "key": "ugin", "idx": 2, "seat": 0, "decisions": ["want", "land", "NONE"]}
+  {"op": "activate", "key": "ugin", "idx": 2, "seat": 0, "decisions": ["want", "land"]}
  ],
  "expect": {
   "life": {"0": 27, "1": 20},

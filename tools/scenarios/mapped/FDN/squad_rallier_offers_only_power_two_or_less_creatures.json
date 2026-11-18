@@ -71,8 +71,7 @@
    "idx": 0,
    "seat": 0,
    "decisions": [
-    "fire",
-    "first-legal"
+    "fire"
    ]
   }
  ],

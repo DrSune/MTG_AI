@@ -6,7 +6,7 @@
  ],
  "mana": {"0": {"R": 1}},
  "steps": [
-  {"op": "cast", "key": "s", "real": "Shock", "controller": 0, "targets": ["w"], "decisions": ["fire"]}
+  {"op": "cast", "key": "s", "real": "Shock", "controller": 0, "targets": ["w"]}
  ],
  "expect": {"zone": {"w": "battlefield", "s": "graveyard"}, "hand": {"0": 0}, "damage": {"w": 2}},
  "notes": "Printed: '... a spell or ability AN OPPONENT controls ...'. The Warden's own controller Shocks it: no trigger, no cards drawn."}

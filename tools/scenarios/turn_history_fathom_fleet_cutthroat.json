@@ -44,10 +44,7 @@
   },
   {
    "op": "enter",
-   "key": "cutthroat",
-   "decisions": [
-    "hit"
-   ]
+   "key": "cutthroat"
   }
  ],
  "expect": {

@@ -438,9 +438,16 @@ class R20bCase(unittest.TestCase):
                 oid=self.world.cards[priest].identity.oracle_id,
             ),
         )
+        # A token never moves onto the battlefield: it is created there, and one that left it
+        # stays where it is (CR 111.8), so the exemption is asked of the registry directly. The
+        # control is a nontoken creature card, which the replacement does catch.
         kit = self._card("Kitten", zone=ZONE_HAND, is_token=True)
-        self._enter(kit)
-        self.assertEqual(self._zone(kit), ZONE_BATTLEFIELD, "tokens are exempt")
+        bear = self._card("Bear", zone=ZONE_HAND)
+        repls = self.ex.replacements
+        self.assertIsNone(
+            repls.replacement_for_zone_change(kit, ZONE_BATTLEFIELD, self.p0), "tokens are exempt"
+        )
+        self.assertIsNotNone(repls.replacement_for_zone_change(bear, ZONE_BATTLEFIELD, self.p0))
 
     # -------------------------------------------- 3: player-subject lane
 

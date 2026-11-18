@@ -10,7 +10,7 @@
  "steps": [
   {"op": "loyalty", "key": "basri", "set": 3},
   {"op": "activate", "key": "basri", "idx": 0, "seat": 0, "targets": ["mc"], "decisions": ["player:1"], "expect_raise": "target:selection:off_population"},
-  {"op": "activate", "key": "basri", "idx": 0, "seat": 0, "targets": ["bear"], "decisions": ["player:1"]}
+  {"op": "activate", "key": "basri", "idx": 0, "seat": 0, "targets": ["bear"]}
  ],
  "expect": {
   "counters": {"bear": {"PLUS_1_PLUS_1": 1}, "mc": {}, "basri": {"LOYALTY": 4}},

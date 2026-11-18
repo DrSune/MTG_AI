@@ -1,6 +1,6 @@
 {
  "set": "M21",
- "notes": "Rewind, printed: 'Untap UP TO FOUR lands.' The lands are chosen by Rewind's controller on resolution. P0 casts Shock at P1's Rager, its {R} paid by tapping P0's Mountain (the payer, CR 605.3a); P1 answers with Rewind, counters the Shock, and chooses four of its five tapped Plains (p1-p4): those untap, p5 stays tapped (four at most), and P0's Mountain stays tapped (not chosen). Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the answer is a spell cast while the first waits on the stack (\"hold\").",
+ "notes": "Rewind, printed: 'Untap UP TO FOUR lands.' The lands are chosen by Rewind's controller on resolution. P0 casts Shock at P1's Rager, its {R} paid by tapping P0's Mountain (the payer, CR 605.3a); P1 answers with Rewind, counters the Shock, and chooses four of its five tapped Plains (plains1-plains4): those untap, plains5 stays tapped (four at most), and P0's Mountain stays tapped (not chosen). Converted 2026-11-11 to real priority (docs/DESIGN_PRIORITY.md): the answer is a spell cast while the first waits on the stack (\"hold\").",
  "world": {
   "life": 20,
   "seed": 7
@@ -33,35 +33,35 @@
    "controller": 1
   },
   {
-   "key": "p1",
+   "key": "plains1",
    "real": "Plains",
    "zone": "battlefield",
    "controller": 1,
    "start_tapped": true
   },
   {
-   "key": "p2",
+   "key": "plains2",
    "real": "Plains",
    "zone": "battlefield",
    "controller": 1,
    "start_tapped": true
   },
   {
-   "key": "p3",
+   "key": "plains3",
    "real": "Plains",
    "zone": "battlefield",
    "controller": 1,
    "start_tapped": true
   },
   {
-   "key": "p4",
+   "key": "plains4",
    "real": "Plains",
    "zone": "battlefield",
    "controller": 1,
    "start_tapped": true
   },
   {
-   "key": "p5",
+   "key": "plains5",
    "real": "Plains",
    "zone": "battlefield",
    "controller": 1,
@@ -94,10 +94,10 @@
    "tap": true,
    "real": "Rewind",
    "decisions": [
-    "p1",
-    "p2",
-    "p3",
-    "p4"
+    "plains1",
+    "plains2",
+    "plains3",
+    "plains4"
    ]
   }
  ],
@@ -110,11 +110,11 @@
   "damage": {},
   "tapped": {
    "m1": true,
-   "p1": false,
-   "p2": false,
-   "p3": false,
-   "p4": false,
-   "p5": true
+   "plains1": false,
+   "plains2": false,
+   "plains3": false,
+   "plains4": false,
+   "plains5": true
   }
  }
 }

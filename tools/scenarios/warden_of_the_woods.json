@@ -33,9 +33,6 @@
    "key": "tg",
    "targets": [
     "w"
-   ],
-   "decisions": [
-    "fire"
    ]
   }
  ],

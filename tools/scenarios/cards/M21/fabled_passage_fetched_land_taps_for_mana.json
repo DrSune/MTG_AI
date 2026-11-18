@@ -14,19 +14,19 @@
    "controller": 0
   },
   {
-   "key": "p1",
+   "key": "plains1",
    "real": "Plains",
    "zone": "battlefield",
    "controller": 0
   },
   {
-   "key": "p2",
+   "key": "plains2",
    "real": "Plains",
    "zone": "battlefield",
    "controller": 0
   },
   {
-   "key": "p3",
+   "key": "plains3",
    "real": "Plains",
    "zone": "battlefield",
    "controller": 0
@@ -49,10 +49,7 @@
    "op": "activate",
    "key": "fp",
    "idx": 0,
-   "seat": 0,
-   "decisions": [
-    "forest"
-   ]
+   "seat": 0
   },
   {
    "op": "cast",
@@ -68,9 +65,9 @@
   },
   "tapped": {
    "forest": true,
-   "p1": false,
-   "p2": false,
-   "p3": false
+   "plains1": false,
+   "plains2": false,
+   "plains3": false
   },
   "mana_pool": {
    "0": {}

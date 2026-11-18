@@ -1,0 +1,18 @@
+== base 0b7f9c22 (exported)
+HIT    artefact  D5 counters folded across lives (M21 229: Watcher bounced and recast)
+HIT    artefact  D5 one card dying twice, a counter each life (FDN 123: Erudite Wizard)
+HIT    artefact  D5 a static and a pump on one copy (M21 172: Pack Leader beside another)
+HIT    control   D5 control: a counter the death ignores (counter-blind)
+HIT    artefact  D6(i) an Eot delayed trigger of the game's last turn (M21 9: Subira)
+HIT    control   D6(i) control: an Eot delayed trigger that saw the next turn begin
+HIT    artefact  D6(iii) two Fiery Emancipations (M21 114, 297: CR 616.1)
+HIT    control   D6(iii) control: one source registered twice
+== W0 branch
+clean  artefact  D5 counters folded across lives (M21 229: Watcher bounced and recast)
+clean  artefact  D5 one card dying twice, a counter each life (FDN 123: Erudite Wizard)
+clean  artefact  D5 a static and a pump on one copy (M21 172: Pack Leader beside another)
+HIT    control   D5 control: a counter the death ignores (counter-blind)
+clean  artefact  D6(i) an Eot delayed trigger of the game's last turn (M21 9: Subira)
+HIT    control   D6(i) control: an Eot delayed trigger that saw the next turn begin
+clean  artefact  D6(iii) two Fiery Emancipations (M21 114, 297: CR 616.1)
+HIT    control   D6(iii) control: one source registered twice

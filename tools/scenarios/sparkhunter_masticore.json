@@ -30,10 +30,7 @@
   {
    "op": "cast",
    "real": "Sparkhunter Masticore",
-   "key": "sp",
-   "decisions": [
-    "fuel"
-   ]
+   "key": "sp"
   }
  ],
  "expect": {

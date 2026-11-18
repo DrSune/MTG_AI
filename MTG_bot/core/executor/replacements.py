@@ -157,6 +157,18 @@ class PreventionRecord:
     resolved: bool = False
 
 
+def _record_ctx(ctx: ExecCtx, rec: ReplacementRecord | PreventionRecord) -> ExecCtx:
+    """The context a record is judged in: its own source and controller. The resolution's
+    ``gone`` register (CR 400.7) describes the resolving ability's objects, not the record's
+    source: a static record's source is the object now on the battlefield (a departed source's
+    statics are detached), so a new object's own "prevent all damage that would be dealt to this
+    creature" applies while an older ability of its card resolves."""
+    if "gone" not in ctx.bindings:
+        return replace(ctx, source=rec.source, controller=rec.controller)
+    bindings = {k: v for k, v in ctx.bindings.items() if k != "gone"}
+    return replace(ctx, source=rec.source, controller=rec.controller, bindings=bindings)
+
+
 class ReplacementRegistry:
     """The replacement + prevention registry owned by one
     :class:`~MTG_bot.core.executor.Executor`."""
@@ -470,7 +482,7 @@ class ReplacementRegistry:
                 continue
             if rec.tag == "Permanent" and not self._source_alive(rec.source):
                 continue
-            rec_ctx = replace(ctx, source=rec.source, controller=rec.controller)
+            rec_ctx = _record_ctx(ctx, rec)
             if victim.namespace == "player":
                 if not self._player_filter_matches(event.filter, victim, rec_ctx):
                     continue
@@ -604,7 +616,7 @@ class ReplacementRegistry:
                 continue
             if not rec.resolved and not self._source_alive(rec.source):
                 continue  # a static carrier works while its source is there (CR 611.2a)
-            rec_ctx = replace(ctx, source=rec.source, controller=rec.controller)
+            rec_ctx = _record_ctx(ctx, rec)
             if event.filter is not None and not eval_filter(
                 event.filter, victim, rec_ctx
             ):
@@ -647,7 +659,7 @@ class ReplacementRegistry:
                 continue  # "you" means the REPLACEMENT's controller
             if rec.tag == "Permanent" and not self._source_alive(rec.source):
                 continue
-            rec_ctx = replace(ctx, source=rec.source, controller=rec.controller)
+            rec_ctx = _record_ctx(ctx, rec)
             if not self._condition_holds(rec, player, rec_ctx):
                 continue
             return rec
@@ -699,7 +711,7 @@ class ReplacementRegistry:
                 )
             if rec.tag == "Permanent" and not self._source_alive(rec.source):
                 continue
-            rec_ctx = replace(ctx, source=rec.source, controller=rec.controller)
+            rec_ctx = _record_ctx(ctx, rec)
             if not self._condition_holds(rec, drawer, rec_ctx):
                 continue
             return rec
@@ -732,7 +744,7 @@ class ReplacementRegistry:
                 continue
             if not rec.resolved and not self._source_alive(rec.source):
                 continue
-            rec_ctx = replace(ctx, source=rec.source, controller=rec.controller)
+            rec_ctx = _record_ctx(ctx, rec)
             if not eval_filter(event.filter, card, rec_ctx):
                 continue
             if not self._condition_holds(rec, card, rec_ctx):
@@ -788,7 +800,7 @@ class ReplacementRegistry:
                 )
             if rec.tag == "Permanent" and not self._source_alive(rec.source):
                 continue
-            rec_ctx = replace(ctx, source=rec.source, controller=rec.controller)
+            rec_ctx = _record_ctx(ctx, rec)
             if not eval_filter(event.filter, card, rec_ctx):
                 continue
             if not self._condition_holds(rec, card, rec_ctx):
