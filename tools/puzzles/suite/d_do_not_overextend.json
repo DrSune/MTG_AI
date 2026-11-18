@@ -1,0 +1,156 @@
+{
+ "name": "d_do_not_overextend",
+ "set": "M21",
+ "category": "D",
+ "twin": "d_overextend",
+ "note": "Do not overextend into a sweeper. Seat 0 (4 life), after attacking with Walking Corpse (seat 1 to 6), decides in its second main phase whether to cast Onakke Ogre (4/2). Seat 1 has six Swamps and one card: Massacre Wurm (2/3) or a land (1/3). With the Ogre down, the Wurm kills both creatures and drains 4: seat 0 dies (0); without the Wurm, Corpse and Ogre deal the last 6 next turn (1); 1/3 in all. Holding the Ogre loses only the Corpse to the Wurm: undecided (1/2) in both worlds. With a prior of 1/2 the two are equal. The twin: seat 1 has three Swamps, so it cannot cast the Wurm.",
+ "world": {
+  "seed": 7
+ },
+ "life": {
+  "0": 4,
+  "1": 8
+ },
+ "cards": [
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mtn1",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mtn2",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mtn3",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "real": "Onakke Ogre",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "sw1",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "sw2",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "sw3",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "sw4",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "sw5",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "sw6",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "lib0a",
+   "real": "Mountain",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib0b",
+   "real": "Mountain",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib1a",
+   "real": "Swamp",
+   "zone": "library",
+   "controller": 1
+  },
+  {
+   "key": "lib1b",
+   "real": "Swamp",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "decider": 0,
+ "prelude": [
+  "PASS",
+  "ATTACK"
+ ],
+ "world_prior": [
+  {
+   "p": 0.6666666666666666,
+   "label": "they hold Massacre Wurm",
+   "cards": [
+    {
+     "key": "hid",
+     "real": "Massacre Wurm",
+     "zone": "hand",
+     "controller": 1
+    }
+   ]
+  },
+  {
+   "p": 0.33333333333333337,
+   "label": "they hold a land",
+   "cards": [
+    {
+     "key": "hid",
+     "real": "Swamp",
+     "zone": "hand",
+     "controller": 1
+    }
+   ]
+  }
+ ],
+ "horizon": 3,
+ "objective": "result",
+ "answer": [
+  "PASS"
+ ],
+ "grade": "proven",
+ "solver": {
+  "values": {
+   "PASS": 0.5,
+   "cast:ogre": 0.333333
+  },
+  "best": [
+   "PASS"
+  ],
+  "runs": 513,
+  "decisions": 66,
+  "seconds": 1.79,
+  "worlds": 2
+ }
+}

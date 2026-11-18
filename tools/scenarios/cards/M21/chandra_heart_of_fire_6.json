@@ -1,0 +1,49 @@
+{
+ "set": "M21",
+ "name": "chandra_heart_of_fire_minus_nine_needs_nine_loyalty",
+ "notes": "Printed: '[-9]'. With eight loyalty the ability is not offered.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ch",
+   "real": "Chandra, Heart of Fire",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "LOYALTY": 8
+   }
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:ch:2"
+   ],
+   "expect_raise": "does not offer 'act:card:0:2'"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "shock": "graveyard"
+  },
+  "counters": {
+   "ch": {
+    "LOYALTY": 8
+   }
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ }
+}

@@ -1,0 +1,74 @@
+{
+ "set": "M20",
+ "name": "bloodsoaked_altar_not_with_a_spell_on_the_stack",
+ "notes": "Printed: 'Activate only as a sorcery' (CR 307.1 timing: your main phase with an empty stack). In the controller's own main phase, with a Shock waiting on the stack (cast and held), the activation is refused for its timing and nothing is paid; the Shock then resolves.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "altar",
+   "real": "Bloodsoaked Altar",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ox",
+   "real": "Yoked Ox",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "shock",
+   "targets": [
+    "p1"
+   ],
+   "hold": true
+  },
+  {
+   "op": "activate",
+   "key": "altar",
+   "idx": 0,
+   "seat": 0,
+   "expect_raise": "window:sorcery"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Demon": 0
+  },
+  "zone": {
+   "ox": "battlefield",
+   "forest": "hand",
+   "shock": "stack"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "tapped": {
+   "altar": false
+  }
+ }
+}

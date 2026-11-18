@@ -205,5 +205,43 @@
  },
  "probe": {
   "sha": "aafe74b81abe0c7f6a48332e2c21a4828f07d790967a31342f9cd3fff9a7fc17"
+ },
+ "verified": {
+  "tree_sha": "0709d3801ae856a52d6dd8d7ad7fe403ea6b3b75b0bbfbadc069e6d2d59bdccd",
+  "probe_sha": "aafe74b81abe0c7f6a48332e2c21a4828f07d790967a31342f9cd3fff9a7fc17",
+  "date": "2026-11-18",
+  "reviewer": "claude-sonnet-verifier-wave5",
+  "clauses": [
+   {
+    "clause": "{T}, Pay 2 life, Discard a card, Sacrifice a creature: Create a 5/5 black Demon creature token with flying.",
+    "status": "OK",
+    "evidence": "Trace [activate [0] from battlefield] and its four 'ask 2' variants: 'ask sacrifice: [you_bear, you_giant]' (your creatures only), 'ask discard: [the six hand cards]', 'card becomes tapped', 'you loses 2 life' (20 -> 18), the sacrificed creature to the graveyard, the discard to the graveyard (hand 6 -> 5), '+ you:Demon (battlefield, you, 5/5, FLYING)' under the controller. Not in the trace: the token's colour. Pack A05_1 (one of each choice; the token is 5/5 flying, one only, under the controller: Corpse Knight sees it enter), A05_3/4/5 (no card, no own creature, 1 life: refused with the cost named), A05_6 (only a creature you CONTROL can be sacrificed, not one you own), A05_7 (the Demon is black: protection from black stops it blocking).",
+    "issue": ""
+   },
+   {
+    "clause": "Activate only as a sorcery.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The trace activates in the controller's main phase only. Pack A05_2: on the opponent's turn the activation is refused ('window:sorcery:not_own_turn') and nothing is paid; A05_8: in the controller's own main phase with a spell on the stack it is refused too ('window:sorcery:stack_nonempty').",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/bloodsoaked_altar_1.json",
+   "tools/scenarios/cards/M20/bloodsoaked_altar_2.json",
+   "tools/scenarios/cards/M20/bloodsoaked_altar_3.json",
+   "tools/scenarios/cards/M20/bloodsoaked_altar_4.json",
+   "tools/scenarios/cards/M20/bloodsoaked_altar_5.json",
+   "tools/scenarios/cards/M20/bloodsoaked_altar_6.json",
+   "tools/scenarios/cards/M20/bloodsoaked_altar_7.json",
+   "tools/scenarios/cards/M20/bloodsoaked_altar_8.json"
+  ],
+  "mutation": {
+   "mutants": 13,
+   "killed": 12,
+   "score": 0.9230769230769231,
+   "survived": [
+    "widen filter (drop part 0) at 1/0/cost/parts/2/target/filter"
+   ]
+  }
  }
 }

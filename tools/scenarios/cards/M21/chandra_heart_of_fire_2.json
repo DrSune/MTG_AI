@@ -1,0 +1,86 @@
+{
+ "set": "M21",
+ "name": "chandra_heart_of_fire_first_plus_one_permission_ends_with_the_turn",
+ "notes": "Printed: 'Until end of turn, you may play cards exiled this way.' On the controller's next turn Shock is still exiled and, with {R} in the pool, no row casts it.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "ch",
+   "real": "Chandra, Heart of Fire",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "x3",
+   "real": "Opt",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "x2",
+   "real": "Walking Corpse",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:ch:0"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 0,
+   "add": {
+    "R": 1
+   }
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:shock",
+    "p1"
+   ],
+   "expect_raise": "does not offer 'cast:card:3'"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "shock": "exile",
+   "x2": "exile",
+   "x3": "exile"
+  },
+  "life": {
+   "1": 20
+  },
+  "turn_seats": [
+   0,
+   1,
+   0
+  ],
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ }
+}

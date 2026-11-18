@@ -1,0 +1,87 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "58ad45fc-b625-4484-8d49-ebc42db9040a",
+ "name": "Chandra, Heart of Fire",
+ "text_sha": "f3a55b6902e0731839feb4487650379b15aa88a412d1ea4745aa0ed76e1e2258",
+ "verified": {
+  "tree_sha": "8d152fe0d42da1782a0f4567f12d642b71cea5a2e64e47af83977eaa27490954",
+  "probe_sha": "1cef2d6601b2d5ef85fb43829b00a2f3a9ab2dad8e3c3bd6793d352b9976c3d7",
+  "date": "2026-11-18",
+  "reviewer": "claude-sonnet-verifier-wave5",
+  "clauses": [
+   {
+    "clause": "[+1]: Discard your hand, then exile the top three cards of your library.",
+    "status": "OK",
+    "evidence": "Trace [activate [0] from battlefield]: 'card gets 1 LOYALTY counter(s)' (5 -> 6), all six hand cards 'moves hand -> graveyard (by card/MOVE_ZONE)', then three 'you:Library N moves library -> exile' (top three), 'you: hand 6 -> 0; library 6 -> 3'. Pack A01_1 repeats it with the fourth library card left in place.",
+    "issue": ""
+   },
+   {
+    "clause": "Until end of turn, you may play cards exiled this way.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The trace never plays an exiled card. Pack A01_1: the exiled Mountain is played (land drop) and the exiled Goblin Arsonist cast paying {R}, both from exile; the discarded Shock (graveyard) and the unplayed Opt stay unplayable; a watcher sees a real cast. A01_2: on the controller's next turn Shock is still in exile and no row casts it. A01_11: the permission outlives Chandra (put into the graveyard after the +1, the exiled Mountain and Goblin Arsonist are still played).",
+    "issue": ""
+   },
+   {
+    "clause": "[+1]: Chandra deals 2 damage to any target.",
+    "status": "OK",
+    "evidence": "Trace [activate [1] ...]: the target slot lists exactly the creatures, Chandra herself and both players (not the artifact or the enchantment); 2 damage in each variant (you_bear and opp_bear die, you_giant and opp_giant carry 2, 'you: life 20 -> 18', 'opp: life 20 -> 18', 'card: counters LOYALTY 5 -> 4' = +1 then 2 damage); loyalty 5 -> 6 on every other target.",
+    "issue": ""
+   },
+   {
+    "clause": "[-9]: Search your graveyard and library for any number of red instant and/or sorcery cards, exile them, then shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace: 'ability [2] not activatable from battlefield: cost:loyalty:5<9' (loyalty 5). Packs A01_3 (loyalty 10 -> 1; two of three candidates taken across the graveyard and the library, then NONE stops: Scorching Dragonfire stays; the blue instant and the red creature stay), A01_6 (eight loyalty: not offered), A01_7/8/9/10 (a blue instant, a red creature, the opponent's graveyard card and the opponent's library card are not offered; the ask offers only the one real candidate and NONE). The shuffle has no runner lane: checked directly, the executor's event list holds ('SHUFFLE', player:0, library) after A01_3 (the -9 resolved) and none after A01_6 (refused).",
+    "issue": ""
+   },
+   {
+    "clause": "You may cast them this turn.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Pack A01_4: Shock (exiled from the graveyard) and Crash Through (from the library) are cast from exile at their own cost with the six red (4 left), both seen as casts (Quirion Dryad +2) and as casts outside the hand (Ghostly Pilferer: two cards). A01_5: on the next turn Shock is still in exile and not offered.",
+    "issue": ""
+   },
+   {
+    "clause": "Add six {R}.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Not reachable in the trace (loyalty 5). Pack A01_3: after the -9 the controller's pool holds exactly {R: 6} and the opponent's is empty; A01_4: the six pay two casts and four remain.",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/chandra_heart_of_fire_1.json",
+   "tools/scenarios/cards/M21/chandra_heart_of_fire_2.json",
+   "tools/scenarios/cards/M21/chandra_heart_of_fire_3.json",
+   "tools/scenarios/cards/M21/chandra_heart_of_fire_4.json",
+   "tools/scenarios/cards/M21/chandra_heart_of_fire_5.json",
+   "tools/scenarios/cards/M21/chandra_heart_of_fire_6.json",
+   "tools/scenarios/cards/M21/chandra_heart_of_fire_7.json",
+   "tools/scenarios/cards/M21/chandra_heart_of_fire_8.json",
+   "tools/scenarios/cards/M21/chandra_heart_of_fire_9.json",
+   "tools/scenarios/cards/M21/chandra_heart_of_fire_10.json",
+   "tools/scenarios/cards/M21/chandra_heart_of_fire_11.json"
+  ],
+  "mutation": {
+   "mutants": 31,
+   "killed": 15,
+   "score": 0.4838709677419355,
+   "survived": [
+    "drop step 2 at 1/0/effect",
+    "until-end-of-turn->permanent at 1/0/effect/steps/2/args/duration",
+    "drop step 0 at 1/2/effect",
+    "drop step 1 at 1/2/effect",
+    "drop step 2 at 1/2/effect",
+    "drop step 3 at 1/2/effect",
+    "widen filter (drop part 0) at 1/2/effect/steps/0/args/cards/filter",
+    "widen filter (drop part 1) at 1/2/effect/steps/0/args/cards/filter",
+    "controller YOU->OPPONENT at 1/2/effect/steps/0/args/cards/zones/0/controller",
+    "controller YOU->OPPONENT at 1/2/effect/steps/0/args/cards/zones/1/controller",
+    "zone EXILE->GRAVEYARD at 1/2/effect/steps/0/args/destination",
+    "controller YOU->OPPONENT at 1/2/effect/steps/1/args/zone/controller",
+    "until-end-of-turn->permanent at 1/2/effect/steps/2/args/duration",
+    "amount+1 at 1/2/effect/steps/3/args/amount",
+    "amount-1 at 1/2/effect/steps/3/args/amount",
+    "controller YOU->OPPONENT at 1/2/effect/steps/3/args/controller"
+   ]
+  }
+ }
+}

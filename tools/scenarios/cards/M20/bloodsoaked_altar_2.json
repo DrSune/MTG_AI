@@ -1,0 +1,65 @@
+{
+ "set": "M20",
+ "name": "bloodsoaked_altar_only_as_a_sorcery",
+ "notes": "Printed: 'Activate only as a sorcery.' On the opponent's turn the activation is refused for its timing and nothing is paid: no Demon, the creature and the card are still there, life unchanged, the Altar untapped.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "altar",
+   "real": "Bloodsoaked Altar",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ox",
+   "real": "Yoked Ox",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "activate",
+   "key": "altar",
+   "idx": 0,
+   "seat": 0,
+   "expect_raise": "window:sorcery"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Demon": 0
+  },
+  "zone": {
+   "ox": "battlefield",
+   "forest": "hand"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "tapped": {
+   "altar": false
+  },
+  "turn_seats": [
+   0,
+   1
+  ],
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ }
+}

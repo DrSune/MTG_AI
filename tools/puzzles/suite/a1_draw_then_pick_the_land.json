@@ -1,0 +1,131 @@
+{
+ "name": "a1_draw_then_pick_the_land",
+ "set": "M20",
+ "category": "A",
+ "twin": "a1_land_to_cast_the_draw",
+ "note": "Draw first, then pick the land. Seat 0 has two Islands, Walking Corpse and Goblin Assailant (2/2 each); in hand Anticipate, a Mountain and an Island; seat 1 is at 4 with one Walking Corpse to block. Seat 0's top card is Unsummon or Infuriate (1/2 each), with two Plains under it. Anticipate first finds it, then the matching land casts it: Unsummon the blocker before blocks, or Infuriate the unblocked attacker after blocks, and the two attackers deal 4 (1). A land first guesses the colour (0.5). Passing loses the land drop to combat: the card cannot be cast in time (0). The twin: two Mountains on the battlefield instead of two Islands.",
+ "world": {
+  "seed": 7
+ },
+ "life": {
+  "0": 20,
+  "1": 4
+ },
+ "cards": [
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "assailant",
+   "real": "Goblin Assailant",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bf1",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "bf2",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "anticipate",
+   "real": "Anticipate",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mtn",
+   "real": "Mountain",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "isl",
+   "real": "Island",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "blocker",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "lib0b",
+   "real": "Plains",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib0c",
+   "real": "Plains",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib1a",
+   "real": "Swamp",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "decider": 0,
+ "prelude": [],
+ "world_prior": [
+  {
+   "p": 0.5,
+   "label": "Unsummon on top",
+   "cards": [
+    {
+     "key": "top",
+     "real": "Unsummon",
+     "zone": "library",
+     "controller": 0
+    }
+   ]
+  },
+  {
+   "p": 0.5,
+   "label": "Infuriate on top",
+   "cards": [
+    {
+     "key": "top",
+     "real": "Infuriate",
+     "zone": "library",
+     "controller": 0
+    }
+   ]
+  }
+ ],
+ "horizon": 1,
+ "objective": "win",
+ "answer": [
+  "cast:anticipate"
+ ],
+ "grade": "proven",
+ "solver": {
+  "values": {
+   "PASS": 0.0,
+   "cast:anticipate": 1.0,
+   "land:mtn": 0.5,
+   "land:isl": 0.5
+  },
+  "best": [
+   "cast:anticipate"
+  ],
+  "runs": 7351,
+  "decisions": 1836,
+  "seconds": 20.82,
+  "worlds": 2
+ }
+}

@@ -1,0 +1,67 @@
+{
+ "set": "M21",
+ "name": "demonic_embrace_in_an_opponents_graveyard_is_not_castable_by_you",
+ "notes": "Printed: 'cast this card from YOUR graveyard'. A Demonic Embrace in the opponent's graveyard is not offered to the other player, with the mana, the life and a card to discard all there.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "ode",
+   "real": "Demonic Embrace",
+   "zone": "graveyard",
+   "controller": 1
+  },
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s1",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s3",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:ode:via:ode",
+    "corpse"
+   ],
+   "expect_raise": "does not offer 'cast:card:0:via:card:0'"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ode": "graveyard",
+   "forest": "hand"
+  },
+  "life": {
+   "0": 20
+  }
+ }
+}

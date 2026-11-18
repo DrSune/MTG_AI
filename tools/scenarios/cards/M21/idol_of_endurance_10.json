@@ -1,0 +1,92 @@
+{
+ "set": "M21",
+ "name": "idol_of_endurance_permission_ends_with_the_turn",
+ "notes": "Printed: 'Until end of turn'. The ability is activated and unused; on the controller's next turn, with {1}{W}-worth of lands untapped again, the exiled Walking Corpse is not offered through the Idol (the Idol's ability is not re-activated).",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "idol",
+   "real": "Idol of Endurance",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "w1",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w2",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w3",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w4",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "w5",
+   "real": "Plains",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "wc",
+   "real": "Walking Corpse",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:idol",
+    "act:idol:1"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:wc:via:idol"
+   ],
+   "expect_raise": "does not offer 'cast:card:6:via:card:0'; it offers ('PASS', 'act:card:0:1')"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "idol": "battlefield",
+   "wc": "exile"
+  },
+  "turn_seats": [
+   0,
+   1,
+   0
+  ],
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ }
+}

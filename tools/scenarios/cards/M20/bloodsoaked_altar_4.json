@@ -1,0 +1,53 @@
+{
+ "set": "M20",
+ "name": "bloodsoaked_altar_needs_a_creature_to_sacrifice",
+ "notes": "Printed: 'Sacrifice a creature'. The only creature in play is the opponent's: a cost that sacrifices 'a creature' you control cannot take it, so with a card to discard and life to pay the activation is refused.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "altar",
+   "real": "Bloodsoaked Altar",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "oox",
+   "real": "Yoked Ox",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "altar",
+   "idx": 0,
+   "seat": 0,
+   "expect_raise": "cost:sacrifice:insufficient_candidates"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Demon": 0
+  },
+  "zone": {
+   "oox": "battlefield",
+   "forest": "hand"
+  },
+  "life": {
+   "0": 20
+  },
+  "tapped": {
+   "altar": false
+  }
+ }
+}

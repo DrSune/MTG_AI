@@ -48,10 +48,12 @@ def _record(raw, card, *, verified: bool) -> dict:
 
 
 def test_m21_records_are_stamps_and_compile_byte_identically() -> None:
-    # M21 records carry no mapped tree ("ir"), only the verification of the compiler's own
-    # tree, so applying them must leave every M21 tree byte-identical.
+    # M21 records carry no mapped tree ("ir"): the verification of the compiler's own tree, or a
+    # needs-atom note on a card the compiler cannot read whole yet (Furious Rise, 2026-11-18), so
+    # applying them must leave every M21 tree byte-identical.
     records = card_records.load_records("M21")
-    assert records and all("ir" not in rec and "verified" in rec for rec in records.values())
+    assert records and all("ir" not in rec and ("verified" in rec or "needs_atom" in rec)
+                           for rec in records.values())
     raw = ingest_pool(DATA / "M21.json")
     plain = compile_pool(raw, REGISTRY, records={})
     stamped = compile_pool(raw, REGISTRY, records=records)

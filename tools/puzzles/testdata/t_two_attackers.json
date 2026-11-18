@@ -1,0 +1,23 @@
+{
+ "name": "t_two_attackers",
+ "set": "M20",
+ "category": "T",
+ "twin": "t_two_attackers",
+ "note": "The solver's hand-computed game. Seat 0 attacks with Centaur Courser (3/3) and Goblin Assailant (2/2); seat 1, at 2 life, has one untapped blocker (Walking Corpse, 2/2) and nothing else. The first decision is whether the Courser attacks. Attacking with both wins whatever it blocks (the other deals at least 2); the Assailant alone is blocked. So ATTACK is 1 and DECLINE is 0.",
+ "world": {"seed": 7},
+ "life": {"0": 20, "1": 2},
+ "cards": [
+  {"key": "courser", "real": "Centaur Courser", "zone": "battlefield", "controller": 0},
+  {"key": "assailant", "real": "Goblin Assailant", "zone": "battlefield", "controller": 0},
+  {"key": "corpse", "real": "Walking Corpse", "zone": "battlefield", "controller": 1},
+  {"key": "lib0", "real": "Forest", "zone": "library", "controller": 0},
+  {"key": "lib1", "real": "Swamp", "zone": "library", "controller": 1}
+ ],
+ "decider": 0,
+ "prelude": [],
+ "world_prior": [{"p": 1.0, "label": "no hidden card", "cards": []}],
+ "horizon": 1,
+ "objective": "win",
+ "answer": ["ATTACK"],
+ "grade": "proven"
+}

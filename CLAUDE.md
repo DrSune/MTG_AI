@@ -13,23 +13,26 @@ play time, with the distillation parked (DECISIONS D21).
 **Current plan (2026-11-11):** `docs/PLAN_CEILING.md`, approved by the owner (DECISIONS D22). **Planning (2026-11-18):** `docs/PLAN_PLANNING.md` (how options reach the network, the planning
 puzzle suite, the ladder from measurement to the no-ceiling run, and the order beside the card work).
 
-**Running since 2026-11-17 23:13: r29, launch 2** (`KNOWLEDGE/2026-11-14/208`; §9 is the
-pre-launch record, §10 the failed launch 1). Launch 1 at 20:21 trained nothing, because a worker
-lost nine in ten game results (T1's outbox read). It was fixed and smoked on the GPU. Launch 2's
-pinned commit is 60f0913f. The A/B runs first.
-- **How it runs.** The queue is the transient unit `mtg-r29`, from the worktree
-  `/home/sune/Desktop/MTG_AI-r29`, pinned at launch 2 commit 60f0913f (do not edit it).
-  - Both pre-flights run first. Then arm A (`--p-self 0`), then arm B (`--p-self 0.55`), each
-    5.5 machine-hours from r28's v2, as `mtg-r29a`/`mtg-r29b` with guards. Then the reads B1 and B2,
-    and `decide.py`, which resumes A or B as the main run.
-  - Logs: `runs/r29_ab/queue.log`. Run directories: `runs/selfplay/r29{a_pself0,b_pself055}`.
-  - **No CPU-heavy agent work during the arms** (208 §4).
-- **What came before.** The bug hunt's fixes are on main (`KNOWLEDGE/2026-11-17/212`). The
-  exploitability probe (211) raised no flag.
-- **What comes after B8** (B's update 300): FDN joins as the next segment, together with two open
-  engine faults' fixes (208 §9).
-- **Still to do in the card work:** FDN's remaining verification (wave 3 batches I-P, wave 4
-  batches A-C), from the pinned checkouts `/home/sune/Desktop/MTG_AI-verify3` and `-verify4`.
+**Running since 2026-11-18 11:27: r29's main run, arm B** (training both seats, `--p-self 0.55`),
+resumed by `decide.py` after the A/B (`KNOWLEDGE/2026-11-14/208` §11).
+- **The reads:**
+  - B1 0.4946 [0.4823, 0.5069], not falsified;
+  - B2, B minus A, −3.9 Elo [−13.0, +5.1], no veto.
+
+  Neither arm moved off r28's v2 on L (633.2; A 637.7, B 633.8).
+- **How it runs.** The unit is `mtg-r29b` with its guard `mtg-r29b-guard`. It runs from the
+  worktree `/home/sune/Desktop/MTG_AI-r29`, pinned at 60f0913f (do not edit it), into
+  `runs/selfplay/r29b_pself055`.
+- **B8,** the plateau test, is read at B's update 300 (§9's comparator). After it, FDN joins as a
+  new segment under a short registration of its own. With it come:
+  - the engine wave E3's fixes (in progress);
+  - zero fallback (KNOWLEDGE/2026-11-18/213);
+  - every public card as an entity;
+  - the turn-so-far columns (69b3f5ad);
+  - the cards verified since.
+- **The planning plan** is `docs/PLAN_PLANNING.md`. Its first readout (KNOWLEDGE/2026-11-18/214)
+  found that no network passes both twins of any proven puzzle pair.
+- **No CPU-heavy agent work** beside it beyond the usual side-job caps.
 
 r28 (`KNOWLEDGE/2026-11-12/199`, r27's configuration on
 the fixed trainer, from r27's v1) ended at update 1845. It gained +39 Elo over its init (v1 at 352,

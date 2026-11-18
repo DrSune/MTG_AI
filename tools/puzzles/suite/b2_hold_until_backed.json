@@ -1,0 +1,216 @@
+{
+ "name": "b2_hold_until_backed",
+ "set": "M21",
+ "category": "B2",
+ "twin": "b2_cast_into_tapped_out",
+ "note": "Hold the bomb until the counter can back it: slow but best (the owner's second example). Seat 0, in its second main phase with its land played, holds Storm Caller (its entering deals 2 to each opponent; seat 1 is at 2), Cancel and a Mountain for next turn; five lands, so not both this turn. Seat 1 has six untapped Islands; it holds Cancel or a land, and draws Cancel or a land (four worlds, 1/4 each). Cast now, Caller is countered whenever seat 1 holds Cancel (0.75). Next turn, with six lands, Cancel backs it, and only two Cancels stop it (0.875). The twin: seat 1's Islands are tapped.",
+ "world": {
+  "seed": 7
+ },
+ "life": {
+  "0": 20,
+  "1": 2
+ },
+ "cards": [
+  {
+   "key": "isl1",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "isl2",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "isl3",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "mtn1",
+   "real": "Mountain",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "caller",
+   "real": "Storm Caller",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "cancel",
+   "real": "Cancel",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mtn2",
+   "real": "Mountain",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mtn3",
+   "real": "Mountain",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "oi1",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "oi2",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "oi3",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "oi4",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "oi5",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "oi6",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "lib0a",
+   "real": "Island",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib0b",
+   "real": "Island",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "lib1a",
+   "real": "Island",
+   "zone": "library",
+   "controller": 1
+  }
+ ],
+ "decider": 0,
+ "prelude": [
+  "land:mtn2",
+  "PASS"
+ ],
+ "world_prior": [
+  {
+   "p": 0.25,
+   "label": "they hold Cancel and draw Cancel",
+   "cards": [
+    {
+     "key": "hid",
+     "real": "Cancel",
+     "zone": "hand",
+     "controller": 1
+    },
+    {
+     "key": "top",
+     "real": "Cancel",
+     "zone": "library",
+     "controller": 1
+    }
+   ]
+  },
+  {
+   "p": 0.25,
+   "label": "they hold Cancel and draw a land",
+   "cards": [
+    {
+     "key": "hid",
+     "real": "Cancel",
+     "zone": "hand",
+     "controller": 1
+    },
+    {
+     "key": "top",
+     "real": "Island",
+     "zone": "library",
+     "controller": 1
+    }
+   ]
+  },
+  {
+   "p": 0.25,
+   "label": "they hold a land and draw Cancel",
+   "cards": [
+    {
+     "key": "hid",
+     "real": "Island",
+     "zone": "hand",
+     "controller": 1
+    },
+    {
+     "key": "top",
+     "real": "Cancel",
+     "zone": "library",
+     "controller": 1
+    }
+   ]
+  },
+  {
+   "p": 0.25,
+   "label": "they hold a land and draw a land",
+   "cards": [
+    {
+     "key": "hid",
+     "real": "Island",
+     "zone": "hand",
+     "controller": 1
+    },
+    {
+     "key": "top",
+     "real": "Island",
+     "zone": "library",
+     "controller": 1
+    }
+   ]
+  }
+ ],
+ "horizon": 3,
+ "objective": "result",
+ "answer": [
+  "PASS"
+ ],
+ "grade": "proven",
+ "solver": {
+  "values": {
+   "PASS": 0.875,
+   "cast:caller": 0.75
+  },
+  "best": [
+   "PASS"
+  ],
+  "runs": 783,
+  "decisions": 53,
+  "seconds": 3.66,
+  "worlds": 4
+ }
+}

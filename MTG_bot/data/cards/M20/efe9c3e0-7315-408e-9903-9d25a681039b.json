@@ -379,5 +379,58 @@
  },
  "probe": {
   "sha": "2acac1c87e3cec099641a000f6f8fca7906cce28d039e6b6287c280593edee01"
+ },
+ "verified": {
+  "tree_sha": "b33ecc83e1c0ee0921be23d23c05f1212969010cde6cb6c2af4ad21e8e056000",
+  "probe_sha": "2acac1c87e3cec099641a000f6f8fca7906cce28d039e6b6287c280593edee01",
+  "date": "2026-11-18",
+  "reviewer": "claude-sonnet-verifier-wave5",
+  "clauses": [
+   {
+    "clause": "When Golos enters, you may search your library for a land card, put that card onto the battlefield tapped, then shuffle.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace [cast] and [cast | ask 1 -> skip]: 'ask may [fire, skip]' and \"card's triggered ability [0] triggers\"; [from your hand ... opponent's turn] triggers too; no other stimulus triggers it. The probe library holds no land, so nothing is found or moved. Packs A00_1 (a nonbasic land, Cryptic Caves, is picked from three lands and enters tapped; the others stay), A00_2 (a nonland, Shock, is not offered by the search ask), A00_3 (skip: nothing moves). The shuffle has no runner lane: checked directly, the executor's event list holds ('SHUFFLE', player:0, library) after A00_1 (search taken) and nothing after A00_3 (skipped), and the tree has SHUFFLE of YOUR library after the SEARCH inside the optional Seq.",
+    "issue": ""
+   },
+   {
+    "clause": "{2}{W}{U}{B}{R}{G}: Exile the top three cards of your library.",
+    "status": "OK",
+    "evidence": "Trace [activate [1] from battlefield]: 'mana B-1 C-2 G-1 R-1 U-1 W-1' (the whole cost), three 'you:Library N moves library -> exile (by card/MOVE_ZONE)' rows, 'you: library 6 -> 3' (the top three of the controller's library; the opponent's is untouched, A00_4 pins its library order). Packs A00_4, A00_5, A00_8 exile the top three (Mountain, Shock, Leafkin Druid) and leave the fourth card (Murder).",
+    "issue": ""
+   },
+   {
+    "clause": "You may play them this turn without paying their mana costs.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The trace activates the ability but plays nothing. Packs: A00_4 (the Mountain is played from exile as the land drop, Shock is cast from exile with an empty pool and an untapped Mountain, i.e. free; Leafkin Druid stays), A00_5 (a creature card cast free from exile resolves), A00_6 (a later turn: no row), A00_7 (a graveyard card, a card exiled earlier and the fourth library card are not covered; the menu offers exactly the Mountain, Shock and the Druid), A00_8 (activated on the opponent's turn: the instant is cast, the creature and the land are not offered), A00_9 (a land played from exile is the land drop: the second land is not offered). A00_10: 'without paying their MANA costs' waives the mana cost only: Bone Splinters cast from exile for no mana still has its additional cost (sacrifice a creature) paid (CR 118.9d).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M20/golos_tireless_pilgrim_1.json",
+   "tools/scenarios/cards/M20/golos_tireless_pilgrim_2.json",
+   "tools/scenarios/cards/M20/golos_tireless_pilgrim_3.json",
+   "tools/scenarios/cards/M20/golos_tireless_pilgrim_4.json",
+   "tools/scenarios/cards/M20/golos_tireless_pilgrim_5.json",
+   "tools/scenarios/cards/M20/golos_tireless_pilgrim_6.json",
+   "tools/scenarios/cards/M20/golos_tireless_pilgrim_7.json",
+   "tools/scenarios/cards/M20/golos_tireless_pilgrim_8.json",
+   "tools/scenarios/cards/M20/golos_tireless_pilgrim_9.json",
+   "tools/scenarios/cards/M20/golos_tireless_pilgrim_10.json"
+  ],
+  "mutation": {
+   "mutants": 29,
+   "killed": 21,
+   "score": 0.7241379310344828,
+   "survived": [
+    "drop step 0 at 1/0/effect/inner",
+    "drop step 1 at 1/0/effect/inner",
+    "amount+1 at 1/0/effect/inner/steps/0/args/cards/count",
+    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/cards/zones/0/controller",
+    "zone BATTLEFIELD->HAND at 1/0/effect/inner/steps/0/args/destination",
+    "controller YOU->OPPONENT at 1/0/effect/inner/steps/0/args/destination/controller",
+    "drop step 1 at 1/1/effect",
+    "until-end-of-turn->permanent at 1/1/effect/steps/1/args/duration"
+   ]
+  }
  }
 }

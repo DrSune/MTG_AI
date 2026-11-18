@@ -1,0 +1,74 @@
+{
+ "set": "M21",
+ "name": "chandra_heart_of_fire_plus_one_permission_outlives_chandra",
+ "notes": "Printed: 'Until end of turn, you may play cards exiled this way.' It is a continuous effect of a resolved ability (CR 611.2a), so it lasts the turn although Chandra left the battlefield in the meantime: the exiled Mountain is still played and the exiled Goblin Arsonist still cast after Chandra is put into the graveyard.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "ch",
+   "real": "Chandra, Heart of Fire",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "opt",
+   "real": "Opt",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "gob",
+   "real": "Goblin Arsonist",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "mtn",
+   "real": "Mountain",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:ch:0"
+   ]
+  },
+  {
+   "op": "move",
+   "key": "ch",
+   "to": "graveyard"
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "land:mtn",
+    "cast:gob"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "ch": "graveyard",
+   "mtn": "battlefield",
+   "gob": "battlefield",
+   "opt": "exile"
+  },
+  "tapped": {
+   "mtn": true
+  },
+  "kick_rows": {
+   "gob": {
+    "from": "exile"
+   }
+  }
+ }
+}

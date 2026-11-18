@@ -1,0 +1,53 @@
+{
+ "set": "M20",
+ "name": "bloodsoaked_altar_cannot_pay_two_life_with_one",
+ "notes": "Printed: 'Pay 2 life'. With 1 life, though a creature and a card are there, the activation is refused (CR 119.4).",
+ "world": {
+  "life": 1,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "altar",
+   "real": "Bloodsoaked Altar",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ox",
+   "real": "Yoked Ox",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "activate",
+   "key": "altar",
+   "idx": 0,
+   "seat": 0,
+   "expect_raise": "cost:life:1<2"
+  }
+ ],
+ "expect": {
+  "tokens": {
+   "Demon": 0
+  },
+  "zone": {
+   "ox": "battlefield",
+   "forest": "hand"
+  },
+  "life": {
+   "0": 1
+  },
+  "tapped": {
+   "altar": false
+  }
+ }
+}

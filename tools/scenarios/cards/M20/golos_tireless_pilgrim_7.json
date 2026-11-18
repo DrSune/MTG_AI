@@ -1,0 +1,110 @@
+{
+ "set": "M20",
+ "name": "golos_permission_covers_only_the_cards_it_exiled",
+ "notes": "Printed: 'Exile the top three cards ... You may play THEM'. A Disfigure in the graveyard, a Raise the Alarm already in exile and the fourth card of the library (Murder, on top once the three are exiled) are not covered: no cast through Golos is offered for any of them. Each refused word is the first ask of its step, so nothing is cast between them.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "golos",
+   "real": "Golos, Tireless Pilgrim",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "murder",
+   "real": "Murder",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "druid",
+   "real": "Leafkin Druid",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "mtn",
+   "real": "Mountain",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "gy",
+   "real": "Disfigure",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "ex",
+   "real": "Raise the Alarm",
+   "zone": "exile",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 2,
+   "U": 1,
+   "B": 2,
+   "R": 1,
+   "G": 1,
+   "C": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "activate",
+   "key": "golos",
+   "idx": 1,
+   "seat": 0
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:gy:via:golos"
+   ],
+   "expect_raise": "does not offer 'cast:card:5:via:card:0'; it offers ('PASS', 'land:card:4', 'cast:card:3:via:card:0', 'cast:card:2:via:card:0')"
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:ex:via:golos"
+   ],
+   "expect_raise": "does not offer 'cast:card:6:via:card:0'"
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:murder:via:golos"
+   ],
+   "expect_raise": "does not offer 'cast:card:1:via:card:0'"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "gy": "graveyard",
+   "ex": "exile",
+   "murder": "library",
+   "shock": "exile",
+   "mtn": "exile",
+   "druid": "exile"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  }
+ }
+}

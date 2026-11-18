@@ -346,3 +346,29 @@ wrote an iter row.
 
 **Launch 2:** from the commit that adds this paragraph, with fresh run directories. The rest of the
 registration is unchanged.
+
+## 11. The A/B's reads (2026-11-18 10:31-11:27, by decide.py; appended, §1-§10 unedited)
+
+- **The arms:**
+  - **A:** 103 updates, ended by its budget at 04:50. Its gates against v2: 0.5048, 0.4978,
+    0.5195, 0.4995.
+  - **B:** about 125 updates, ended by its budget at 10:31. Its gates against v2: 0.4973, 0.5082,
+    0.5333, 0.4993.
+- **B1, the harm screen** (B against A, 4 snapshot pairs, 1,000 deals each): 0.4946 [0.4823,
+  0.5069], se 0.0063. Not falsified.
+- **B2 on L:** B minus A is −3.9 Elo [−13.0, +5.1], se 4.6. No veto.
+
+  | Network | Elo on L |
+  |---|---|
+  | init (r28's v2) | 633.2 |
+  | a70, a80, a90, a100 | 634.2, 638.5, 635.7, 642.4 |
+  | b70, b80, b90, b100 | 632.5, 635.5, 630.8, 636.3 |
+
+- **Decision (§5):** B goes on as the main run (`--iters 6000`), resumed at 11:27. B8 is read at
+  its update 300.
+- **What it says beyond the registration:** neither arm moved off its init within 5.5
+  machine-hours (A's mean 637.7, B's 633.8, the init 633.2, every se about 4). r28's plateau
+  (199 §9) holds under both seats' training.
+- **The planning readout of the same snapshots** (KNOWLEDGE/2026-11-18/214): no network passes
+  both twins of any proven puzzle pair. Each plays one habit per kind of decision. Arm B moved
+  from never countering to always countering.

@@ -1,0 +1,76 @@
+{
+ "set": "M21",
+ "name": "demonic_embrace_keeps_the_creatures_other_types",
+ "notes": "Printed: 'is a Demon IN ADDITION TO its other types'. Demonic Embrace is cast from the hand on the controller's Walking Corpse (2/2 Zombie): +3/+1 and Liliana's Devotee's 'Zombies you control get +1/+0' still applies (6/3), so it is still a Zombie, and a creature.",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "de",
+   "real": "Demonic Embrace",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s1",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s3",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "dev",
+   "real": "Liliana's Devotee",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:de",
+    "corpse"
+   ]
+  }
+ ],
+ "expect": {
+  "attached": {
+   "de": "corpse"
+  },
+  "power": {
+   "corpse": 6,
+   "dev": 2
+  },
+  "toughness": {
+   "corpse": 3,
+   "dev": 3
+  },
+  "life": {
+   "0": 20
+  },
+  "zone": {
+   "de": "battlefield"
+  }
+ }
+}

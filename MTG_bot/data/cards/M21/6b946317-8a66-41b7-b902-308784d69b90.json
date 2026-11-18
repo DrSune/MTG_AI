@@ -5,50 +5,46 @@
  "name": "Idol of Endurance",
  "text_sha": "dc390c68a5dc3d493a1f6ed9a3862ed7dae808a538882754ad6c42e0f8f5fc53",
  "verified": {
-  "tree_sha": "92883c38927d7bd2ce7124a3b099359889151ff4314ad15adda4445b64ad6d42",
-  "probe_sha": "5559bad3a214b680d67c9bb72284d7fe0e6e597b21c3b898b68b62cbd53ed9a4",
-  "date": "2026-10-30",
-  "reviewer": "claude-verifier-m21-w4L",
+  "tree_sha": "359d813d81670c103793c6fadbce2f6d30c3de02970b13634e3d90ee83026b8e",
+  "probe_sha": "02cb7ace72a367dd356144a59f1480837faa330c93a3f2b7ad52b02ff70598d0",
+  "date": "2026-11-18",
+  "reviewer": "claude-sonnet-verifier-wave5",
   "clauses": [
    {
     "clause": "When this artifact enters, exile all creature cards with mana value 3 or less from your graveyard until this artifact leaves the battlefield.",
-    "status": "OK",
-    "evidence": "[cast]: trigger [0]; you_fallen (creature, MV 2) moves graveyard -> exile '(until card leaves the battlefield, then back to the graveyard)'; you_used (sorcery) and opp_fallen (opponent's graveyard) stay. Same on the opponent's-turn entry. Packs: idol_of_endurance_exile_filter_mid.json (MV 1 and 3 exiled; MV 4, instant and opponent's card stay) PASS; idol_of_endurance_exile_filter_and_return.json (returns to the graveyard when the Idol leaves) PASS.",
-    "issue": ""
-   },
-   {
-    "clause": "{1}{W}, {T}:",
-    "status": "OK",
-    "evidence": "Tree [1]: CostManaColor W 1 + CostManaGeneric 1 + CostTap. Trace [activate [1] from battlefield]: card tapped, 'you: mana W-2' (two mana). Pack idol_of_endurance_cost_and_cast.json: {W} alone is refused (cost:mana_generic). PASS.",
-    "issue": ""
-   },
-   {
-    "clause": "Until end of turn, you may cast a creature spell from among cards exiled with this artifact without paying its mana cost.",
     "status": "NOT_EXERCISED",
-    "evidence": "In the probe's activation nothing had been exiled with the card, so no cast. Tree: OptionalEffect(CAST, cost=Cost(), source ONE_OF exiled-with-source creature in your exile). Pack idol_of_endurance_cost_and_cast.json: the exiled Alpine Watchdog is cast for free and enters; the pool is empty after paying exactly {1}{W}. PASS.",
-    "issue": "engine-limit: the engine's CAST verb casts the card while the ability resolves rather than granting a permission until end of turn; with one action window per turn in the first main phase this is main-phase timing with an empty stack, so it is no stronger than printed (only the option to wait until later in the turn is lost)."
+    "evidence": "Trace [cast]: you_fallen (a mana value 2 creature card) 'moves graveyard -> exile ... (until card leaves the battlefield, then back to the graveyard)', you_used (a sorcery) and the opponent's graveyard stay; entry on the opponent's turn the same. The 3-or-less boundary and the return are not shown. Pack A08_1: Walking Corpse (2) and Sparkhunter Masticore (3) exiled, Crypt Lurker (4) and Shock stay, the opponent's creature card stays, no ask. Pack A08_2: when the Idol is put into the graveyard the two cards return to the graveyard.",
+    "issue": ""
+   },
+   {
+    "clause": "{1}{W}, {T}: Until end of turn, you may cast a creature spell from among cards exiled with this artifact without paying its mana cost.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Trace [activate [1] from battlefield]: the cost is paid ('mana C-1 W-1', 'card becomes tapped') and nothing else is shown. Pack A08_3: a creature exiled with it is cast for free (every Plains already tapped, no black mana) and resolves; a second exiled creature is not castable this turn (one spell). A08_4: only cards exiled with THIS Idol (not a card exiled by another Idol, not a card exiled elsewhere). A08_5: on a later turn the Corpse is not offered. A08_6: activated on the opponent's turn, a creature spell still cannot be cast then. A08_7/A08_8: 'without paying its MANA cost' waives the mana cost only: Sparkhunter Masticore cast from exile through the Idol still discards a card (the Forest), and with an empty hand no cast is offered (CR 118.9d).",
+    "issue": ""
    }
   ],
   "packs": [
-   "tools/scenarios/cards/M21/idol_of_endurance_1.json",
-   "tools/scenarios/cards/M21/idol_of_endurance_2.json",
-   "tools/scenarios/cards/M21/idol_of_endurance_3.json",
-   "tools/scenarios/cards/M21/idol_of_endurance_4.json",
-   "tools/scenarios/cards/M21/idol_of_endurance_5.json"
+   "tools/scenarios/cards/M21/idol_of_endurance_6.json",
+   "tools/scenarios/cards/M21/idol_of_endurance_7.json",
+   "tools/scenarios/cards/M21/idol_of_endurance_8.json",
+   "tools/scenarios/cards/M21/idol_of_endurance_9.json",
+   "tools/scenarios/cards/M21/idol_of_endurance_10.json",
+   "tools/scenarios/cards/M21/idol_of_endurance_11.json",
+   "tools/scenarios/cards/M21/idol_of_endurance_12.json",
+   "tools/scenarios/cards/M21/idol_of_endurance_13.json"
   ],
   "mutation": {
-   "mutants": 17,
+   "mutants": 16,
    "killed": 9,
-   "score": 0.5294117647058824,
+   "score": 0.5625,
    "survived": [
     "widen filter (drop part 1) at 1/0/effect/args/target/filter",
-    "amount+1 at 1/0/effect/args/target/filter/children/1/count",
-    "amount-1 at 1/0/effect/args/target/filter/children/1/count",
-    "optional->mandatory at 1/1/effect",
-    "amount+1 at 1/1/effect/inner/args/source/count",
-    "widen filter (drop part 0) at 1/1/effect/inner/args/source/filter",
-    "widen filter (drop part 1) at 1/1/effect/inner/args/source/filter",
-    "controller YOU->OPPONENT at 1/1/effect/inner/args/source/zones/0/controller"
+    "amount+1 at 1/0/effect/args/target/filter/children/1/inner/count",
+    "amount-1 at 1/0/effect/args/target/filter/children/1/inner/count",
+    "amount+1 at 1/1/effect/args/count",
+    "until-end-of-turn->permanent at 1/1/effect/args/duration",
+    "widen filter (drop part 0) at 1/1/effect/args/source/filter",
+    "widen filter (drop part 1) at 1/1/effect/args/source/filter"
    ]
   }
  }

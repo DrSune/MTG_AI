@@ -1,0 +1,67 @@
+{
+ "set": "M21",
+ "name": "demonic_embrace_from_the_graveyard_cannot_pay_three_life_with_two",
+ "notes": "Printed: 'paying 3 life'. With 2 life (and the Swamps and a card to discard) no cast from the graveyard is offered (CR 119.4: a player can pay life only if their life total is at least the payment).",
+ "world": {
+  "life": 2,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "de",
+   "real": "Demonic Embrace",
+   "zone": "graveyard",
+   "controller": 0
+  },
+  {
+   "key": "corpse",
+   "real": "Walking Corpse",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s1",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s2",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s3",
+   "real": "Swamp",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:de:via:de",
+    "corpse"
+   ],
+   "expect_raise": "does not offer 'cast:card:0:via:card:0'"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "de": "graveyard",
+   "forest": "hand"
+  },
+  "life": {
+   "0": 2
+  }
+ }
+}
