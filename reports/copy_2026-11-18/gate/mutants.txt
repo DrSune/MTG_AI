@@ -1,0 +1,14 @@
+lki-off: SURVIVED | 76 passed in 4.86s
+this-creature-resolved-now: KILLED | 1 failed, 21 passed in 4.73s
+later-cast-copied: KILLED | 1 failed, 20 passed in 3.92s
+kept-moved-target-kept: KILLED | 1 failed, 19 passed in 3.92s
+copy-clock-not-moved: KILLED | 1 failed, 19 passed in 3.87s
+become-copy-token-mark-copied: KILLED | 1 failed, 22 passed in 4.03s
+copy-record-by-oracle-id: SURVIVED | 76 passed in 4.17s
+self-new-target: KILLED | 1 failed, 11 passed in 3.82s
+left-not-recorded-on-remove: KILLED | 1 failed, 7 passed in 3.73s
+no-swap-lookahead: KILLED | 1 failed, 18 passed in 3.82s
+copy-chooses-nothing-off: KILLED | 1 failed, 15 passed in 4.12s
+own-choices-not-restored: KILLED | 1 failed, 16 passed in 4.10s
+lki-off, rerun with test_a_token_horde_gone_before_its_trigger_still_makes_its_copy added: KILLED | 1 failed, 27 passed (lki_mutant.sh)
+copy-record-by-oracle-id: equivalent, as the gate found: binder.records already holds the copied card's record by its oracle id (register_token's setdefault), so the handle's record decides either way

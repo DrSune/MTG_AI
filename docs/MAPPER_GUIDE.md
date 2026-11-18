@@ -217,18 +217,22 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
   count and "You may choose new targets"). What is copied is one `CopyOf(source, ...)`; where the
   copy goes is the verb:
   - "Create a token that's a copy of X" is `CREATE_TOKEN(tokens=CopyOf(X), count=QConst(n))`,
-    never a COPY. X is one object: "this creature" `Selector(QConst(1), CHOOSE,
-    FAtom(IS_SOURCE), zones=(BATTLEFIELD,))`, a TARGET of one, "it" (`referent="result"`: the
-    card an instruction before it moved, Abyssal Harvester) or "that creature" (`"event"`).
-    Never `referent="source"`: "this" is the CHOOSE of IS_SOURCE.
+    never a COPY. X is one object on the battlefield, in a graveyard, in exile or on the stack
+    (never a hand or a library): "this creature" `Selector(QConst(1), CHOOSE, FAtom(IS_SOURCE),
+    zones=(BATTLEFIELD,))`, only in a permanent's ability (in a spell "this" is the spell); a
+    TARGET of one; "it" (`referent="result"`), only in a step after a MOVE_ZONE or CREATE_TOKEN
+    of that object in the same Seq (Abyssal Harvester: the exile, then the copy; the compiler
+    never reads "it", a record does); or "that creature" (`"event"`). Never
+    `referent="source"`: "this" is the CHOOSE of IS_SOURCE.
   - "Except ..." goes in the CopyOf: "it's a Nightmare in addition to its other types"
     `subtypes=("Nightmare",)`; "it has haste" `keywords=(Keyword.HASTE,)` (bare keyword
-    abilities, `ability_tree.COPY_EXCEPTION_KEYWORDS`); "it has '<ability>'" `abilities=(...)`
-    (a triggered, activated or static ability). Any other exception is needs-atom (BACKLOG, "The
-    copy lane still blocked").
+    abilities a permanent uses, `ability_tree.COPY_EXCEPTION_KEYWORDS`; not Flash); "it has
+    '<ability>'" `abilities=(...)` (a triggered, activated or static ability). Any other
+    exception is needs-atom (BACKLOG, "The copy lane still blocked").
   - "Copy that spell|ability" (a cast or activation trigger) is `COPY(source=CopyOf(<event
-    referent>))`; "copy target instant or sorcery spell" `COPY(source=CopyOf(TARGET over the
-    stack))`. "You may choose new targets for the copy" is `new_targets=True` on that COPY, never
+    referent>))`, "copy this spell" under its own cast trigger too; "copy target instant or
+    sorcery spell" `COPY(source=CopyOf(templates_b5a.target_spell(<types>)))`, the counterspells'
+    selector. "You may choose new targets for the copy" is `new_targets=True` on that COPY, never
     a sentence of its own; "copy it twice" `count=QConst(2)` (absent is one). No exception, no
     duration: a copy on the stack lasts until it leaves it.
   - "Each other artifact you control becomes a copy of that artifact until end of turn" is
@@ -238,7 +242,9 @@ make each pack fail a wrong expectation once; run `cardtool survivors` before re
     `QBin(SUB, QProp("event", ORDINAL), QConst(1))` in a cast trigger's effect; never in its
     condition (an intervening "if" on the ordinal is `CastSpellEvent.ordinal`).
   - "All other <objects>" after an instruction that made or moved one is
-    `FNot(FAtom(IS_RESULT))` in the moved objects' filter, in a later step of the Seq.
+    `FNot(FAtom(IS_RESULT))` in the moved objects' filter, in a later step of the Seq after a
+    MOVE_ZONE or CREATE_TOKEN, never in a TARGET selector (targets are chosen before the register
+    exists).
 - **"Whenever you attack" and "one or more creatures you control attack".** A
   `DeclareAttackersEvent` with filter `FAnd(CONTROLLER_IS YOU, TYPE_EQ 'Creature')`, no
   condition, and `once_per_event=True` on the `TriggeredAbility` (or `DelayedTrigger`): it

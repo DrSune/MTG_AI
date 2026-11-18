@@ -5,6 +5,17 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-11-18 (gate round B3's fixes, FIX-THEN-GO: the copy round after merging main 13b57121; DESIGN_ATOM_ONTOLOGY §18 "Gate round B3"; evidence `reports/copy_2026-11-18/gate/`)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| the fix tests on the merge before the fixes (498faa66) | **13 fail**: M1 2, m1 1, fix 9a's clock 1 (`SpellStack.left` kept one frame per card), M3 8 (Flash, two hidden zones, a stack CHOOSE, `result` copies, "all other", "this" in a spell, B20's "it"), M2 1 (Miscast's bytes); 75 pass (the pinning tests among them) | `pytest` of the branch's three copy test files in a `git archive` of 498faa66 | `red_prefix.txt`; all pass on the branch |
+| trees the fixes change, 19 sets | **6** compiler trees (10E and M10 Twincast, M11, M12, M13 Reverberate, ZNR Lithoform Engine: the counterspells' target selector), 6 with records applied; **0** verified in or out | `tree_dump.py` on 498faa66 and the branch, `tree_diff.py` | `tree_diff_gate.txt` |
+| the round against main 13b57121 | **20** compiler trees, **22** with records applied, **13** newly whole, **0** verified in or out (M21 280, M20 286, FDN 261) | `tree_dump.py` on 13b57121 and the branch, `tree_diff.py` | `tree_diff_main.txt`; census unchanged (`census.txt`) |
+| 300 seeded heuristic games, main 13b57121 against the branch | **300/300 identical replay digests, journal dumps and raw event logs** (100 each, M21, M20, FDN; 280, 286, 261 deckable on both sides), 0 crashes either side; CREATE_TOKEN **272** and COUNTER **34** calls on each side, copies 0 | `replay.py <checkout> <trees_main> <trees_branch> 100 <out>` on both, `replay_compare.py` | `replay_compare.txt` |
+| the gate's mutants against the copy tests (a scratch copy of the branch) | **11 of 12 killed**: the gate's surviving play-changing mutants (copying from last known information, "this creature" resolved now, fix 9a's clock, a kept moved target kept, the copy's clock not moved, a becoming copy's token mark) and the fixes' own (self as new target, `left` on remove, no swap lookahead, the copy's choices, its own choices restored); copying from last known information killed only by the token-Horde test added for it; `by_oracle_id` survives, equivalent (the gate's finding too) | `bash run_mutants.sh`, `lki_mutant.sh` (`mutants.py <copy> <python>`) | `mutants.txt` |
+| `tools/check.sh` on the merged, fixed tree | **CHECK GREEN**: `pytest MTG_bot` 7419 passed / 39 deselected / 71 subtests, `pytest tools` 415 passed, 806/806 packs, ruff clean | `tools/check.sh` (CPU only, niced, beside r29) | eb1b0583 with this entry's docs and the token-Horde test |
+
 ## 2026-11-18 (the copy round B3: CopyOf, COPY's handler, layer-1 copy effects, 11 cards of M21, M20 and FDN; DESIGN_ATOM_ONTOLOGY §18, gate round B3 pending; branch `worktree-agent-a875029fa86089517` on main 70e63ee7; evidence `reports/copy_2026-11-18/`)
 
 | Number | Value | Command | Notes |

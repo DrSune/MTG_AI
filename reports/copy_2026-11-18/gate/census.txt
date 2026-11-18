@@ -1,0 +1,26 @@
+copy-token: 9 trees
+   FDN Abyssal Harvester (record)
+   FDN Chandra, Flameshaper
+   FDN Electroduplicate
+   FDN Extravagant Replication (record)
+   FDN Homunculus Horde
+   FDN Rite of Replication (record)
+   FDN Self-Reflection
+   IKO Mythos of Illuna
+   M21 Sublime Epiphany
+copy-stack: 9 trees
+   10E Twincast
+   FDN Thousand-Year Storm
+   M10 Twincast
+   M11 Reverberate
+   M12 Reverberate
+   M13 Reverberate
+   M20 Chandra's Regulator (record)
+   M21 Double Vision
+   ZNR Lithoform Engine
+copy-become: 1 trees
+   M20 Masterful Replication (record)
+ordinal: 1 trees
+   FDN Thousand-Year Storm
+not-result: 1 trees
+   FDN Abyssal Harvester (record)

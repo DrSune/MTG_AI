@@ -1306,8 +1306,9 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
   - Copies of a triggered ability (M14 Strionic Resonator, ZNR Lithoform Engine's first ability):
     the copy keeps the context its trigger made (CR 603.3c-d, 707.10). `copies._put_copy` raises
     on one; no compiled tree reaches it.
-  - Copies of a permanent spell (Lithoform Engine's third ability): the copy becomes a token as
-    it resolves (CR 608.3f). No template.
+  - "Copy target permanent spell" (Lithoform Engine's third ability): no template. The engine
+    plays such a copy (it resolves into a token, never "created", CR 608.3f; tested since gate
+    round B3, `test_a_copy_of_a_creature_spell_resolves_into_a_token_never_created`).
   - "Enters as a copy" (the Clone family, Sculpting Steel, Mirror Image, Phantasmal Image,
     Mercurial Pretender, Spark Double, Glasspool Mimic, Moritte, Mirrormade: 13 printings): a
     replacement as the permanent enters (CR 707.5, 614.1c), with its "as it enters" choice.
@@ -1339,9 +1340,24 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
     own static abilities new timestamps where CR 613.7a keeps the object's (only an order between
     two statics of one layer can show it); when a copy's controller changes a target, the copy's
     declaration clock moves to then, so a copied activated ability whose source changed zones
-    between the activation and the copy reads that source anew (CR 707.10b keeps the old one);
-    `SpellStack.left` keeps one frame per card, so a cast trigger whose spell left the stack, the
-    same card then cast again and gone too, copies nothing.
+    between the activation and the copy reads that source anew (CR 707.10b keeps the old one).
+  - From gate round B3 (§18), logged with their cards:
+    - m3, G3's blind spots: no mutation operator for `new_targets`, a copy's exception keywords
+      and subtypes, or COPY's literal count, so Twincast and Reverberate (0 mutants) pass G3
+      vacuously and Thousand-Year Storm gets only the weaker ORDINAL-2 mutant; the critical "each
+      end step -> your end step" mutant of Electroduplicate's and Chandra, Flameshaper's
+      sacrifice is equivalent in FDN and needs an equivalence record before their stamps.
+    - m6, pre-existing: one object cannot be the target of two slots of different modes
+      (`query.py:521`, `selection:duplicate_handles`), so Sublime Epiphany's ruled line (bounce
+      your creature, then copy it, CR 601.2c, 115.3) cannot be played. Fix with its stamp.
+    - n3, pre-existing: `Repeat(count, COPY)` validates, but the executor has no Repeat (no tree
+      of the 19 sets uses one); refuse it or build it with the first card.
+    - n6: CREATE_TOKEN of a CopyOf inside a static ability validates and never runs (round 7's
+      m4 class: a resolving verb in a static).
+    - m4 (215's F29): copies' records are per handle (pinned in both orders), but a TokenSpec's
+      record is still keyed by its name (`binder.register_token`, `by_oracle_id`), not by a
+      spec hash: two different specs of one name would share the first's record. Latent (no deal
+      pool has two); key it by the spec's hash before a pool can.
 - **The OptionalEffect around ADD_LAND_PLAY, GRANT_ACTIVATION and MANA_POLICY** (2026-11-17,
   divergence D32; gate round 13). §10's R5-2 point 8 ruled every permission-like atom bare (its
   "you may" is its use); ontology round R13 made PERMIT so and left the three wrapped in M21 Azusa,

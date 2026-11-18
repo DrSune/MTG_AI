@@ -507,6 +507,29 @@ def test_homunculus_horde_that_left_still_makes_its_copy() -> None:
     assert len(_tokens(r, "Homunculus Horde")) == 1
 
 
+def test_a_token_horde_gone_before_its_trigger_still_makes_its_copy() -> None:
+    """m2 (copying from last known information): a token copy of Homunculus Horde triggers on the
+    second card drawn, then leaves and ceases to exist before its trigger resolves; "a copy of
+    this creature" is then read from its last known information (CR 608.2h), so both triggers
+    make a token. Without it the token's trigger found nothing to copy."""
+    r = _runner("FDN", [
+        _real("horde", "Homunculus Horde"),
+        _real("sr", "Self-Reflection", zone="hand"),
+        _real("tt1", "Think Twice", zone="hand"),
+        _real("tt2", "Think Twice", zone="hand"),
+    ], mana={"0": {"U": 4, "C": 6}})
+    r.run_step({"op": "cast", "key": "sr", "real": "Self-Reflection", "targets": ["horde"]})
+    [first] = _tokens(r, "Homunculus Horde")
+    r.handles["first"] = first
+    r.run_step({"op": "cast", "key": "tt1", "real": "Think Twice"})
+    r.run_step({"op": "cast", "key": "tt2", "real": "Think Twice", "hold": True})
+    r.run_step({"op": "resolve", "hold": True, "decisions": ["first-legal"]})  # two triggers wait
+    r.run_step({"op": "move", "key": "first", "to": "graveyard", "hold": True})
+    r.run_step({"op": "pass", "decisions": ["first-legal"]})
+    assert first not in r.world.cards
+    assert len(_tokens(r, "Homunculus Horde")) == 2
+
+
 def test_a_permanent_that_becomes_a_copy_of_a_token_is_no_token() -> None:
     """m2: Prismite becomes a copy of a Thopter token: being a token is no copiable value (CR
     707.2; Masterful Replication's ruling), so Prismite stays a card."""

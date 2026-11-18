@@ -161,11 +161,11 @@ IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 | 2026-11-17, gate round 12 (FIX-THEN-GO, fixed, §16) | QDistinct x `field` (COLOR, NAME, MANA_VALUE: `ability_tree.DISTINCT_FIELDS`) | M21 Chromatic Orrery (COLOR), Chrome Replicator (NAME, in the count), M20 Field of the Dead (NAME), FDN Lunar Insight (MANA_VALUE) | **low-volume**: 5 trees |
 | 2026-11-17, gate round 13 (FIX-THEN-GO, fixed, §17) | Verb.PERMIT x `source` (ALL over your graveyard, exile, library top or hand; TARGET over a graveyard or exile; the `result` register whole, no filter) x `lands` (True or absent) x `alternative` / `additional` (Costs) x `replace` (`spell_riders()`) x `count` (a literal, resolving only) x `duration` (Eot, UntilEndOfNextTurn, Permanent; required when resolving, absent in a static) | templates_b19 (15 templates): M21 Conspicuous Snoop, Radha, Heart of Keld, Demonic Embrace, both Chandras, Idol of Endurance (b3); FDN Omniscience, Think Twice and the flashback cards, Sphinx of Forgotten Lore, Zul Ashur; records: M20 Golos, Mystic Forge | 33 PERMIT atoms in the 19 sets, records applied (`reports/permit_2026-11-17/`); **low-volume**: `count` 1 tree (Idol of Endurance), `additional` 1 (Demonic Embrace) |
 | 2026-11-17, gate round 13 (FIX-THEN-GO, fixed, §17) | Verb.CAST x `alternative` / `additional` (the old `cost` role split) x `replace` (the rider) | M21 Chandra, Flame's Catalyst's [-2]; ZNR Coveted Prize (b8) | 2 CAST atoms |
-| 2026-11-18, round B3 (§18; gate round B3 pending) | CREATE_TOKEN x `tokens` CopyOf (`source`: one object; the exceptions `subtypes` / `keywords` / `abilities`) | B20-copy-token, b5c's bullet: FDN Chandra, Flameshaper, Electroduplicate, Homunculus Horde, Self-Reflection, IKO Mythos of Illuna, M21 Sublime Epiphany; records: FDN Abyssal Harvester, Extravagant Replication, Rite of Replication | 9 trees; with exceptions 3 (Electroduplicate, Chandra, Flameshaper: haste and an ability; Abyssal Harvester: a subtype) (NUMBERS.md 2026-11-18, `reports/copy_2026-11-18/census.txt`) |
-| 2026-11-18, round B3 (§18; gate round B3 pending) | COPY x `source` CopyOf over the stack or `event` (no `cards`) x `count` x `new_targets` | B20-copy-target-spell (10E and M10 Twincast, M11, M12 and M13 Reverberate, ZNR Lithoform Engine), B20-storm-copies (FDN Thousand-Year Storm, `count` a quantity), M21 Double Vision (b2b); M20 Chandra's Regulator (record, `event` of an activation) | 9 trees; `count` 1 (**low-volume**) |
-| 2026-11-18, round B3 (§18; gate round B3 pending) | COPY x `source` CopyOf x `cards` (the permanents that become copies, over the battlefield) x `duration` (DurationEot only) | M20 Masterful Replication (record) | **low-volume**: 1 record |
-| 2026-11-18, round B3 (§18; gate round B3 pending) | QProp(`event`, ORDINAL): the triggering cast's place among the turn's casts its event describes, in a cast trigger's effect | FDN Thousand-Year Storm (B20-storm-copies) | **low-volume**: 1 tree |
-| 2026-11-18, round B3 (§18; gate round B3 pending) | Selector filter x FNot(IS_RESULT) ("all other <objects>" after an instruction that wrote `result`), in a resolving instruction's role, a later Seq step | FDN Abyssal Harvester (record) | **low-volume**: 1 record |
+| 2026-11-18, round B3 (§18; gate round B3 FIX-THEN-GO, fixed) | CREATE_TOKEN x `tokens` CopyOf (`source`: one object; the exceptions `subtypes` / `keywords` / `abilities`) | B20-copy-token, b5c's bullet: FDN Chandra, Flameshaper, Electroduplicate, Homunculus Horde, Self-Reflection, IKO Mythos of Illuna, M21 Sublime Epiphany; records: FDN Abyssal Harvester, Extravagant Replication, Rite of Replication | 9 trees; with exceptions 3 (Electroduplicate, Chandra, Flameshaper: haste and an ability; Abyssal Harvester: a subtype) (NUMBERS.md 2026-11-18, `reports/copy_2026-11-18/census.txt`) |
+| 2026-11-18, round B3 (§18; gate round B3 FIX-THEN-GO, fixed) | COPY x `source` CopyOf over the stack or `event` (no `cards`) x `count` x `new_targets` | B20-copy-target-spell (10E and M10 Twincast, M11, M12 and M13 Reverberate, ZNR Lithoform Engine), B20-storm-copies (FDN Thousand-Year Storm, `count` a quantity), M21 Double Vision (b2b); M20 Chandra's Regulator (record, `event` of an activation) | 9 trees; `count` 1 (**low-volume**) |
+| 2026-11-18, round B3 (§18; gate round B3 FIX-THEN-GO, fixed) | COPY x `source` CopyOf x `cards` (the permanents that become copies, over the battlefield; Masterful Replication's "each other" is FNot(IS_ANY_TARGET) in it, that filter's first use there) x `duration` (DurationEot only) | M20 Masterful Replication (record) | **low-volume**: 1 record |
+| 2026-11-18, round B3 (§18; gate round B3 FIX-THEN-GO, fixed) | QProp(`event`, ORDINAL): the triggering cast's place among the turn's casts its event describes, in a cast trigger's effect | FDN Thousand-Year Storm (B20-storm-copies) | **low-volume**: 1 tree |
+| 2026-11-18, round B3 (§18; gate round B3 FIX-THEN-GO, fixed) | Selector filter x FNot(IS_RESULT) ("all other <objects>" after an instruction that wrote `result`), in a resolving instruction's role, a later Seq step | FDN Abyssal Harvester (record) | **low-volume**: 1 record |
 
 ## 6. Identity + conformance
 
@@ -809,9 +809,22 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     through the menu (`unsubstantiate_your_own_shock_never_resolves`, red on main) and
     `test_executor_off_the_stack.py` (exile, a library, a creature spell, both riders).
   - MINOR: BACKLOG's D32 deferral entry; Valakut Exploration's pools; §5's low-volume roles.
-- B3 round B3 (copies, 2026-11-18; **DRAFT for gate round B3**, §18; branch
-  `worktree-agent-a875029fa86089517` on main 70e63ee7; a fresh-eyes review of the code diff
-  before it, 4 MAJOR and 6 MINOR fixed: §18). Verdict pending.
+- B3 round B3 (copies, 2026-11-18; §18; branch `worktree-agent-a875029fa86089517` on main
+  70e63ee7, main 13b57121 merged; a fresh-eyes review of the code diff before it, 4 MAJOR and 6
+  MINOR fixed: §18). **Gate round B3 (adversarial, one reviewer on 81568b39): FIX-THEN-GO**, no
+  FATAL; 3 MAJOR, 6 MINOR, 6 NIT, all fixed or logged, each fix with a test red on 498faa66
+  (§18, "Gate round B3"):
+  - MAJOR: M1 (215's F40) a permanent that becomes a copy chose nothing, its copied choice read
+    raised: now `NOTHING_CHOSEN` (CR 707.4, 707.6). M2 B20's "target instant or sorcery spell"
+    was a second encoding: now the counterspells' `target_spell` (6 trees, none verified). M3
+    five forms refused: a copy of `result` or "all other" with no maker before it, "all other" in
+    a TARGET, a copy of "this" in a spell, a copied object in a hand or a library, a Flash
+    exception.
+  - MINOR: m1 new targets may trade places (CR 115.7d-e; weaker before); m2 four surviving
+    mutants pinned, and `SpellStack.left` a list (a recast card overwrote its first frame); m4
+    F29 pinned; m5 permanent-spell copies tested (CR 608.3f); m3 and m6 logged.
+  - NIT: n1, n2, n4, n5 fixed; n3, n6 logged.
+  - The draft entry's parts follow, as written for the gate.
   - The change. One value, `CopyOf(source, subtypes, keywords, abilities)`, names what is copied
     (the copiable values of one object, CR 707.2-707.3) and the copy effect's exceptions (707.9a-b).
     CREATE_TOKEN's `tokens` makes a token copy (707.5); COPY's `source` puts copies of a spell or
@@ -840,7 +853,7 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     unchecked; values fixed as the effect begins; spell copies carry the token mark; the copy's
     clock and the target-by-target new-target asks; 704.5p's reach; what the network does not see
     of an exception).
-- BINDING STATE: rounds 1–11 complete; further ontology changes
+- BINDING STATE: rounds 1–13 and B3 complete (each with its gate round's fixes); further ontology changes
   require a NEW gated round (any R-item that reclassifies a field or opens a normalization is
   Type-1).
 
@@ -864,7 +877,7 @@ doesnt break it". Gate rounds 1 and 2 are logged in §9. **Every census count he
 | `Choose(QAtLeast(1))`, fitting cast ordinal | **implemented** (lane r5b) |
 | R5-2, R5-5, R5-8, R5-12 | fix, then gate round 4 (round 3 findings in §9) |
 | R5-2, R5-3, R5-12's rider | **built as ontology round R13** (§17, 2026-11-17): one verb, PERMIT, with `lands`; the rider a cast verb's `replace` role; gate round 13 pending |
-| R5-5 `CopyOf`, layer-1 copy | **built as round B3** (§18, 2026-11-18): one `CopyOf` for permanents, spells and abilities, CREATE_TOKEN's `tokens` or COPY's `source`; three typed exception fields replace the `CopyException` union; gate round B3 pending |
+| R5-5 `CopyOf`, layer-1 copy | **built as round B3** (§18, 2026-11-18): one `CopyOf` for permanents, spells and abilities, CREATE_TOKEN's `tokens` or COPY's `source`; three typed exception fields replace the `CopyException` union; gate round B3 FIX-THEN-GO, fixed |
 | R5-13 FIRST_MATCH | rejected in round 3; `REVEAL.until` **implemented, round 4 GO** (1cac720, fixes 844c315): count = the revealed cards that pass `until`; `until=FAnd(())` and an unbounded count with `until` refused. Transmogrify's "that creature's controller" is the majority referent Selector, and `EachPlayer.ref` takes it |
 | `Verb.ATTACK_POLICY` (scope `AS_NO_DEFENDER`, CR 609.4; BACKLOG B-80) | **implemented, round 4 GO** (1cac720): Drowsing Tyrannodon keeps defender and attacks as though it had none; ledger F9 |
 | R5-14 once-per-event vs once-per-object triggers (B-103, B-102, V14) | **implemented, round 4 FIX-THEN-GO** (6f020b8, fixes 3ece400): `once_per_event` (True or absent) on TriggeredAbility and DelayedTrigger; absent = once per occurrence (CR 603.2c); refused where the subject does not gather occurrences (IS_SOURCE, IS_ATTACHED_TO_SOURCE), on non-combat damage and with no dealer; checked as triggers queue |
@@ -2471,7 +2484,7 @@ Rise's event-ended window; Kethis's set fixed at resolution; another player's ca
 Tinybones); a permission shows only as the rows it offers; divergences D33 (the two forms of
 "exile the top card") and D32 (permission-like atoms still wrapped in OptionalEffect).
 
-## 18. Round B3 — copies of permanents, spells and abilities (2026-11-18; gate round B3 pending)
+## 18. Round B3 — copies of permanents, spells and abilities (2026-11-18; gate round B3 FIX-THEN-GO, fixed)
 
 KNOWLEDGE 209 §6's gate round B3 (its order amended 2026-11-18, `docs/PLAN_PLANNING.md` §6): the
 capability "copies" (CR 707) and the 11 cards it completes in M21, M20 and FDN
@@ -2498,12 +2511,16 @@ in CREATE_TOKEN); COPY puts copies on the stack, or makes permanents copies.
   the trigger's object) and `result` ("it": the card the instruction before moved, Abyssal
   Harvester). Refused: a population, the referent `source` ("this creature" is the CHOOSE of
   IS_SOURCE, as in every verb: one encoding), a player (`controller`), `target` (it re-reads the
-  designation a TARGET names).
+  designation a TARGET names), and since the gate round an object in a hand or a library
+  (`COPY_SOURCE_ZONES`: hidden, CR 400.2, as round 13 refused for CAST). Where "this" is no
+  permanent (a spell's effect, an instant's or sorcery's ability) a copy of it is refused
+  (`self_copy_fault`: a token copy put a sorcery onto the battlefield, CR 307.4).
 - The exceptions, which become part of the copy's copiable values (CR 707.9a-b): `subtypes`
   ("it's a Nightmare in addition to its other types"; a SET, sorted; no card type or supertype:
   their engine half, the type line's head, comes with WAR Saheeli's card), `keywords` ("it has
-  haste"; a SET; only keyword abilities whole without a parameter: Protection, Enchant, Equip,
-  Fight and Treasure refused) and `abilities` (a triggered, activated or static ability in printed
+  haste"; a SET; only keyword abilities whole without a parameter that a permanent can use:
+  Protection, Enchant, Equip, Fight, Treasure and Flash refused, Flash because it only lets a
+  card be cast, CR 702.8a) and `abilities` (a triggered, activated or static ability in printed
   order; a keyword is `keywords`'s, one encoding). Why three typed fields, not R5-5's
   `CopyException` union: each kind gets its canonical form from the §3 law, and nothing walks a
   union; the other printed exceptions ("isn't legendary", "it's 1/1", "enters with an additional
@@ -2519,7 +2536,10 @@ in CREATE_TOKEN); COPY puts copies on the stack, or makes permanents copies.
   a literal of 2 or more ("twice"), or a quantity (Thousand-Year Storm). Refused, each because it
   says nothing or says it twice: an exception (no stack copy prints one), a `duration` (a copy on
   the stack lasts until it leaves it), `new_targets` False (absent says it), `count` 1 (absent
-  says it), a source not on the stack (the token copy's form).
+  says it), a source not on the stack (the token copy's form), a CHOOSE of the stack ("copy this
+  spell" under its own cast trigger is that trigger's `event`, Banish into Fable). A copy of a
+  permanent spell resolves into a token, never "created" (CR 608.3f; the engine's spell lane
+  with the token mark, tested since the gate round); no template reads one yet.
 - `COPY(source=CopyOf, cards, duration)`: the permanents `cards` names become copies (CR 613.2a).
   `cards` is a selector over the battlefield, no referent, never the copied object itself (a
   permanent becoming a copy of itself changes nothing); `duration` DurationEot only (Masterful
@@ -2527,12 +2547,17 @@ in CREATE_TOKEN); COPY puts copies on the stack, or makes permanents copies.
   `new_targets`, a stack object on either side. Why `cards` and not `target`: a role named
   `target` beside a TARGET designation is read as the designation (`selectors.role_handles`,
   binding first), so Masterful Replication's "each other artifact you control" would have been its
-  one target (G0's lint found it on the first draft).
+  one target (G0's lint found it on the first draft). A TARGET-mode `cards` is designated like
+  any TARGET selector (Saheeli's "target artifact ... becomes a copy of another target"; the
+  gate's n1).
 - `event_object_fault`: a stack COPY of `event` stands only under a cast or an activation
   trigger (an enters trigger's object is a permanent); under a cast trigger nothing makes a token
   of, or turns a permanent into, `event` (a spell); QProp ORDINAL only in a cast trigger's effect.
-- `Seq.__post_init__`: the same copy step twice in a row is refused: "copy it twice" is one COPY
-  with `count` 2, two token copies one CREATE_TOKEN of 2.
+- `Seq.__post_init__`: the same copy step twice in a row is refused. Printed twice, a copy
+  instruction is two designations (CR 601.2c) and two events (round R10), which two equal steps
+  cannot say while equal target slots share one designation (215's F16): "copy it twice" is one
+  COPY with `count` 2, two token copies one CREATE_TOKEN of 2 (the gate's n2 corrected the
+  reason).
 
 **B3-3 The other pieces.**
 - `QPropField.ORDINAL` (`ability_tree.py:383`): the triggering cast's place among the turn's
@@ -2542,12 +2567,18 @@ in CREATE_TOKEN); COPY puts copies on the stack, or makes permanents copies.
   `QBin(SUB, QProp("event", ORDINAL), QConst(1))`. Refused in a condition: an intervening "if" on
   the cast's place is `CastSpellEvent.ordinal` (the place never changes), and the binder fixes
   the ordinal for the effect only (the review's finding 8).
-- `FNot(FAtom(IS_RESULT))` in a resolving instruction's selector, in a later step of its Seq
-  (`_is_result_misplaced` :4527): "Then exile all other Nightmare tokens you control" (Abyssal
-  Harvester) is the complement of the `result` register, which has no referent form. Refused in a
-  first step (no register to complement), a duration, a condition or a trigger's event.
+- `FNot(FAtom(IS_RESULT))` in a resolving instruction's selector, after a step of its Seq that
+  moved or made objects (MOVE_ZONE, CREATE_TOKEN: `_moves_or_makes`; `_is_result_misplaced`):
+  "Then exile all other Nightmare tokens you control" (Abyssal Harvester) is the complement of
+  the `result` register, which has no referent form. A copy of "it" (CopyOf of `result`) stands
+  under the same rule. Refused with no such step before (a first step, or after DESTROY, which
+  writes no register: the engine made no token), in a TARGET selector (chosen as the spell is
+  cast, CR 601.2c, before any register), a duration, a condition or a trigger's event.
 - The compiler: `templates_b20.py` (B20-copy-token, B20-copy-target-spell, B20-storm-copies,
-  B20-new-targets); `NewTargetsOutcome` folds "You may choose new targets for the copy|copies."
+  B20-new-targets). B20-copy-target-spell's target is the counterspells' `target_spell` selector
+  (STACK_KIND_EQ SPELL beside the types: Miscast's bytes, the gate's M2); B20-copy-token reads no
+  "it" (a sentence alone cannot tell that the step before moved or made the object: Abyssal
+  Harvester's "it" is its record's). `NewTargetsOutcome` folds "You may choose new targets for the copy|copies."
   into the one COPY with no `cards` before it (`compiler._FOLD_VERBS`, the rider fold's
   machinery), never a sentence of its own (it changes play: CR 707.10c); b2b's Double Vision
   builder emits `COPY(source=CopyOf(event))`; b5c's bullet "Create a token that's a copy of ..."
@@ -2556,8 +2587,8 @@ in CREATE_TOKEN); COPY puts copies on the stack, or makes permanents copies.
   card each turn", `CardDrawnEvent(ordinal=2)`).
 - Records (`cardtool write`, no `verified` block, needs_atom removed): M20 Chandra's Regulator,
   Masterful Replication; FDN Extravagant Replication (re-mapped), Abyssal Harvester and Rite of
-  Replication (new: Harvester's "it" names the exiled card, the compiler's B20 reads "it" only
-  as `result`, and Rite's "create five of those tokens instead" is a Conditional on WAS_KICKED).
+  Replication (new: Harvester's "it" names the card its exile moved, which only a record can say,
+  and Rite's "create five of those tokens instead" is a Conditional on WAS_KICKED).
 
 **B3-4 The engine** (`executor/copies.py`, new; the CR it implements in each docstring):
 - Copiable values (`values_of` :67, `copiable_values` :86): an object's identity (name, type
@@ -2581,14 +2612,17 @@ in CREATE_TOKEN); COPY puts copies on the stack, or makes permanents copies.
   clock, so a target that changed zones since is a new object it does not target (400.7). No
   CAST row: a copy is not cast, so Double Vision's "first" and the Storm's count never see it.
   The object copied (`stack_object` :169): a target on the stack now, or the object the trigger's
-  cast or activation put there, as it last existed (`SpellStack.left`, the frames that left the
-  stack this turn: a countered spell is still copied, 608.2h); never a later cast of the same card,
-  and for an activation trigger the ability frame, never the permanent's own spell frame (the
-  review's finding 1).
-- New targets (`_choose_new_targets` :265): per target, keep it (the first word) or a legal one
-  now, never the copy itself (CR 115.5), one its slot holds (115.3) or an "another target" clash.
-  A changed target is chosen now, so the copy's clock moves to now; a kept target that changed
-  zones since the original chose it is dropped (an illegal target is not affected, 608.2b).
+  cast or activation put there, as it last existed (`SpellStack.left`, every frame that left the
+  stack this turn, in order: a countered spell is still copied, 608.2h); never a later cast of the
+  same card (the cast's frame is the last one pushed at or before its cast row; since the gate
+  round `left` keeps both frames of a card cast twice), and for an activation trigger the ability
+  frame, never the permanent's own spell frame (the review's finding 1).
+- New targets (`_choose_new_targets` :265): per target, keep it (the first word) or any object
+  some legal final set allows there (CR 115.7d-e: only the final set is judged, so two targets
+  may trade places: the gate's m1). A final set never holds the copy itself (CR 115.5), an object
+  twice in one slot (115.3) or an "another target" clash. A changed target is chosen now, so the
+  copy's clock moves to now; a kept target that changed zones since the original chose it is
+  dropped (an illegal target is not affected, 608.2b).
 - WAS_KICKED (`quantity.py:1451`): a spell copy has no CAST row, so its frame's `kicked` is read.
 - Layer 1 (`layers.register_copy` :510, `_apply_copies` :525): per permanent, the latest live
   copy effect's values (timestamp order, CR 613.7); the identity is swapped (the permanent's own
@@ -2596,7 +2630,11 @@ in CREATE_TOKEN); COPY puts copies on the stack, or makes permanents copies.
   (`binder.rebind`: nothing enters, no loyalty is seeded, 707.4); the base comes back when no copy
   effect is live (the cleanup sweep, 514.2) or as it leaves (`forget_departed`, 400.7: its last
   known information is the copy). The values are taken as the effect begins, so the copies do not
-  follow later changes of the original.
+  follow later changes of the original. Its "as it enters" choices: the copied record's EtBState
+  choices read as nothing chosen (`quantity.NOTHING_CHOSEN` in `Executor.name_choices`: it did not
+  enter, CR 707.4, and the original's choice is not copied, 707.6; Diamond Knight's ruling: it
+  never triggers), its own are kept in its base values and come back as the effect ends (the
+  gate's M1, 215's F40: the copy's trigger had raised). Any other missing choice still raises.
 - State-based actions (`Executor._illegally_attached`, `__init__.py:1721`): CR 704.5p joins
   704.5n: a permanent attached to something that is neither an Aura nor an Equipment becomes
   unattached. Before the round no permanent could stop being an Equipment; Masterful Replication
@@ -2617,9 +2655,12 @@ old checkpoints compute what they did.
    either (layers keep theirs in overlays). If an engine path wrote a non-copy effect into an
    identity, copies would carry it (stronger or weaker by that effect).
 2. A token copy enters the battlefield, so its own enters triggers and "as it enters" choices run
-   anew (CR 707.5); checked for an enters trigger (Abyssal Harvester's pack: the copied Felidar
-   Savior's trigger asks), not for an "as it enters" choice. If those were skipped, a copied
-   Diamond Knight would have no colour: weaker.
+   anew (CR 707.5): checked for an enters trigger (Abyssal Harvester's pack: the copied Felidar
+   Savior's trigger asks) and, since the gate round, for a choice
+   (`test_a_token_copy_of_diamond_mare_chooses_its_own_colour`). A permanent that *becomes* a
+   copy makes no choice (707.4, 707.6): its copied choices read as nothing chosen
+   (`quantity.NOTHING_CHOSEN`), its own come back as the effect ends. If a becoming copy chose,
+   a copied Diamond Knight would trigger: stronger.
 3. A becomes-copy effect copies the values as it begins and keeps them (the Mirrorweave ruling).
    If it should follow the original, a later change of the original would be missed: rare.
 4. Several copy effects on one permanent apply in timestamp order, the latest winning (CR 613.7).
@@ -2635,12 +2676,15 @@ old checkpoints compute what they did.
 8. A copy copies the original's modes, targets, X and kicker and makes its own resolution-time
    choices (707.10); its controller and owner are the copier. If a choice made on casting were
    not copied (an unlisted additional cost), the copy would play differently from the original.
-9. "Copy that spell" after the spell left the stack copies its last frame this turn (608.2h, the
-   rulings of Thousand-Year Storm and Double Vision); `SpellStack.left` is cleared as a turn
-   begins, so a trigger resolving next turn would copy nothing (no card waits that long).
-10. The copier is asked target by target, keep first; one target's choice can depend on the
-    previous one's ("another target"). If CR wanted one joint choice, the reachable outcomes are
-    the same.
+9. "Copy that spell" after the spell left the stack copies the frame its cast pushed, as it last
+   existed this turn (608.2h, the rulings of Thousand-Year Storm and Double Vision), never a
+   later cast of the same card; `SpellStack.left` (every frame that left this turn, in order) is
+   cleared as a turn begins, so a trigger resolving next turn would copy nothing (none waits).
+10. The copier is asked target by target, keep first, each ask offering every object some legal
+    final set allows there (CR 115.7d-e: only the final set is judged), so two targets may trade
+    places. The first draft checked each choice against the unchanged other slots, which the gate
+    showed false (its m1: Rookie Mistake's swap was never offered: weaker); the reachable final
+    sets are now those of one joint choice.
 11. Thousand-Year Storm's count is fixed as its trigger goes on the stack; spells cast in response
     do not add copies (`test_storm_counts_only_the_spells_cast_before_it`). If the count were
     read at resolution, responses would add copies: stronger.
@@ -2729,7 +2773,52 @@ controller is a unit test, the Self-Reflection copies' state a unit test). NIT: 
 type line mangled by a subtype exception (fixed); (11) rebinding restamps the permanent's own
 statics where 613.7a keeps the object's timestamp (logged).
 
+**Gate round B3 (FIX-THEN-GO, 2026-11-18)**: one adversarial reviewer on 81568b39 (3 MAJOR,
+6 MINOR, 6 NIT, nothing FATAL). Fixed on the branch after merging main 13b57121; each fix has a
+test that fails on that merge (498faa66) and passes after.
+- M1 (215's F40): a permanent that became a copy of Diamond Knight or Icon of Ancestry crashed
+  the engine when the copied ability read its choice. Why the fix: becoming a copy is no entering
+  (CR 707.4) and choices are not copied (707.6), so the copy chose nothing (B3-4, Layer 1).
+  Tests: `test_a_permanent_that_becomes_a_diamond_knight_chose_no_colour`,
+  `..._an_icon_of_ancestry_chose_no_type_and_gets_its_own_back`; the token half (a token copy
+  chooses anew) was right and is now pinned (`test_a_token_copy_of_diamond_mare_...`).
+- M2: B20's "target instant or sorcery spell" was a second encoding of the counterspells'
+  selector. Why the fix: one meaning, one encoding (`test_target_instant_or_sorcery_spell_is_the_
+  counterspells_selector`); 6 trees change bytes (10E and M10 Twincast, M11, M12, M13
+  Reverberate, ZNR Lithoform Engine), none verified.
+- M3: five forms that validated and meant nothing: (a) a copy of `result` with no maker before
+  it, (b) "all other" after no maker or in a TARGET, (c) a copy of "this" in a spell, (d) a copied
+  object in a hand or a library, (e) a Flash exception. Why: each validated and either made no
+  token, raised, put a sorcery onto the battlefield, read a hidden zone or meant nothing. Each is
+  refused with a test (`test_ability_tree_copies.py`), and B20 reads no "it".
+- m1: new targets could not trade places (weaker than printed, Double Vision on Rookie Mistake).
+  Why: only the final set of targets is judged (CR 115.7d-e). `test_a_copy_may_trade_its_two_targets`.
+- m2: mutants that change play survived; now pinned (`reports/copy_2026-11-18/gate/mutants.txt`:
+  11 of 12 killed, the twelfth equivalent). A Homunculus Horde that left still makes its copy
+  (`test_homunculus_horde_that_left_still_makes_its_copy`), and a token Horde that ceased
+  before its trigger resolved is copied from its last known information
+  (`test_a_token_horde_gone_before_its_trigger_still_makes_its_copy`). Fix 9a's clock check
+  (`test_double_vision_copies_the_first_cast_not_a_later_cast_of_the_same_card`); that test also
+  found `SpellStack.left` kept one frame per card (the resolved recast overwrote the first
+  cast's), so it is now a list. The changed-target branch
+  (`test_a_changed_target_moves_the_copys_clock_and_drops_a_kept_one_that_moved`). A
+  becoming copy's own token mark (`test_a_permanent_that_becomes_a_copy_of_a_token_is_no_token`).
+- m4 (215's F29): per-handle copy records pinned in both orders
+  (`test_each_token_copy_keeps_its_own_exceptions`); TokenSpec records keyed by name are guarded
+  in BACKLOG.
+- m5: copies of permanent spells were accepted and untested; the engine was right (CR 608.3f),
+  now tested (`test_a_copy_of_a_creature_spell_resolves_into_a_token_never_created`).
+- m3 (G3 operators for `new_targets`, the exceptions and COPY's count) and m6 (Sublime Epiphany's
+  two modes on one object, `query.py:521`, pre-existing) are logged in BACKLOG with their cards.
+- NITs: n1 (a TARGET-mode `cards` is designated: B3-2 and `_VERB_ROLES`' comment) and n2 (the
+  Seq refusal's reason) corrected; n3 (`Repeat` validates, the executor has none) and n6
+  (CREATE_TOKEN of a CopyOf in a static validates and never runs) logged; n4 (§5's COPY x `cards`
+  row) and n5 (§9's BINDING STATE line) fixed.
+- Stamps stay out of this round: Sublime Epiphany waits for 215's F23; Masterful Replication
+  (M1) and Double Vision (m1) are fixed and wait for a stamp round.
+
 **Limits, logged** (BACKLOG, "The copy lane still blocked"; "What the network sees"): copies of
-triggered abilities and of permanent spells, "enters as a copy", the other exceptions, other
-durations and the "becomes a copy" template, casting copies; the review's NIT 11 and two rare
-engine residues; the exceptions the network does not see.
+triggered abilities, the "copy target permanent spell" template, "enters as a copy", the other
+exceptions, other durations and the "becomes a copy" template, casting copies; the review's NIT
+11 and one rare engine residue; the gate's m3, m6, n3 and n6; the exceptions the network does not
+see.
