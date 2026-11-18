@@ -372,3 +372,49 @@ registration is unchanged.
 - **The planning readout of the same snapshots** (KNOWLEDGE/2026-11-18/214): no network passes
   both twins of any proven puzzle pair. Each plays one habit per kind of decision. Arm B moved
   from never countering to always countering.
+
+## 12. B8 at B's update 300 (2026-11-18 18:45; appended, §1-§11 unedited)
+
+**The data** (`runs/selfplay/r29b_pself055/metrics.jsonl`, `runs/selfplay/r29a_pself0/metrics.jsonl`).
+- B's 8 gates against v2 over its updates 101-300 (at 103, 129, 152, 178, 203, 228, 253, 278):
+  0.4993, 0.5035, 0.5062, 0.5025, 0.5140, 0.5048, 0.5055, 0.4998. Mean 0.50445. No freeze.
+- A's 4 gates against v2 (28, 53, 78, 103; the registration expected 3): mean 0.5054.
+- **The comparator** is the larger of r28's 0.4979 and A's mean (§9's amendment): **A's 0.5054**.
+
+**B8 by the registered method** (§2's fixed form):
+- B's se is √((0.0080² + 0.0070²) / 8) = 0.0038; A's is the same form over its 4 gates, 0.0053.
+- **B8 = −0.0010, se 0.0065, 95% [−0.0137, +0.0118].**
+- **Not met:** the point estimate is not in +0.01 to +0.04, and there was no freeze.
+- **Not falsified:** the upper bound, +0.0118, is not below +0.01.
+- **So, by §5: neither. B goes on, and B8 is read again at its update 500** (about 04:40 on
+  11-19).
+
+**Said plainly.** The point estimate is no sign at all of B breaking the plateau: B scores against v2
+what A did, to the third decimal.
+- With the gates' own spread in place of the fixed form, the upper bound would be +0.0092 and B8
+  falsified. That uses B's sd 0.0046 over 8 gates and A's 0.0099 over 4: se 0.0052, 95% [−0.0112,
+  +0.0092].
+- The fixed form over-counts here: all gates share their deals, so deal luck cancels in B − A, and
+  the fixed form's 0.0070 is mostly deal luck.
+- The rule is not changed after seeing the data. The registered method stands.
+
+**What 500 can show, and a rule added now, before its data.**
+- A's comparator se, 0.0053, does not shrink with more B gates. So at 500 the registered interval
+  is still about ±0.012:
+  - B8 is falsified only if B's mean falls about 0.002 or more below A's;
+  - it is met only if B's mean rises 0.01 above A's.
+- §5 says nothing about a second "neither". **Registered now:** if B8 is undecided again at 500, it
+  is read as **not met**: training both seats does not break the plateau within 500 updates.
+  - `--p-self 0.55` stays in the main line: B1 and B2 showed no harm, and B trains more rows per
+    machine-hour (B4).
+  - The plateau's registered lever comes next on the GPU: **gate B** (P3; 196 §10's reopening
+    rule is met, PLAN_LONG_RUN "What the long run is"). It runs at a new pin on the main line's
+    newest checkpoint, if its smoke passes on the current code; otherwise the M21+M20 segment
+    runs while gate B is re-pinned.
+- If B8 is falsified at 500, §5 applies: `--p-self 0` in the next run, and gate B next.
+- If it is met, `--p-self 0.55` stays, and the M21+M20 segment follows (PLAN_LONG_RUN: M21 and M20
+  in full before FDN).
+
+**Confound kept in view.** Until 500, B runs on its pinned code (60f0913f). That code has the
+option overflow fallback (about 0.12-0.22 per game, KNOWLEDGE/2026-11-18/213) and E3's open faults.
+That is the registered run's code; the fixes come in at the segment boundary.
