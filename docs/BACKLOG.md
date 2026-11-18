@@ -579,6 +579,14 @@ M20 mappers' repros, run against their draft trees, are in `tools/scenarios/know
 
 ### To triage
 
+- **The London mulligan's moves are not journalled** (2026-11-18, found by planner v1's review;
+  DESIGN_PLANNER §7). `games.mulligans` puts the hand into the library, draws a new one and puts
+  cards on the bottom by editing the zones itself, so no ZONE_CHANGE row records them, and every
+  reader of CR 400.7 through the journal (`returns.moved_since`, the planner's object identity)
+  sees a card drawn again as the object it was in the old hand. Nothing in two-player verified
+  play reads it before the first turn; the planner renews the moved cards itself
+  (`planner.Tracker._renew`). Proposed: journal the moves as one atom boundary (the shuffle's
+  already is), then drop the renewal.
 - **The heuristic activates only a planeswalker's first ability row** (2026-11-12, KNOWLEDGE 201 §5).
   `heuristic.py` `_act` never uses Garruk, Savage Herald's -2, and if it did it would judge both
   target slots of an activation by the whole card. A weaker training and evaluation baseline, not

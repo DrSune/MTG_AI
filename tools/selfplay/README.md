@@ -255,10 +255,11 @@ Lives. Every game a worker plays comes back once: r29's first start (2026-11-17)
 because a slot took the worker's outbox as its game began and the worker replaces it at every
 send, so nine in ten results went into lists nobody read (fails on c13165e9).
 
-`test_planner.py` (10 tests, DESIGN_PLANNER §7): the hindsight labels on scripted games (a
+`test_planner.py` (12 tests, DESIGN_PLANNER §7): the hindsight labels on scripted games (a
 main-phase sequence A1, A2, A3; an attack later this turn; "never" for a card the game ends before;
 a blocker with its attacker as target; Cancel held through the opponent's turn and cast in
-response to their spell; an opponent's action ending a sequence; a cost choice); the read-back
+response to their spell; an opponent's action ending a sequence; a cost choice; an "up to" choice
+left empty, no use); a mulligan making every card of the hand a new object; the read-back
 from the previous forecast, dropped after a zone change; plan-following's input equal to the
 previous decision's labels; both side losses falling on a fixed batch; nothing changed without the
 planner; an older network made a planner computing bitwise what it did, and a seeded build keeping

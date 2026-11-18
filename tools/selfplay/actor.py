@@ -118,7 +118,7 @@ class NetAgent:
     def decide(self, ask: Any, obs: Any) -> int:
         if self.planner is None:
             return self._decide(ask, obs)
-        self.planner.begin(obs.executor, ask)
+        self.planner.begin(obs.executor)
         idx = self._decide(ask, obs)
         self.planner.end(obs.executor, ask, idx)
         return idx

@@ -17,7 +17,8 @@ never the opponent's object.
 
 **One object** (CR 400.7): a handle and the journal clock of its latest zone change
 (``Tracker.obj``). A card that changes zones is a new object: it gets no read-back, and its uses
-are not the old object's.
+are not the old object's. The mulligan's moves, which the engine does not journal, are renewed
+by the tracker itself (``Tracker._renew``).
 
 **A use** is mechanical (DESIGN_PLANNER §1), read off the seat's own answer (``uses_of``):
 - a land, cast or activation row: its card (a cast's or an activation's target is the first one
@@ -109,20 +110,21 @@ def uses_of(executor: Any, ask: Any, token: str) -> list[tuple[Handle, int, Hand
     ability is no menu row (the engine pays, BACKLOG "Automatic payment"), so a land that only
     pays is never used, and a forced choice the engine fills without asking is no use either."""
     kind = ask.kind
+    use = None
     if kind in ("act", "priority"):
         typ, h1, h2 = FT._OPTS[token][:3]
-        verb = _ROW_VERB.get(typ)
-        if verb is None or h1 is None:
-            return []
-        return [(h1, verb, h2 if typ == FT.OPT_INDEX["cast_at"] else None)]
-    if kind == "attack" and token != "DECLINE":  # attack:<creature>:<turn>
+        if typ in _ROW_VERB:
+            use = (h1, _ROW_VERB[typ], h2 if typ == FT.OPT_INDEX["cast_at"] else None)
+    elif kind == "attack" and token != "DECLINE":  # attack:<creature>:<turn>
         what = executor.defending_player if token == "ATTACK" else FT._handle(token)
-        return [(tag_handle(ask.site), V_ATTACK, what)]
-    if kind == "block" and token != "NONE":  # block:<blocker>:<turn>, answered with an attacker
-        return [(tag_handle(ask.site), V_BLOCK, FT._handle(token))]
-    if kind in _COST_ASKS:
-        return [(FT._handle(token), V_COST, None)]
-    return []
+        use = (tag_handle(ask.site), V_ATTACK, what)
+    elif kind == "block" and token != "NONE":  # block:<blocker>:<turn>, answered with an attacker
+        use = (tag_handle(ask.site), V_BLOCK, FT._handle(token))
+    elif kind in _COST_ASKS:
+        use = (FT._handle(token), V_COST, None)
+    # no object, no use: an "up to" sacrifice or discard answered NONE picks nothing, and a
+    # phantom use would take an A-slot from every use after it in its sequence
+    return [] if use is None or use[0] is None else [use]
 
 
 def plannable(executor: Any, me: Handle, handles: list[Handle],
@@ -206,6 +208,7 @@ class Tracker:
         self.decisions: list[Decision] = []
         self._sequence: tuple = ()
         self._seq = 0
+        self._renewed = 0  # the last clock ``_renew`` gave: negative, so no journal row has it
 
     def _sync(self, executor: Any) -> None:
         """Read the journal rows since the last call into ``entry``. Incremental, because the
@@ -222,7 +225,18 @@ class Tracker:
         """The object ``h`` is now (CR 400.7: a zone change makes a new one), as a small int."""
         return self.ids.setdefault((h, self.entry.get(h, 0)), len(self.ids))
 
-    def begin(self, executor: Any, ask: Any) -> None:
+    def _renew(self, handles: list[Handle]) -> None:
+        """Make each of ``handles`` a new object from now on, for a zone change the journal does
+        not record. One engine path makes such moves: the London mulligan (CR 103.5) shuffles
+        the hand into the library, draws a new one and puts cards on the bottom by editing the
+        zones itself (``games.mulligans``). Without this a card drawn again kept the old hand's
+        object: its label at the mulligan was its later use, not "never", and the mulligan's
+        forecast was read back onto it (found by the review of 2026-11-18)."""
+        for h in handles:
+            self._renewed -= 1
+            self.entry[h] = self._renewed
+
+    def begin(self, executor: Any) -> None:
         """A decision of the seat: its turn, step, sequence and window (recorded when ``keep``).
         The opponent's actions are the engine's own count of each player's priority actions in
         the step (``Executor.step_actions``, CR 117.3c: a cast, an activation, a land), public as
@@ -262,11 +276,17 @@ class Tracker:
             self.decisions[-1].sample = True
 
     def end(self, executor: Any, ask: Any, idx: int) -> None:
-        """The seat answered ``idx``: the uses it made."""
-        if not self.keep:
-            return
+        """The seat answered ``idx``: the uses it made, and, for a mulligan's answer, the objects
+        it moves (``_renew``; for every planning seat, since all of them read back)."""
         self._sync(executor)
         token = ask.options[idx].token
+        if ask.kind == "mulligan" and token == "mulligan":
+            world = executor.world
+            self._renew(list(world.players[world.player_order[self.seat]].zone(ZONE_HAND).entries))
+        elif ask.kind == "mulligan_bottom":
+            self._renew([FT._handle(token)])
+        if not self.keep:
+            return
         if ask.kind == "target":
             # pick:<source>:<slot>:<picks so far> (router._targets): the first pick of the first
             # slot is the target of the cast or activation of <source> being made

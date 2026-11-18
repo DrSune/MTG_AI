@@ -195,18 +195,18 @@ nothing of it runs (checked below).
   `_WINDOW` as the vocabulary's index + 1, `C_PLAN_TARGET` an entity pointer + 1; 0 none). `encode`
   leaves them 0; `encode_entities` (`:614`) also returns the entities' handles in encode order.
 - *`tools/selfplay/planner.py`* (numpy only: the workers run it):
-  - the vocabularies `:67-80`; the window of a decision `:91`; the uses an answer makes `:106`;
-    the plannable objects `:128`;
-  - one object `:221` (a handle and the journal clock of its latest zone change, read
-    incrementally `:210`);
-  - the `Tracker` a planning seat carries `:189`: `begin` (turn, step, sequence, window) `:225`,
-    `encode` (the read-back) `:242`, `forecast` `:255`, `end` (the uses; a pick's target `:281`),
-    `result` (labels and plan-following's read-back) `:288`;
-  - the hindsight labels `:303` with the when bucket `:334`; a forecast or labels by object
-    `:142`, and back onto a decision's rows `:154`; a training row's arrays `:344`.
+  - the vocabularies `:68-81`; the window of a decision `:92`; the uses an answer makes `:107`;
+    the plannable objects `:130`;
+  - one object `:224` (a handle and the journal clock of its latest zone change, read
+    incrementally `:213`; the mulligan's unjournalled moves renewed `:228`);
+  - the `Tracker` a planning seat carries `:191`: `begin` (turn, step, sequence, window) `:239`,
+    `encode` (the read-back) `:256`, `forecast` `:269`, `end` (the uses; a pick's target `:301`),
+    `result` (labels and plan-following's read-back) `:308`;
+  - the hindsight labels `:323` with the when bucket `:354`; a forecast or labels by object
+    `:144`, and back onto a decision's rows `:156`; a training row's arrays `:364`.
 - *The network*, `model.py`: a planner network has `"planner"` in its config, and its layers are
   built after `_init` (`:87-89`, `_add_planner` `:102`): the read-back's embeddings (`:175`,
-  added at `:203`) and target pointer (`:212`); the forecast heads (`forward(b, plan=True)` `:230`,
+  added at `:204`) and target pointer (`:213`); the forecast heads (`forward(b, plan=True)` `:230`,
   `forecast` `:246`: when, verb and window logits per card token, the target a "none" logit and a
   bilinear pointer to every entity); argmax forecasts `:465`. `load(..., planner=True)` `:567`
   makes an older network a planner network whose planner layers are zero (`upgraded` `:562`).
@@ -222,8 +222,9 @@ nothing of it runs (checked below).
   `:189`, `planner_terms` `:265`; the iter row's `plan` `:257`.
 - *The puzzle runner*, `tools/puzzles/runner.py`: a planner network's root forecast per plannable
   object, by pack key `:94`, `:125`, printed per checkpoint `:189`.
-- *Tests*: `tools/selfplay/test_planner.py` (10; each fails on 1daae58e, where the planner does not
-  exist) and `tools/puzzles/test_runner.py::test_a_planner_network_reports_its_forecast_at_the_root`.
+- *Tests*: `tools/selfplay/test_planner.py` (12; each fails on 1daae58e, where the planner does not
+  exist; the review's two also fail with their fix taken out) and
+  `tools/puzzles/test_runner.py::test_a_planner_network_reports_its_forecast_at_the_root`.
 
 **Why each choice:**
 - *Labels, not a hidden vector* (§3.4): readable, observable after the fact, nothing that drifts
@@ -265,7 +266,8 @@ nothing of it runs (checked below).
   `trace.py`, which encode with `features.encode`; a searched decision writes no forecast, so the
   last one stands. v1's training games do not search; search over plans is v3.
 - *Uses*: `tap` and `remove_counter` cost choices are none (§1 names sacrifice, discard and exile);
-  every sacrifice, discard or exile choice is a "cost" use, an edict's or the cleanup's discard too.
+  every sacrifice, discard or exile choice of an object is a "cost" use, an edict's or the
+  cleanup's discard too; an "up to" choice answered NONE picks no object and is no use.
 - *A use's target* is the first pick of the first target slot of its own cast or activation
   (`pick:<source>:0:0`). A trigger's targets aim no use; a slot with one legal target is filled by
   the router without asking, so that use has no target.
@@ -282,10 +284,14 @@ nothing of it runs (checked below).
   come in a step whose first decision of mine starts a sequence anyway, but a trigger's choice
   between two of my decisions in one step would join them. If that is wrong, A1-A4+ claim an order
   across the opponent's interjection, and "later this turn" is under-used.
-- *One object is a handle with no zone-change row since*. A move the journal does not record as a
-  ZONE_CHANGE (none known; setup placements come before the tracker reads) would keep a plan across
-  the move and join two objects' uses under one label; a ZONE_CHANGE row with no real move would
-  drop a plan early. A control change keeps the object (CR 400.7 is about zones), as intended.
+- *One object is a handle with no zone-change row since*, and the engine journals every move made
+  in play. One path does not: the London mulligan edits the zones itself (`games.mulligans`), so
+  the tracker renews the cards it moves (the hand on "mulligan", each card a bottom ask picks; the
+  review found this). Every other direct zone edit in the executor was read: a token ceasing to
+  exist, a position within a zone after a journalled move; setup's draws come before any
+  decision. Another unjournalled move would keep a plan across it and join two objects' uses
+  under one label; a ZONE_CHANGE row with no real move would drop a plan early. A control change
+  keeps the object (CR 400.7 is about zones), as intended.
 - *Plannable objects*: the seat's hand, its permanents, its own cards a permission reaches. A card
   in the opponent's zone the seat may cast (`permits` names only the seat's own zones) and a
   commander in the command zone are not plannable: their uses still count in the A-order of
@@ -319,10 +325,25 @@ nothing of it runs (checked below).
 | 2 | 9.26 | 0.56 | 0.60 | 0.61 | 0.87 | 1.00 | 5,945 | 144 |
 | 3 (resumed) | 8.97 | 0.59 | 0.62 | 0.56 | 0.92 | 1.06 | 5,415 | 140 |
 
-**An engine helper, proposed and not built** (the engine was not touched): CR 400.7's object
-identity kept by the engine, a clock per handle written where each ZONE_CHANGE row is journalled
-(one dict write), so every reader (`returns.moved_since`, permissions, the planner) asks it in O(1)
-instead of scanning or tracking the journal.
+**The fresh-eyes review** (one reviewer, from the diff; it changed nothing). It checked the
+hindsight labels against a brute-force reference on 2,000 random records (all equal), the index
+conventions, the alignment of labels with rows, the off path and every network rebuild. Two real
+faults, both fixed with a test that fails without the fix:
+- *The mulligan joined objects across its unjournalled moves*: in 10 sampled games, 13 of 16
+  mulligans' old-hand cards came back as the same object, and 4 of those labels were a later use
+  instead of "never". Now 0 (`Tracker._renew`).
+- *An "up to" sacrifice or discard answered NONE was a "cost" use of no object*, which took an
+  A-slot from every later use in its sequence (Kinetic Augur: the land after it read A3). Now no
+  use (`uses_of`).
+Two nits were taken (`begin` lost an unused argument); the per-micro-batch syncs of the planner's
+counts were left (a few a micro-batch, beside PPO's own).
+
+**Engine helpers, proposed and not built** (the engine was not touched):
+- CR 400.7's object identity kept by the engine: a clock per handle written where each ZONE_CHANGE
+  row is journalled (one dict write), so every reader (`returns.moved_since`, permissions, the
+  planner) asks in O(1) instead of scanning or tracking the journal.
+- The mulligan's moves journalled as one atom boundary (BACKLOG "To triage"), after which the
+  tracker's renewal goes.
 
 **Next:** the registered A/B against the control on every puzzle category and on L (§5). The
 choices this v1 made by hand are BACKLOG scaffolds: the vocabularies, and the side losses'

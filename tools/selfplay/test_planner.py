@@ -42,7 +42,7 @@ class _Scripted:
 
     def decide(self, ask, obs) -> int:
         if self.tracker is not None:
-            self.tracker.begin(obs.executor, ask)
+            self.tracker.begin(obs.executor)
         tokens = [o.token for o in ask.options]
         if len(tokens) == 1:
             idx = 0
@@ -125,6 +125,12 @@ GAME_C = (("sw1", "Swamp", "battlefield", 0), ("corpse", "Walking Corpse", "batt
           ("dog", "Alpine Watchdog", "battlefield", 0), ("rites", "Village Rites", "hand", 0),
           ("lib0", "Island", "library", 0), ("lib1", "Swamp", "library", 1))
 SCRIPT_C = (["cast:rites", "corpse"], [])
+# Kinetic Augur's trigger discards "up to two" cards (its ask offers NONE), then a land is played
+GAME_E = (("m1", "Mountain", "battlefield", 0), ("m2", "Mountain", "battlefield", 0),
+          ("m3", "Mountain", "battlefield", 0), ("m4", "Mountain", "battlefield", 0),
+          ("augur", "Kinetic Augur", "hand", 0), ("m5", "Mountain", "hand", 0),
+          ("lib0", "Island", "library", 0), ("lib1", "Swamp", "library", 1))
+SCRIPT_E = (["cast:augur", "NONE", "land:m5"], [])
 # Seat 0 casts a Walking Corpse, then plays a land; with ``shock``, seat 1 Shocks seat 0 in
 # response to the Corpse, between the two
 GAME_D = (("sw1", "Swamp", "battlefield", 0), ("sw2", "Swamp", "battlefield", 0),
@@ -182,6 +188,64 @@ def test_an_action_of_the_opponent_ends_the_sequence(table) -> None:
         tracker, _, handles = _game(table, GAME_D, (["cast:corpse", "land:sw3"], opponent))
         first = _labels(tracker, handles, 0)
         assert first["corpse"][0] == "A1" and first["sw3"] == (land, "land", "my main phase", None)
+
+
+def test_an_up_to_choice_left_empty_is_no_use(table) -> None:
+    """Kinetic Augur's trigger discards "up to two" cards and its ask offers NONE. Answered NONE it
+    picks no object, so it makes no use and takes no place in the sequence: the land after it is
+    A2. (The review of 2026-11-18 found a "cost" use of no object there, which made the land A3.)"""
+    tracker, _, handles = _game(table, GAME_E, SCRIPT_E)
+    first = _labels(tracker, handles, 0)
+    assert first["augur"][:2] == ("A1", "cast")
+    assert first["m5"] == ("A2", "land", "my main phase", None)
+    assert all(h is not None for h, _ in tracker.ids)
+
+
+class _MulliganOnce(HeuristicAgent):
+    """The heuristic, taking a mulligan at its first mulligan ask, as a recording planning seat
+    (blank forecasts); ``hands``: its hand at each mulligan ask, ``samples``: the features of
+    each forecast decision."""
+
+    def __init__(self, table) -> None:
+        super().__init__()
+        self.table, self.tracker = table, PL.Tracker(0, keep=True)
+        self.hands: list[list] = []
+        self.samples: list[dict] = []
+
+    def decide(self, ask, obs) -> int:
+        ex = obs.executor
+        self.tracker.begin(ex)
+        tokens = [o.token for o in ask.options]
+        if ask.kind == "mulligan":
+            self.hands.append(list(ex.world.players[ex.world.player_order[0]].zone("hand").entries))
+        idx = (tokens.index("mulligan") if ask.kind == "mulligan" and len(self.hands) == 1
+               else super().decide(ask, obs))
+        if len(tokens) > 1:
+            feats = self.tracker.encode(ex, ask, self.table, obs.ctx)
+            self.tracker.forecast(np.zeros((feats["cards_i"].shape[0], 4), np.int16))
+            self.samples.append(feats)
+        self.tracker.end(ex, ask, idx)
+        return idx
+
+
+def test_a_mulligan_makes_every_card_of_the_hand_a_new_object(table) -> None:
+    """The London mulligan shuffles the hand into the library (CR 103.5), so each of its cards is
+    a new object after it (CR 400.7), drawn again or not. The engine does not journal those moves
+    (games.mulligans), so the tracker renews them: at the mulligan every card of the hand is
+    "never" used, and the next decision reads no forecast back onto a card drawn again. Seed 7
+    draws one again and plays it later (the review of 2026-11-18 found it labelled with that
+    use)."""
+    me = _MulliganOnce(table)
+    play_game(7, [me, HeuristicAgent()], deck_mode="coherent", pool_mode="verified")
+    tracker = me.tracker
+    handle = {i: h for (h, _), i in tracker.ids.items()}
+    again = set(me.hands[0]) & set(me.hands[1])
+    assert again and any(handle[u[0]] in again for d in tracker.decisions for u in d.uses)
+    first, second = _samples(tracker)[:2]
+    assert set(PL.hindsight(tracker.decisions)[0][first.plannable, 0]) == {PL.NEVER}
+    read = me.samples[1]["cards_i"][:, FT.C_PLAN_WHEN:]
+    rows = [r for r, k in enumerate(second.keys[2:]) if handle[int(k)] in again]
+    assert rows and not read[rows].any()
 
 
 def test_a_cost_choice_is_a_use_of_the_object_it_picks(table) -> None:
