@@ -168,12 +168,12 @@ IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 | 2026-11-18, round B3 (§18; gate round B3 FIX-THEN-GO, fixed) | COPY x `source` CopyOf x `cards` (the permanents that become copies, over the battlefield; Masterful Replication's "each other" is FNot(IS_ANY_TARGET) in it, that filter's first use there) x `duration` (DurationEot only) | M20 Masterful Replication (record) | **low-volume**: 1 record |
 | 2026-11-18, round B3 (§18; gate round B3 FIX-THEN-GO, fixed) | QProp(`event`, ORDINAL): the triggering cast's place among the turn's casts its event describes, in a cast trigger's effect | FDN Thousand-Year Storm (B20-storm-copies) | **low-volume**: 1 tree |
 | 2026-11-18, round B3 (§18; gate round B3 FIX-THEN-GO, fixed) | Selector filter x FNot(IS_RESULT) ("all other <objects>" after an instruction that wrote `result`), in a resolving instruction's role, a later Seq step | FDN Abyssal Harvester (record) | **low-volume**: 1 record |
-| 2026-11-18, round B12 (§19; gate round B12 pending) | OpeningHandAbility x `begin_on_battlefield()` (the card from your hand onto the battlefield, a may) | B21-opening-hand: M11 and M20's ten Leylines, FDN Leyline Axe; records M20 Leyline of Sanctity, Leyline of the Void | 11 trees (NUMBERS.md 2026-11-18, round B12) |
-| 2026-11-18, round B12 (§19; gate round B12 pending) | PREVENT_EFFECT x CastSpellEvent (a cast prohibition, CR 601.3): `actor`, the filter, `from_zone` / `from_zone_not`, `ordinal` QAtLeast(2) ("more than one"), `duration` on a resolving one | B21-cast-limit, B21-cant-cast: Rule of Law (10E, M20), Archon of Emeria, Deafening Silence, Grafdigger's Cage, Weathered Runestone, Kunoros, Drannith Magistrate, Silence (M10, M11, M14), Steel Golem, Single Combat | 13 trees; `ordinal` 4, `from_zone_not` 1 (**low-volume**), a duration 4 |
-| 2026-11-18, round B12 (§19; gate round B12 pending) | PREVENT_EFFECT x ZoneChangeEvent from a graveyard or a library to the battlefield, `subject` the cards (CR 101.2) | B21-cant-enter: Grafdigger's Cage, Weathered Runestone, Kunoros | **low-volume**: 3 trees |
-| 2026-11-18, round B12 (§19; gate round B12 pending) | PREVENT_EFFECT x LifeGainedEvent (`actor`; a duration on a resolving one) | B21-cant-gain-life: Giant Cindermaw (record), Leyline of Punishment, Quakebringer, Tibalt, Rakish Instigator, Roiling Vortex | 5 trees |
-| 2026-11-18, round B12 (§19; gate round B12 pending) | PREVENT_EFFECT x GameOutcomeEvent (`won`, `actor`) | B21-cant-lose: Platinum Angel (10E, M10, M11), Herald of Eternal Dawn | 4 trees |
-| 2026-11-18, round B12 (§19; gate round B12 pending) | LOSE_GAME x `controller` (YOU; TARGET_PLAYER / TARGET_OPPONENT; `event_player()`), WIN_GAME x `controller` YOU | B2b's Nine Lives (YOU); B21-lose-game, B21-win-game (no tree yet: Demonic Pact's mode, Door to Nothingness and the win conditions wait on other pieces) | **low-volume**: 1 tree |
+| 2026-11-18, round B12 (§19; gate round B12 FIX-THEN-GO, fixed) | OpeningHandAbility x `begin_on_battlefield()` (the card from your hand onto the battlefield, a may) | B21-opening-hand: M11 and M20's ten Leylines, FDN Leyline Axe; records M20 Leyline of Sanctity, Leyline of the Void | 11 trees (NUMBERS.md 2026-11-18, round B12) |
+| 2026-11-18, round B12 (§19; gate round B12 FIX-THEN-GO, fixed) | PREVENT_EFFECT x CastSpellEvent (a cast prohibition, CR 601.3): `actor`, the filter, `from_zone` / `from_zone_not`, `ordinal` QAtLeast(2) ("more than one"), `duration` on a resolving one | B21-cast-limit, B21-cant-cast: Rule of Law (10E, M20), Archon of Emeria, Deafening Silence, Grafdigger's Cage, Weathered Runestone, Kunoros, Drannith Magistrate, Silence (M10, M11, M14), Steel Golem, Single Combat | 13 trees; `ordinal` 4, `from_zone_not` 1 (**low-volume**), a duration 4 |
+| 2026-11-18, round B12 (§19; gate round B12 FIX-THEN-GO, fixed) | PREVENT_EFFECT x ZoneChangeEvent from a graveyard or a library to the battlefield, `subject` the cards (CR 101.2) | B21-cant-enter: Grafdigger's Cage, Weathered Runestone, Kunoros | **low-volume**: 3 trees |
+| 2026-11-18, round B12 (§19; gate round B12 FIX-THEN-GO, fixed) | PREVENT_EFFECT x LifeGainedEvent (`actor`; a duration on a resolving one) | B21-cant-gain-life: Giant Cindermaw (record), Leyline of Punishment, Quakebringer, Tibalt, Rakish Instigator, Roiling Vortex | 5 trees |
+| 2026-11-18, round B12 (§19; gate round B12 FIX-THEN-GO, fixed) | PREVENT_EFFECT x GameOutcomeEvent (`won`, `actor`) | B21-cant-lose: Platinum Angel (10E, M10, M11), Herald of Eternal Dawn | 4 trees |
+| 2026-11-18, round B12 (§19; gate round B12 FIX-THEN-GO, fixed) | LOSE_GAME x `controller` (YOU; TARGET_PLAYER / TARGET_OPPONENT; `event_player()`; ALL_OPPONENTS, D21's plural role), WIN_GAME x `controller` YOU | B2b's Nine Lives (YOU); B21-lose-game, B21-win-game (no tree yet: Demonic Pact's mode, Door to Nothingness and the win conditions wait on other pieces) | **low-volume**: 1 tree |
 
 ## 6. Identity + conformance
 
@@ -2858,7 +2858,7 @@ exceptions, other durations and the "becomes a copy" template, casting copies; t
 11 and one rare engine residue; the gate's m3, m6, n3 and n6; the exceptions the network does not
 see.
 
-## 19. Round B12 — the opening hand, prohibitions and the game's end (2026-11-18; gate round B12 pending)
+## 19. Round B12 — the opening hand, prohibitions and the game's end (2026-11-18; gate round B12: FIX-THEN-GO, fixed)
 
 KNOWLEDGE 209 §6's B12, its order amended 2026-11-18 (209 §9: before B4, narrowed to the packages
 M20 needs; HANDSIZE, FDN only, waits): LEYLINE (CR 103.6a), PROHIBIT (CR 101.2, 601.3) and GAMEEND
@@ -3009,9 +3009,11 @@ one (Silence) has no entity, as no resolved effect has (BACKLOG).
    earlier casts by the card as it is now, as the trigger ordinal does (`_fitting_cast_ordinal`).
    A noncreature spell that became a creature since would not count for Deafening Silence (one
    more spell allowed: stronger); no ELD card can make one (BACKLOG).
-5. A move that can't happen is not replaced (Containment Priest's exile does not apply to a card
-   Grafdigger's Cage keeps in the graveyard). If the rules let the replacement act, the card would
-   be exiled instead of staying (a different zone, not a stronger card).
+5. A move that can't happen is not replaced (CR 614.17c: only a self-replacement replaces an
+   event that can't happen; Containment Priest's exile does not apply to a card Grafdigger's Cage
+   keeps in the graveyard: `test_no_replacement_acts_on_a_move_that_cant_happen`). If the rules
+   let the replacement act, the card would be exiled instead of staying (a different zone, not a
+   stronger card).
 6. Land plays do not consult the enter prohibition: no land card of the 19 sets is a creature card
    or is barred (Weathered Runestone bars nonland cards, the Cage and Kunoros creature cards; the
    rulings: lands may still be played from a graveyard). A creature land would be playable from a
@@ -3021,7 +3023,9 @@ one (Silence) has no entity, as no resolved effect has (BACKLOG).
 8. "Can't lose" stops the state-based losses, LOSE_GAME and (as it lands) poison, judged at each
    check: a player stays in at 0 life and loses at the first check after the prohibition ends
    (Platinum Angel's ruling); a draw from an empty library is judged once ("since the last check",
-   704.5b), so it is not lost later. Concession and tournament losses are outside the engine.
+   704.5b), so it is not lost later, once the Angel leaves either
+   (`test_platinum_angel_stops_lose_game_effects_and_an_opponents_win`). Concession and
+   tournament losses are outside the engine.
 9. The network can learn the opening-hand action from the may row and the card's tokens; if the
    pregame context needed its own row, a new ask kind would be its fix (an observation-schema
    change).
@@ -3031,10 +3035,19 @@ one (Silence) has no entity, as no resolved effect has (BACKLOG).
    hand" split over cards a prohibition stops would hand the other destination both cards
    (stronger); the 19 sets have none (Cultivate's split is over land cards, which the Cage never
    stops; BACKLOG).
+11. "Can't enter" judges the card as it is in its zone (the Cage's ruling: "look at the card as
+   it exists in your graveyard"), where CR 614.17d judges a "can't enter" effect on the permanent
+   as it would exist on the battlefield (as 614.12 does for replacements). The two agree for every
+   card that enters as itself; they differ only for a card entering as a copy (Phyrexian
+   Metamorph, Spark Double), none in a pool with the Cage. Wrong for such a pool: a copy that
+   enters as a creature would be let in, or a noncreature copy of a creature card kept out.
+12. A cast prohibition judges a card's front face as it is in hand; CR 601.3e judges the face
+   being cast (an Adventure, a modal double-faced card's back). The engine casts neither, so
+   nothing differs today; the card that brings one brings the face's check.
 
 **CR basis**: 101.2, 101.3, 103.5, 103.6, 103.6a, 104.1, 104.2b, 104.3b-c, 104.3e, 117, 119.7,
 302.6, 400.7, 601.2, 601.2c, 601.3, 601.3e, 603.3, 604.2, 608.2d, 611.2a, 611.2c, 611.3a, 614.1a,
-614.6, 701.23b, 704.5a-b, 702.15b, 707.10.
+614.6, 614.12, 614.17a-d, 701.23b, 704.5a-b, 702.15b, 707.10.
 
 **Rejected.**
 - A TriggeredAbility on a "game begins" event for the Leylines: it would use the stack and could be
@@ -3114,6 +3127,33 @@ judged as they are now (logged, assumption 4). NIT: a phantom may over cards tha
 (narrowed), MOVE_ZONE's `target` lane kept a prohibited card in `result` (fixed), WIN_GAME under
 EachPlayer and game results in statics (refused), the refusal note, the combat-death statistic, a
 stale comment (fixed); resolved prohibitions unseen by the network (logged).
+
+**Gate round B12 (FIX-THEN-GO, 2026-11-18)**: one adversarial reviewer on 05504b73 (5 MINOR,
+NITs, nothing FATAL or MAJOR). Fixed on the branch before merging main; each fix has a test that
+fails before it.
+- MINOR 1 (b14d5c41): "each opponent loses the game" was EachPlayer around LOSE_GAME(YOU) with the
+  plural role refused, against D21's scheduled fold. Now LOSE_GAME(ALL_OPPONENTS), the EachPlayer
+  around the lone atom refused (B12-3). 0 trees.
+- MINOR 2 (9afea201): a prohibition had no placement check. `prohibition_placement_fault` (B12-2)
+  refuses a static's duration or "may", EachPlayer and Repeat, and a resolving one with no
+  printed duration. 0 trees refused (`placement_census.txt`).
+- MINOR 3 (62a3f9b8): under the Cage, Blood for Bones asked a battlefield pick that changed
+  nothing. A pick made as the effect resolves onto the battlefield offers only cards that can
+  enter (CR 608.2d), and asks nothing when none can (B12-4). The search decision: dropped only
+  when the SEARCH delivers onto the battlefield itself, where a found card that can't enter has no
+  other consequence (CR 701.23b); kept inside a partition. Three picks of the 19 sets can be
+  narrowed (`pick_census.txt`). Correction to the coordinator's reading: with one creature card the
+  base already returned it to hand (the hand pick re-reads the graveyard); the base's fault there
+  was the impossible battlefield pick itself, and with two cards a phantom ask.
+- MINOR 4: the two §19 claims the gate's mutants M8 and M10 survived are pinned
+  (`test_no_replacement_acts_on_a_move_that_cant_happen`, CR 614.17c; the Angel test now moves the
+  Angel away after an empty-library draw, CR 704.5b); each test kills its mutant.
+- MINOR 5 (pack conditions for the stamp) goes to the blind verifiers' brief.
+- NITs: `_prohibitions` sorts only its event class; the refusal note judges the CAST effect's
+  controller (`test_a_refused_cast_effects_ledger_row_judges_its_caster`); the review's Nuances A
+  and B are assumptions 11 and 12. B21-lose-game and B21-win-game, which build 0 trees, are kept:
+  they are 209 §6's GAMEEND sentences, every card printing them waits on another piece (BACKLOG,
+  "The win conditions"), and dropping them would mean writing them again with the first of those.
 
 **Limits, logged** (BACKLOG, "The prohibition and game-end lanes still blocked"; "What the network
 sees"): Lich's Mastery held back; Phage's and Lich's Mastery's name-bearing triggers; the "can't

@@ -801,7 +801,7 @@ def resolve_selector(
                     executor,
                     ctx.source,
                     "finite CAST head cannot execute: "
-                    + cast_refusal_note(executor, bad),
+                    + cast_refusal_note(executor, bad, ctx.controller),
                 )
                 candidates = []
             # Clean head: leave the RAW population to the mode fold
@@ -945,7 +945,7 @@ def resolve_selector(
                     executor,
                     ctx.source,
                     "CAST TARGET designation left the legal set: "
-                    + cast_refusal_note(executor, dropped),
+                    + cast_refusal_note(executor, dropped, ctx.controller),
                 )
         if any(z.kind is ZoneKind.PLAYER for z in sel.zones):
             # A CARD designation on a PLAYER-SIDE designation (∃ over the

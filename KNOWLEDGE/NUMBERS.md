@@ -5,7 +5,7 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
-## 2026-11-18 (round B12: the opening hand, prohibitions and the game's end, M20's LEYLINE, PROHIBIT and GAMEEND; DESIGN_ATOM_ONTOLOGY §19, gate round B12 pending; branch `worktree-agent-aee4154706a9c0795` on main eaedfc1b; evidence `reports/b12_2026-11-18/`)
+## 2026-11-18 (round B12: the opening hand, prohibitions and the game's end, M20's LEYLINE, PROHIBIT and GAMEEND; DESIGN_ATOM_ONTOLOGY §19, gate round B12 FIX-THEN-GO, fixed (the entry above); branch `worktree-agent-aee4154706a9c0795` on main eaedfc1b; evidence `reports/b12_2026-11-18/`)
 
 | Number | Value | Command | Notes |
 |---|---|---|---|

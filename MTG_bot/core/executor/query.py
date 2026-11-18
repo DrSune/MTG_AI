@@ -873,20 +873,21 @@ def register_cast_gap(executor: Executor, host: Handle, note: str) -> None:
     _register_cast_gap(executor, f"cast-gap {name}: {note}")
 
 
-def cast_refusal_note(executor: Executor, bad: Sequence[Handle]) -> str:
+def cast_refusal_note(executor: Executor, bad: Sequence[Handle], caster: Handle) -> str:
     """Ledger text naming each refused CAST designee WITH its reason,
     read through the same primitives the gate uses:
     ``not a SpellAbility carrier`` (land / face-shape outside the cast
-    lane), ``prohibited`` (a rule or effect forbids the cast, CR 601.3) vs
-    ``cannot be paid for right now`` (a carrier whose payment
-    failed the host cost fold)."""
+    lane), ``prohibited`` (a rule or effect forbids ``caster``'s cast, CR
+    601.3: the CAST effect's controller, as :func:`cast_designee_ok` judges
+    it, not the card's owner) vs ``cannot be paid for right now`` (a carrier
+    whose payment failed the host cost fold)."""
     parts: list[str] = []
     for h in bad:
         card = executor.world.cards.get(h)
         name = card.identity.name if card is not None else str(h)
         if cast_carrier(executor, h) is None:
             why = "not a SpellAbility carrier"
-        elif executor.replacements.prevents_cast(executor.world.controller_of(h), h):
+        elif executor.replacements.prevents_cast(caster, h):
             why = "prohibited (CR 601.3)"
         else:
             why = "cannot be paid for right now"

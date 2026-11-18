@@ -407,7 +407,9 @@ def test_platinum_angel_keeps_you_in_at_zero_life_until_it_leaves() -> None:
 def test_platinum_angel_stops_lose_game_effects_and_an_opponents_win() -> None:
     """No game effect makes you lose or an opponent win while you control it (the ruling): a
     LOSE_GAME of you and a WIN_GAME of the opponent do nothing; a draw from an empty library
-    loses nothing either (CR 704.5b, judged once)."""
+    loses nothing either, then or later: CR 704.5b judges "since the last time state-based
+    actions were checked", so once the Angel leaves (and its controller's library is still
+    empty) that draw is not judged again (gate round B12's MINOR 4, mutant M10)."""
     r = _runner("M11", [_real("angel", "Platinum Angel")])
     p0, p1 = r.seats
     r.ex.execute(game_result(Verb.LOSE_GAME, YOU), source=r.handles["angel"], controller=p0)
@@ -415,6 +417,8 @@ def test_platinum_angel_stops_lose_game_effects_and_an_opponents_win() -> None:
     r.world.players[p0].zone(ZONE_LIBRARY).entries.clear()
     r.ex.execute(Atom(Verb.DRAW, AtomArgs(pairs=(("amount", QConst(1)), ("controller", YOU)))),
                  source=r.handles["angel"], controller=p0)
+    assert r.ex.lost_players == []
+    r.run_step({"op": "move", "key": "angel", "to": "graveyard"})  # destroyed: a check follows
     assert r.ex.lost_players == []
 
 
@@ -563,6 +567,32 @@ def test_a_may_whose_every_card_cant_enter_is_not_asked() -> None:
     assert optional_offer(r.ex, may, source=r.seats[0], controller=r.seats[0]) == ("skip",)
 
 
+def test_no_replacement_acts_on_a_move_that_cant_happen() -> None:
+    """CR 614.17c: only a self-replacement can replace an event that can't happen (assumption 5).
+    M21 Containment Priest ("If a nontoken creature would enter and it wasn't cast, exile it
+    instead") beside a Cage over graveyards: a creature card the `cards` lane or the `target`
+    lane tries to return stays in the graveyard, never exiled, and nothing is replaced. Without
+    the Cage the Priest exiles it (its replacement is live). Gate round B12's MINOR 4, mutant M8:
+    the cards lane asked the replacements about every move."""
+    creature = FAtom(pred=FAtomPred.TYPE_EQ, string_value="Creature")
+    target = Selector(QConst(1), SelectorMode.TARGET, creature, (Zone(ZoneKind.GRAVEYARD, YOU),))
+    for caged in (True, False):
+        for role in ("cards", "target"):
+            r = _runner("M21", [_real("priest", "Containment Priest"),
+                                {"key": "dead", "name": "Dead", "power": "2", "toughness": "2",
+                                 "type": "Creature", "zone": "graveyard", "controller": 0}])
+            if caged:
+                _ruled(r, 1, StaticAbility(prohibit(ZoneChangeEvent(
+                    Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY),
+                    Zone(ZoneKind.BATTLEFIELD, ControllerRef.ANY), subject=creature))))
+            r.ex.execute(Atom(Verb.MOVE_ZONE, AtomArgs(pairs=(
+                (role, target), ("destination", TO_BATTLEFIELD)))),
+                source=r.seats[0], controller=r.seats[0], bindings={role: [r.handles["dead"]]})
+            replaced = any(e[1] == "ZONE_REPLACED" for e in r.ex.events)
+            assert (_zone(r, "dead"), replaced) == (
+                (ZONE_GRAVEYARD, False) if caged else ("exile", True)), (caged, role)
+
+
 def test_a_mandatory_cast_of_a_prohibited_card_casts_nothing() -> None:
     """CR 601.3 holds for a CAST an effect makes with its designee bound (the bound lane of
     role_handles skips the may-offer's check): the card stays where it is, no CAST row."""
@@ -576,6 +606,24 @@ def test_a_mandatory_cast_of_a_prohibited_card_casts_nothing() -> None:
                  controller=r.seats[0], bindings={"source": [r.handles["shock"]]})
     assert _zone(r, "shock") == ZONE_GRAVEYARD
     assert not any(e.kind == KIND_CAST for e in r.ex.journal.events)
+
+
+def test_a_refused_cast_effects_ledger_row_judges_its_caster() -> None:
+    """A CAST effect's refused designee is written to the ledger with its reason, judged for the
+    effect's controller, who casts (as `query.cast_designee_ok` refuses it), never for the card's
+    owner (the gate review's NIT): under "You can't cast spells from graveyards", casting the
+    first card of an opponent's graveyard is refused as prohibited, not as unpaid."""
+    r = _runner("M21", [_real("shock", "Shock", seat=1, zone="graveyard")], {"0": {"R": 1}})
+    _ruled(r, 0, StaticAbility(prohibit(CastSpellEvent(
+        filter=FAnd(()), actor=FAtom(pred=FAtomPred.CONTROLLER_IS, who=YOU),
+        from_zone=Zone(ZoneKind.GRAVEYARD, ControllerRef.ANY)))))
+    source = Selector(QConst(1), SelectorMode.CHOOSE, FAnd(()),
+                      (Zone(ZoneKind.GRAVEYARD, ControllerRef.OPPONENT),))
+    r.ex.execute(Atom(Verb.CAST, AtomArgs(pairs=(("source", source),))), source=r.seats[0],
+                 controller=r.seats[0])
+    assert _zone(r, "shock") == ZONE_GRAVEYARD
+    gaps = [f for f in r.ex.unresolved_effects if f.startswith("cast-gap")]
+    assert len(gaps) == 1 and gaps[0].endswith("Shock (prohibited (CR 601.3))"), gaps
 
 
 def test_a_card_that_cant_enter_is_no_it_of_its_instruction() -> None:

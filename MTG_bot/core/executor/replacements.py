@@ -1170,12 +1170,13 @@ class ReplacementRegistry:
         """The live prohibitions over events of ``kind`` (DESIGN_ATOM_ONTOLOGY §19: a cast, a
         move onto the battlefield, a life gain, a game outcome), each with its consult context in
         the record's own coordinates (:meth:`_live_ctx`: a static's while its source is on the
-        battlefield, a resolved one's until its duration ends), in record order."""
-        for rec in sorted(self.preventions, key=lambda r: r.seq):
-            if isinstance(rec.event, kind):
-                ctx = self._live_ctx(rec)
-                if ctx is not None:
-                    yield rec, ctx
+        battlefield, a resolved one's until its duration ends), in record order. Only the records
+        of ``kind`` are sorted: a cast consults this for every spell (the gate review's NIT)."""
+        for rec in sorted((r for r in self.preventions if isinstance(r.event, kind)),
+                          key=lambda r: r.seq):
+            ctx = self._live_ctx(rec)
+            if ctx is not None:
+                yield rec, ctx
 
     def _player_prohibited(self, kind: type, player: Handle, applies=lambda event: True) -> bool:
         """Is a live prohibition over ``kind`` (a player's event: a life gain, a game outcome)
