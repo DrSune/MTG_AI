@@ -5,6 +5,17 @@ to be admissible (METRICS.md rail: the instrument must be reproducible).
 
 ---
 
+## 2026-11-18 (round B12: the opening hand, prohibitions and the game's end, M20's LEYLINE, PROHIBIT and GAMEEND; DESIGN_ATOM_ONTOLOGY §19, gate round B12 pending; branch `worktree-agent-aee4154706a9c0795` on main eaedfc1b; evidence `reports/b12_2026-11-18/`)
+
+| Number | Value | Command | Notes |
+|---|---|---|---|
+| trees changed, 19 sets | **33** compiler trees in 13 sets, **33** with records applied (M20 Rule of Law, Grafdigger's Cage, Leyline of Sanctity, Leyline of the Void and FDN Giant Cindermaw mapped, unverified; Leyline of Anticipation, Combustion, Abundance and Atemsis narrowed); **19** newly whole, 13 more with fewer unparsed sentences; **1** verified card out (M21 Nine Lives: its LOSE_GAME names YOU), **0** in | `.venv/bin/python reports/b12_2026-11-18/tree_dump.py <checkout> <out.json>` on a `git archive` of eaedfc1b and on the branch, then `reports/copy_2026-11-18/tree_diff.py <base> <branch>` | `tree_diff.txt`; 246 still-verified cards read a changed engine path (life gain, a move onto the battlefield, a cast, the prevention registry) |
+| the round's forms, 19 sets, records applied | OpeningHandAbility **11**; a cast prohibition **13** (QAtLeast ordinal 4, `from_zone_not` 1, a duration 4); an entering prohibition **3**; a life-gain prohibition **5**; a game-outcome prohibition **4**; LOSE_GAME **1**; WIN_GAME **0** | `.venv/bin/python reports/b12_2026-11-18/census.py <trees_branch.json>` | `census.txt`; the wordings: `wording_census.py` (`wording_census.txt`, 68 sentences) |
+| 600 seeded heuristic games, verified pools | **600/600 identical replay digests, journal dumps and raw event logs** (200 each, M21, M20, FDN; 279, 286, 261 deckable on both sides, Nine Lives taken out of both), 0 crashes either side; 0 games whose deck holds a Leyline (none is verified), 0 prohibited moves or gains, wins or effect losses | `reports/b12_2026-11-18/replay.py <checkout> <trees_base> <trees_branch> 200 <out>` on both, `replay_compare.py` | `replay_compare.txt` |
+| soak, the round's cards dealt | **150** M20 games (castable pool, records applied, four of each Leyline, Rule of Law and Grafdigger's Cage in every deck), **0** crashes, **495** opening-hand asks, **1** move the Cage stopped, 150 wins | `.venv/bin/python reports/b12_2026-11-18/soak.py <checkout> 150 <out.json>` | `soak_branch.json` |
+| the round's packs on main eaedfc1b | **12 of 14** fail (Rule of Law 3, the Cage 4, Leyline of the Void, the Leylines from the opening hand 2, Platinum Angel's at-zero pack, Giant Cindermaw); the 2 twins pass, as they must | `.venv/bin/python reports/b12_2026-11-18/run_packs_on.py <checkout> <pack...>` | `packs_on_main.txt`; all 14 pass on the branch |
+| the review's fix tests on 729e0e12 | **10 fail** (5 prohibition forms, game results in EachPlayer and statics, the phantom may, the bound CAST, the `target` lane's "it", Lich's Mastery held back); the lane test passes there (it pins what worked) | `pytest` of the branch's three round test files in a `git archive` of 729e0e12 | `review_tests_on_729e0e12.txt` |
+
 ## 2026-11-18 (gate round B3's fixes, FIX-THEN-GO: the copy round after merging main 13b57121; DESIGN_ATOM_ONTOLOGY §18 "Gate round B3"; evidence `reports/copy_2026-11-18/gate/`)
 
 | Number | Value | Command | Notes |

@@ -3793,8 +3793,8 @@ def _count_limit(quantity: object) -> int | None:
 
 #: The zones a card cannot enter the battlefield from under a prohibition: what the 19 sets print
 #: ("Creature cards in graveyards and libraries can't enter the battlefield."), the moves the
-#: enter lane (verbs._move_all) makes. A spell resolving from the stack, a token and a land play
-#: are other lanes: another zone comes with its card and its consumer.
+#: verbs make (verbs._cant_enter's lanes). A spell resolving from the stack, a token and a land
+#: play are other lanes: another zone comes with its card and its consumer.
 PROHIBITED_ENTRY_ZONES = frozenset({ZoneKind.GRAVEYARD, ZoneKind.LIBRARY})
 
 

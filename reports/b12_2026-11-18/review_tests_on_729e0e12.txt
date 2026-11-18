@@ -1,0 +1,11 @@
+FAILED MTG_bot/core/test_ability_tree_b12.py::test_a_prohibition_says_its_restriction_once[<lambda>-universal actor0]
+FAILED MTG_bot/core/test_ability_tree_b12.py::test_a_prohibition_says_its_restriction_once[<lambda>-universal actor1]
+FAILED MTG_bot/core/test_ability_tree_b12.py::test_a_prohibition_says_its_restriction_once[<lambda>-universal actor2]
+FAILED MTG_bot/core/test_ability_tree_b12.py::test_a_prohibition_says_its_restriction_once[<lambda>-names its caster0]
+FAILED MTG_bot/core/test_ability_tree_b12.py::test_a_prohibition_says_its_restriction_once[<lambda>-names its caster1]
+FAILED MTG_bot/core/test_ability_tree_b12.py::test_a_game_result_is_one_players_and_a_resolving_effects
+FAILED MTG_bot/core/test_executor_b12.py::test_a_may_whose_every_card_cant_enter_is_not_asked
+FAILED MTG_bot/core/test_executor_b12.py::test_a_mandatory_cast_of_a_prohibited_card_casts_nothing
+FAILED MTG_bot/core/test_executor_b12.py::test_a_card_that_cant_enter_is_no_it_of_its_instruction
+FAILED MTG_bot/core/compiler/test_templates_b21.py::TestTheGamesEnd::test_cant_lose_and_cant_win
+10 failed, 66 passed, 15 subtests passed in 8.77s

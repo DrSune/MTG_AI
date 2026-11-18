@@ -1221,7 +1221,8 @@ class ReplacementRegistry:
         battlefield" (Grafdigger's Cage) is a prohibition over a ZoneChangeEvent: its endpoints
         read as the replacement lane reads them (:meth:`_endpoint_matches`) and its subject over
         the card as it is where it is now (the Cage's ruling: "Look at the card as it exists in
-        your graveyard"). The move does not happen (``verbs._move_all``)."""
+        your graveyard"). The move does not happen (``verbs._cant_enter``, in every lane that
+        moves a card onto the battlefield)."""
         src = self.world.zone_of(card)
         for rec, ctx in self._prohibitions(ZoneChangeEvent):
             event = rec.event

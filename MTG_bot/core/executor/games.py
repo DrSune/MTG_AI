@@ -625,11 +625,10 @@ def opening_hand_actions(executor: Executor, order: list[Handle]) -> None:
         for seat in order:
             for card in sorted(world.players[seat].zone(ZONE_HAND).entries):
                 record = spell_record(executor, card)
-                for ability in record.abilities if record is not None else ():
-                    if isinstance(ability, OpeningHandAbility) and card in world.players[
-                        seat
-                    ].zone(ZONE_HAND).entries:
-                        executor.apply_effect(ability.effect, source=card, controller=seat)
+                action = next((a for a in record.abilities if isinstance(a, OpeningHandAbility)),
+                              None) if record is not None else None  # one at most (the IR)
+                if action is not None:
+                    executor.apply_effect(action.effect, source=card, controller=seat)
 
 
 # --------------------------------------------------------------- policy side

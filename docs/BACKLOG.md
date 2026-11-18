@@ -124,6 +124,15 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
 
 ### Casting, the stack and targets
 
+- **A turn's earlier casts are judged by the card as it is now** (2026-11-18, round B12's review,
+  MINOR 3). `binding._fitting_cast_ordinal` (a trigger's "your second spell") and
+  `casts_this_turn` (Rule of Law, Deafening Silence) judge each earlier CAST row's spell by its
+  characteristics now, assuming they do not change after it resolves. A noncreature spell that
+  became a creature since (an animation, a copy effect) would not count toward Deafening Silence's
+  noncreature spell, so one more would be allowed (stronger); a creature spell that stopped being
+  one would count. No ELD card can do either, other sets' can. Fix: stamp the spell's types and
+  colours on the CAST row (the journal's `cast` tuple) and judge the filter on the stamp.
+
 - **The bench labels a multi-mode `choose` token "choice N"** (`bench/protocol.py` maps tokens to
   bullets only when every option set is one mode); it is representable but not described.
   - *Triage 2026-11-18 (KNOWLEDGE/2026-11-18/215, F12):* not the engine: the LLM benchmark, deferred with its items.
@@ -1300,6 +1309,38 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
     piece, not a permission.
   - A filter on the `result` register ("cast a creature spell from among them") and a PERMIT
     reading another register are refused until a card brings them.
+- **The prohibition and game-end lanes still blocked** (2026-11-18, round B12,
+  DESIGN_ATOM_ONTOLOGY §19; the wordings: `reports/b12_2026-11-18/wording_census.txt`). Each waits
+  on one piece:
+  - **Held back: an upside without its drawbacks.** DOM Lich's Mastery's "You can't lose the
+    game." is Platinum Angel's first atom, but its drawbacks (draw on gain, exile per life lost,
+    lose when it leaves) do not compile, and the partial pools (all, engine, castable) would deal
+    it stronger than printed (the round's review, MAJOR). B21-cant-lose reads only Platinum
+    Angel's whole sentence; a record maps Lich's Mastery whole once the three triggers have their
+    pieces ("for each 1 life you lost" and "leaves the battlefield" by name).
+  - The names in old triggers: 10E Phage the Untouchable ("Whenever Phage deals combat damage to a
+    player, that player loses the game": LOSE_GAME of `event_player()`; "When Phage enters, if you
+    didn't cast it from your hand, you lose the game") and Lich's Mastery's leave trigger read
+    "~", which only bucket B12's templates read (`compiler._self_named_sentence`).
+  - "Can't cast" with a condition or a chosen name: M12 Grand Abolisher ("During your turn"), M11
+    Angelic Arbiter ("who attacked with a creature this turn"), M13 Serra Avenger ("during your
+    first, second, or third turns"), ORI Alhammarret and THB Ashiok's Erasure (a chosen name or the
+    exiled card's).
+  - M11 Leyline of Punishment's "Damage can't be prevented." (a prevention of preventions).
+  - The win conditions: "you win the game" compiles (B21-win-game), but its cards' other halves do
+    not: the upkeep conditions (10E Mortal Combat, M13 Battle of Wits, M19 Liliana's Contract, ELD
+    Happily Ever After), THB Thassa's Oracle's X, FDN Maze's End's cost and Gates, WAR Jace's draw
+    replacement. Demonic Pact's modes and M13 Door to Nothingness's cost also wait.
+  - Land plays do not consult the enter prohibition: no land card of the 19 sets is a creature
+    card (the Cage, Kunoros) or a nonland card (Weathered Runestone), and the rulings let lands be
+    played from a graveyard. A creature land card brings `stack.land_playable`'s consult.
+  - Atemsis, All-Seeing's "you may reveal your hand": REVEAL reveals the top of a library only.
+  - Land-play prohibitions: M15 Aggressive Mining ("You can't play lands.") and WAR Tomik ("Your
+    opponents can't play land cards from graveyards.") need a land play's event and
+    `stack.land_playable`'s consult (a land play is a special action, CR 305.1, not a cast).
+  - "Each opponent who ..." and "each player this creature attacked this turn ... loses the game"
+    (WAR Nicol Bolas, Dragon-God's -8; ZNR Angel of Destiny): EachPlayer around LOSE_GAME(YOU) with
+    their conditions, which do not parse.
 - **The copy lane still blocked** (2026-11-18, the copy round B3, DESIGN_ATOM_ONTOLOGY §18; the
   wordings: `reports/copy_2026-11-18/copy_scan.txt`, 71 cards, 81 printings of the 19 sets). Each
   waits on one piece, refused by the IR or unparsed until its card brings tests:
@@ -1659,6 +1700,15 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
 
 ### Gates, probe, soak and the pack runner
 
+- **G1 and G3 do not reach round B12's forms** (2026-11-18, round B12, DESIGN_ATOM_ONTOLOGY §19).
+  The probe never runs the opening-hand step, a cast from a graveyard or a library, a card entering
+  from one, or a loss under "can't lose", and G3 has no operator for a prohibition's event fields
+  (a cast's QAtLeast ordinal, `actor`, `from_zone`; a GameOutcomeEvent's `won`). So M20 Rule of
+  Law gets 0 mutants and Grafdigger's Cage's 4 drop-step mutants survive the probe; the round's
+  packs (`tools/scenarios/mapped/M20/`) kill those 4 and pin Rule of Law's count. The verifiers
+  judge these cards on packs; a probe stimulus per lane and the operators come with the next
+  gate-tooling wave.
+
 - **G3's draw-idiom rule is coarser than the executor's draw lane** (2026-11-18, verification
   wave 6).
   - `gates._draw_idiom` (`gates.py` ~646, used by the dead-role rule ~765) treats every
@@ -1981,6 +2031,17 @@ its reachability, direction and fix wave, is KNOWLEDGE/2026-11-18/215; its repro
   (mean 0.9996), but the data is further off-policy than CleanRL assumes; watch the clip fraction.
 
 ### What the network sees
+
+- **A resolved prohibition has no entity** (2026-11-18, round B12's review). M11 Silence's "Your
+  opponents can't cast spells this turn" and ZNR Roiling Vortex's "can't gain life this turn" act
+  on the menus (a refused cast is no row) but leave nothing the network reads once the spell is in
+  the graveyard, as every resolved effect before them (Veil of Summer's "can't be countered").
+  A static's prohibition shows as its card's tree on the battlefield. Candidate: a resolved-effect
+  entity at the next observation-schema change.
+- **The opening-hand action is a may ask before the first turn** (2026-11-18, round B12, §19):
+  the card in hand is the ask's source and its tree carries OpeningHandAbility, with no step
+  column set (as for the mulligans). No new ask kind (it would start untrained); if the pregame
+  context needs a row of its own, a kind is the fix.
 
 - **A copy shows as the card it copies, its exceptions only in part** (2026-11-18, the copy round
   B3, DESIGN_ATOM_ONTOLOGY §18). A copy's identity is the copied card's (`copies.py`), so its card

@@ -1,0 +1,46 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "'Players can't cast spells from graveyards or libraries.' A permission to cast Shock from its owner's graveyard (the runner's test permission, the lane every permission's cast takes) is overruled: the cast is prohibited (CR 101.2, 601.3), Shock stays in the graveyard. The test op's own packs cast with no Cage. Red on main eaedfc1b.",
+ "cards": [
+  {
+   "key": "cage",
+   "real": "Grafdigger's Cage",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "graveyard",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "test_permission_cast",
+   "key": "shock",
+   "from": "graveyard",
+   "targets": [
+    "p1"
+   ],
+   "expect_raise": "prohibited:cast"
+  }
+ ],
+ "expect": {
+  "zone": {
+   "shock": "graveyard"
+  },
+  "life": {
+   "1": 20
+  }
+ }
+}

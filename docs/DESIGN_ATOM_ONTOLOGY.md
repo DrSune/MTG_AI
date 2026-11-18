@@ -36,6 +36,7 @@ ability   := Triggered(event, condition?, effect, once_per_event?)  # absent: on
            | Static(effect, condition?) | Spell(kind, effect, additional_costs*)
            | Replacement(event, condition?, action) | Keyword
            | EtBState(tapped, counters*, condition?, effect?)  # "As ~ enters" (CR 614.1c); effect: CHOOSE_NAME only (a card name, or its quality a colour or a creature type: R9), until tested
+           | OpeningHandAbility(effect)                     # CR 103.6a: begin_on_battlefield() only (round B12, §19)
            | CostModifier | Kicker | BackFace
 effect    := Atom(verb, role→value pairs)                 # ONE operation = ONE Atom (T1)
            | Seq(steps 2+)                               # TIME: printed order (O2)
@@ -46,7 +47,7 @@ value     := Quantity | Selector | Filter | Zone | Duration | PtDelta | TokenSpe
 selector  := {mode, count, filter, zone∪zones → ONE set (R0), referent}
 filter    := FAnd(children) | FOr(children) | FNot(inner) | FAtom(pred, slots)
 compare   := FAtom(QTY_GE, count, field | quantity, who?)   # "N or less": FNot at N + 1 (R12, §16)
-event     := ZoneChange | CastSpell | … (18 classes, census §5)
+event     := ZoneChange | CastSpell | … | GameOutcome (a prohibition's only: B12, §19)
 quantity  := QConst | QX | QUnbounded | QCount(sel) | QPartyCount(sel)
            | QDistinct(sel, field) | QProp | QBin | QThisTurn | QAtLeast | QAtMost
 ```
@@ -73,8 +74,9 @@ regenerates this table AND the checker's CLASSIFY dict, exiting nonzero on any
 UNCLASSIFIED runtime field or STALE dict entry; `/126` carries the table rows):
 a CONTAINER field = annotation contains `tuple[` | `frozenset[` | `list[`.
 Runtime scan: **30 container fields** = 29 `tuple[` + 1 `frozenset[`
-(`CardRecord.color_identity`), 85 classes at round B3, zero unclassified (R5-11 added `TokenSpec.colors`;
-gate round 7, `EmblemSpec.abilities`; round B3, §18, `CopyOf`'s three).
+(`CardRecord.color_identity`), 87 classes at round B12, zero unclassified (R5-11 added `TokenSpec.colors`;
+gate round 7, `EmblemSpec.abilities`; round B3, §18, `CopyOf`'s three; round B12, §19, two classes with
+no container field: `OpeningHandAbility`, `GameOutcomeEvent`).
 
 | class.field | annotation | CLASSIFY | canonical form |
 |---|---|---|---|
@@ -166,6 +168,12 @@ IN THE SAME COMMIT; 1-card rows flagged low-volume (§9).
 | 2026-11-18, round B3 (§18; gate round B3 FIX-THEN-GO, fixed) | COPY x `source` CopyOf x `cards` (the permanents that become copies, over the battlefield; Masterful Replication's "each other" is FNot(IS_ANY_TARGET) in it, that filter's first use there) x `duration` (DurationEot only) | M20 Masterful Replication (record) | **low-volume**: 1 record |
 | 2026-11-18, round B3 (§18; gate round B3 FIX-THEN-GO, fixed) | QProp(`event`, ORDINAL): the triggering cast's place among the turn's casts its event describes, in a cast trigger's effect | FDN Thousand-Year Storm (B20-storm-copies) | **low-volume**: 1 tree |
 | 2026-11-18, round B3 (§18; gate round B3 FIX-THEN-GO, fixed) | Selector filter x FNot(IS_RESULT) ("all other <objects>" after an instruction that wrote `result`), in a resolving instruction's role, a later Seq step | FDN Abyssal Harvester (record) | **low-volume**: 1 record |
+| 2026-11-18, round B12 (§19; gate round B12 pending) | OpeningHandAbility x `begin_on_battlefield()` (the card from your hand onto the battlefield, a may) | B21-opening-hand: M11 and M20's ten Leylines, FDN Leyline Axe; records M20 Leyline of Sanctity, Leyline of the Void | 11 trees (NUMBERS.md 2026-11-18, round B12) |
+| 2026-11-18, round B12 (§19; gate round B12 pending) | PREVENT_EFFECT x CastSpellEvent (a cast prohibition, CR 601.3): `actor`, the filter, `from_zone` / `from_zone_not`, `ordinal` QAtLeast(2) ("more than one"), `duration` on a resolving one | B21-cast-limit, B21-cant-cast: Rule of Law (10E, M20), Archon of Emeria, Deafening Silence, Grafdigger's Cage, Weathered Runestone, Kunoros, Drannith Magistrate, Silence (M10, M11, M14), Steel Golem, Single Combat | 13 trees; `ordinal` 4, `from_zone_not` 1 (**low-volume**), a duration 4 |
+| 2026-11-18, round B12 (§19; gate round B12 pending) | PREVENT_EFFECT x ZoneChangeEvent from a graveyard or a library to the battlefield, `subject` the cards (CR 101.2) | B21-cant-enter: Grafdigger's Cage, Weathered Runestone, Kunoros | **low-volume**: 3 trees |
+| 2026-11-18, round B12 (§19; gate round B12 pending) | PREVENT_EFFECT x LifeGainedEvent (`actor`; a duration on a resolving one) | B21-cant-gain-life: Giant Cindermaw (record), Leyline of Punishment, Quakebringer, Tibalt, Rakish Instigator, Roiling Vortex | 5 trees |
+| 2026-11-18, round B12 (§19; gate round B12 pending) | PREVENT_EFFECT x GameOutcomeEvent (`won`, `actor`) | B21-cant-lose: Platinum Angel (10E, M10, M11), Herald of Eternal Dawn | 4 trees |
+| 2026-11-18, round B12 (§19; gate round B12 pending) | LOSE_GAME x `controller` (YOU; TARGET_PLAYER / TARGET_OPPONENT; `event_player()`), WIN_GAME x `controller` YOU | B2b's Nine Lives (YOU); B21-lose-game, B21-win-game (no tree yet: Demonic Pact's mode, Door to Nothingness and the win conditions wait on other pieces) | **low-volume**: 1 tree |
 
 ## 6. Identity + conformance
 
@@ -853,9 +861,36 @@ Census re-run = every round's exit gate (map drift Δ0); numbers → NUMBERS.md.
     unchecked; values fixed as the effect begins; spell copies carry the token mark; the copy's
     clock and the target-by-target new-target asks; 704.5p's reach; what the network does not see
     of an exception).
-- BINDING STATE: rounds 1–13 and B3 complete (each with its gate round's fixes); further ontology changes
-  require a NEW gated round (any R-item that reclassifies a field or opens a normalization is
-  Type-1).
+- B12 round B12 (the opening hand, prohibitions and the game's end, 2026-11-18; §19; branch
+  `worktree-agent-aee4154706a9c0795` on main eaedfc1b; a fresh-eyes review of the code diff before
+  it, 1 MAJOR and 5 MINOR fixed: §19). **Gate round B12: pending.** The draft entry for the gate:
+  - The change. One new ability class, `OpeningHandAbility(effect)`, its one effect
+    `begin_on_battlefield()` (CR 103.6a), run after the mulligans by
+    `games.opening_hand_actions`, starting player first, its decision a may ask. The "can't" form
+    gains four event lanes: a cast (`legality.spell_castable`, CAST effects; Rule of Law's "more
+    than one" is `CastSpellEvent.ordinal` QAtLeast(2)), a card entering from a graveyard or a
+    library (the move lanes, before replacements), a life gain, and a game outcome
+    (`GameOutcomeEvent`, new). LOSE_GAME names its player (`controller`, required: YOU, a printed
+    target, `event_player()`); WIN_GAME is new (YOU). `Executor.lose` is the one place a loss
+    lands, so "can't lose" covers the state-based losses, LOSE_GAME and B4's poison when it joins.
+  - Why. "Can't" has one form; four lanes read it where the IR had none. The Leylines' action uses
+    no stack and works from the hand once, which no existing ability class says. An exact ordinal
+    misses a third spell when Rule of Law arrives after two casts (its ruling); QAtLeast is the
+    blockers limit's "more than one". "That player loses the game" needs its player.
+  - Rejected (§19): a trigger, a static or a keyword for the Leylines; a new ask kind; an exact
+    ordinal or an "or later" int; a turn-history condition; a zone set on ZoneChangeEvent; an
+    optional LOSE_GAME player; "can't lose" as a flag or a replacement; a win as each opponent's
+    loss; Lich's Mastery's bare "can't lose" without its drawbacks.
+  - Blast radius: 33 trees in 13 sets (33 with records applied), 19 newly whole; Nine Lives leaves
+    the verified pool (its tree names YOU), none joins; 600/600 replays identical on the verified
+    pools; the soak's 150 M20 games with the round's cards, 0 crashes.
+  - For the gate: §19's nine assumptions, each with what goes wrong in play if it is wrong (the
+    opening-hand order, a pregame trigger's timing, summoning sickness, earlier casts read as they
+    are now, a prohibited move not replaced, land plays, a win's reach, "can't lose" judged per
+    check, the may row's pregame reading).
+- BINDING STATE: rounds 1–13 and B3 complete (each with its gate round's fixes); round B12 awaits its
+  gate round; further ontology changes require a NEW gated round (any R-item that reclassifies a
+  field or opens a normalization is Type-1).
 
 ## 10. Round R5 — durations, permissions, copies (v3 after gate round 2, 2026-10-29; gate round 3 pending)
 
@@ -2822,3 +2857,234 @@ triggered abilities, the "copy target permanent spell" template, "enters as a co
 exceptions, other durations and the "becomes a copy" template, casting copies; the review's NIT
 11 and one rare engine residue; the gate's m3, m6, n3 and n6; the exceptions the network does not
 see.
+
+## 19. Round B12 — the opening hand, prohibitions and the game's end (2026-11-18; gate round B12 pending)
+
+KNOWLEDGE 209 §6's B12, its order amended 2026-11-18 (209 §9: before B4, narrowed to the packages
+M20 needs; HANDSIZE, FDN only, waits): LEYLINE (CR 103.6a), PROHIBIT (CR 101.2, 601.3) and GAMEEND
+(CR 104.2b, 104.3e). It completes M20 Rule of Law, Grafdigger's Cage, Leyline of Sanctity and
+Leyline of the Void, and maps the LEYLINE sentence of Leyline of Anticipation (FLASHPERM, B15
+waits), Combustion (TARGETS, B6) and Abundance (MANARIDER, B11); Atemsis, All-Seeing's GAMEEND and
+DISTINCT pieces exist now (R12's `QDistinct(MANA_VALUE)`), its record waits on a hand reveal.
+Branch `worktree-agent-aee4154706a9c0795` on main eaedfc1b. Scripts and outputs:
+`reports/b12_2026-11-18/`.
+
+**How it was before (the root cause).**
+- `games._play_turns` ran the mulligans and began turn 1: no step after the mulligans, and no node
+  for "If this card is in your opening hand, you may begin the game with it on the battlefield".
+- The IR's one "can't" form, a PREVENT_EFFECT over the event it forbids, had consumers for damage,
+  untap, phasing, counters, attack, block, activation and countering. None read a cast, a card
+  entering the battlefield, a life gain or a game's end, so such a static validated and did
+  nothing (the needs-atom records said so), and `legality.spell_castable` consulted no prohibition
+  (CR 601.3).
+- LOSE_GAME took no role and made the ability's controller lose; there was no WIN_GAME; the
+  state-based losses and LOSE_GAME each appended to `lost_players` on their own.
+
+**B12-1 `OpeningHandAbility(effect)`** (`ability_tree.py:4634`; `begin_on_battlefield` :4660,
+`opening_hand_fault` :4684). An action a player may take with the card from their opening hand
+(CR 103.6). The one accepted effect is `begin_on_battlefield()`: `OptionalEffect(MOVE_ZONE(cards=
+CHOOSE IS_SOURCE over your hand, destination=your battlefield))`, the move Silversmote Ghoul writes
+for its graveyard, "you may" its OptionalEffect as every printed "you may" is. Refused: any other
+effect (mandatory, tapped, onto another battlefield, from another zone, another verb: Gemstone
+Caverns' counter and the Chancellors' reveal, CR 103.6b, come with their cards); a card that is no
+permanent card or is a token (CR 103.6a); two on a card; one nested anywhere (a back face's, a
+token's, an emblem's, a copy's or a granted ability: none is in an opening hand).
+- Why a class: it uses no stack (nobody has priority before the first turn, CR 117) and works from
+  the hand at one moment, which neither a TriggeredAbility (the stack) nor a StaticAbility (a
+  continuous effect, from the battlefield) says. Why a composed effect, not a marker: its tokens
+  (MOVE_ZONE, HAND, BATTLEFIELD, IS_SOURCE, OptionalEffect) are the vocabulary the network already
+  reads, and 103.6's other actions extend it.
+
+**B12-2 Prohibitions** (`prohibition_fault` :3801). "Can't" is the one form every other "can't"
+has, a PREVENT_EFFECT over the event it forbids, with four new event lanes:
+- a cast (CastSpellEvent): its `actor` the caster, its filter the spell, `from_zone` /
+  `from_zone_not` the zone it is cast from. "Can't cast more than one spell each turn" (Rule of
+  Law, Archon of Emeria; Deafening Silence's "noncreature") is `ordinal=QAtLeast(2)`: the casts
+  that would be a player's second or later of the spells the event describes, as
+  DeclareBlockersEvent's `QAtLeast(2)` is "more than one creature" (`ability_tree.py:2054`). An
+  int ordinal stays a trigger's exact Nth and is refused in a prohibition; a QAtLeast is refused in
+  a trigger (`_check_trigger_event` :1997) and QAtLeast(1) everywhere (every cast: the absent
+  ordinal);
+- a card entering the battlefield (ZoneChangeEvent to the battlefield, from a graveyard or a
+  library: `PROHIBITED_ENTRY_ZONES` :3798, the moves the enter lane makes), its `subject` the
+  cards ("Creature cards in graveyards and libraries can't enter the battlefield");
+- a life gain (LifeGainedEvent, its `actor`); a game outcome (GameOutcomeEvent, B12-3).
+- One byte form each: the condition is the event's subject (the spell, the moving card; the
+  universal filter for a player's event, whose `actor` says whose), any other condition a second
+  place for the restriction; a universal actor is the absent one; a cast prohibition names its
+  caster in `actor`, never as the spell's CONTROLLER_IS (the spell's controller is its caster);
+  `step` and `controller` mean nothing there. "Graveyards or libraries" is one PREVENT_EFFECT per
+  zone in the static's Seq (a cast and a move come from one zone, as Faith's Fetters is one per
+  declaration).
+
+**B12-3 Game results.** LOSE_GAME names its player in a required `controller` (`:3479`): YOU,
+TARGET_PLAYER / TARGET_OPPONENT (a printed target: Door to Nothingness), or `event_player()`
+(`:1855`), "that player" of a trigger's event (Atemsis, Phage), byte for byte Gloom Sower's
+referent; refused, each another form of these or of nothing: OPPONENT, ALL_OPPONENTS, ANY,
+DEFENDING_PLAYER, OWNER, a referent of `target` (gate round 8, M1's second designated form),
+`result` or a filtered referent. "Each opponent loses the game" is EachPlayer around LOSE_GAME(YOU)
+(one form: D21's plural role refused). WIN_GAME (new, `:193`) takes YOU only, never under
+EachPlayer (one player wins, CR 104.2b), and neither verb stands in a static (a static never
+resolves). `GameOutcomeEvent(won, actor)` (`:2519`) is a prohibition's event only: "You can't lose
+the game and your opponents can't win the game" is its two PREVENT_EFFECTs; a trigger, a
+replacement, a delayed trigger and a turn history refuse it (the game is over when it happens).
+
+**B12-4 The engine.**
+- `games.opening_hand_actions` (`games.py:605`), run by `_play_turns` after the mulligans
+  (`:1467`): the starting player's cards, then each other player's in turn order (the Leylines'
+  ruling), each card's effect applied with the card the source and its owner "you", inside
+  `Executor.atomic`: the state-based actions wait for the first check and an ability the move
+  triggers for the first player who would receive priority, in the first upkeep (CR 603.3; tested
+  with an enters trigger). The pack runner's `opening_hand` lane runs it (`run_scenarios.py:659`,
+  `_pregame`, the mulligan lane's procedure shared).
+- `ReplacementRegistry._prohibitions` (`replacements.py:1169`) yields the live records of one
+  event class in their own coordinates (`_live_ctx`); `prevents_cast` (:1190), `prevents_entering`
+  (:1218), `prevents_life_gain` (:1240), `prevents_game_outcome` (:1247).
+- Casting: `legality.spell_castable` refuses `prohibited:cast` before the window (`:1638`), so the
+  menu, a permission's cast (Mystic Forge, flashback) and the act lane share it;
+  `query.cast_designee_ok` (`:838`) and `stack.cast_card` (`stack.py:1181`) for a CAST effect.
+  `binding.spell_fits` and `casts_this_turn` (`binding.py:1355`, `:1375`) judge a cast about to
+  begin as the trigger lane judges a CAST row, and count the turn's casts before it (Rule of Law's
+  rulings: the whole turn, countered spells too).
+- Entering: `verbs._cant_enter` (`verbs.py:142`) in the three lanes that move a card onto the
+  battlefield (`_move_all`, MOVE_ZONE's `cards` and `target` lanes, SEARCH), before the
+  replacements (a move that can't happen is not replaced): the card stays, out of `result`, with a
+  MOVE_PROHIBITED audit row; `query.optional_offer` narrows a may whose every card can't enter.
+- Life: `_v_gain_life` (`:618`) before the replacements (Leyline of Punishment's ruling); lifelink
+  goes through it.
+- The game's end: `Executor.lose` (`__init__.py:1827`) is the one place a loss lands; the
+  state-based losses (704.5a-b; B4's poison, 704.5c, joins `_player_losses` behind it) and
+  LOSE_GAME ask `prohibited_outcome` (:1821) first; `_v_win_game` makes every other player lose
+  with cause WIN_GAME, which no "can't lose" stops (Lich's Mastery's ruling).
+
+**B12-5 What the network sees.** The opening-hand decision is the may ask every "you may" is
+(`may:<card>:<digest>`, fire or skip), asked before the first turn: the card in hand is the ask's
+source (`features.F_ASK_SOURCE`, from the site), its row carries its tree's tokens
+(OpeningHandAbility, MOVE_ZONE, BATTLEFIELD), and the step columns read no step, as for the
+mulligan asks. No new ask kind, column or option: a new kind would start as "other" untrained,
+and the may row already reads a card's optional action (`tools/selfplay/test_selfplay.py`,
+`test_the_network_reads_an_opening_hand_action_as_a_may_ask_about_the_card_in_hand`).
+`tools/selfplay/` code is unchanged, so old checkpoints compute what they did. A prohibition shows
+as the rows it removes from a menu (a cast refused is no row) and on its card's tree; a resolved
+one (Silence) has no entity, as no resolved effect has (BACKLOG).
+
+**Assumptions, and what goes wrong in play if one is wrong.**
+1. CR 103.6's "in any order" matters only between actions that change one another; no
+   opening-hand card of the 19 sets triggers on another one entering, so the engine asks each card
+   in handle order. Wrong for a future card: a player could not choose an order that matters
+   (weaker).
+2. A trigger caused before the first turn waits for the first upkeep's priority (CR 603.3, 117.5)
+   and its turn-scoped reads see turn 1 (the pregame rows lie before its upkeep marker). If a
+   ruling put such a trigger on the stack before turn 1, it would resolve one step later: none of
+   the 19 sets can trigger then.
+3. A permanent begun on the battlefield has been controlled since before its controller's first
+   turn (CR 302.6): not summoning sick on that turn, sick through the opponent's turn 1 if the
+   second player's. Only a creature could show it; no Leyline is one.
+4. A cast prohibition reads the card as it is where it is cast from (CR 601.3e), and the turn's
+   earlier casts by the card as it is now, as the trigger ordinal does (`_fitting_cast_ordinal`).
+   A noncreature spell that became a creature since would not count for Deafening Silence (one
+   more spell allowed: stronger); no ELD card can make one (BACKLOG).
+5. A move that can't happen is not replaced (Containment Priest's exile does not apply to a card
+   Grafdigger's Cage keeps in the graveyard). If the rules let the replacement act, the card would
+   be exiled instead of staying (a different zone, not a stronger card).
+6. Land plays do not consult the enter prohibition: no land card of the 19 sets is a creature card
+   or is barred (Weathered Runestone bars nonland cards, the Cage and Kunoros creature cards; the
+   rulings: lands may still be played from a graveyard). A creature land would be playable from a
+   graveyard under the Cage (stronger).
+7. A win ends the game for everyone else (CR 104.2b with 104.1; the engine is two-player in
+   training). In a multiplayer game an opponent's win makes every other player lose at once.
+8. "Can't lose" stops the state-based losses, LOSE_GAME and (as it lands) poison, judged at each
+   check: a player stays in at 0 life and loses at the first check after the prohibition ends
+   (Platinum Angel's ruling); a draw from an empty library is judged once ("since the last check",
+   704.5b), so it is not lost later. Concession and tournament losses are outside the engine.
+9. The network can learn the opening-hand action from the may row and the card's tokens; if the
+   pregame context needed its own row, a new ask kind would be its fix (an observation-schema
+   change).
+
+**CR basis**: 101.2, 103.5, 103.6, 103.6a, 104.1, 104.2b, 104.3b-c, 104.3e, 117, 119.7, 302.6,
+400.7, 601.2, 601.3, 601.3e, 603.3, 611.2c, 614.1a, 614.6, 704.5a-b, 702.15b, 707.10.
+
+**Rejected.**
+- A TriggeredAbility on a "game begins" event for the Leylines: it would use the stack and could be
+  answered, which an opening-hand action is not (CR 103.6); a StaticAbility or a keyword: neither
+  is an action at one moment, and a keyword would be a token with no shared meaning.
+- A new ask kind for the opening-hand action: the may ask reads it (B12-5), and a new kind starts
+  untrained.
+- An exact ordinal 2 for "more than one spell": it lets a third spell through when the rule arrives
+  after two casts, the very case Rule of Law's ruling names; reading an int as "or later" in a
+  prohibition would give one byte form two meanings.
+- A condition over the caster's turn history for Rule of Law: EVENT_THIS_TURN counts per
+  individual but cannot name the caster of the cast being judged.
+- A ZoneChangeEvent zone set for "graveyards and libraries": one PREVENT_EFFECT per zone keeps
+  ZoneChangeEvent's one-zone endpoints, as casts keep theirs.
+- `controller` optional on LOSE_GAME with absent = you (Nine Lives' bytes unchanged): every player
+  verb names its player ("you lose 2 life"), and an optional role read as YOU invites D12's
+  written-or-left-out divergence. Nine Lives' stamp leaves until re-verified.
+- "Can't lose" as a flag on the player, or a replacement of the loss: it is a prohibition (CR
+  101.2), the same form as every other "can't".
+- A win as a loss of each opponent (LOSE_GAME of ALL_OPPONENTS): a "can't lose" would stop it,
+  which Lich's Mastery's ruling forbids.
+- Compiling Lich's Mastery's bare "You can't lose the game." (the review's MAJOR): its three
+  drawbacks do not compile, so alone it dealt a card stronger than printed in the partial pools.
+
+**Census** (19 sets, records applied; `census.py` on the tree dump, `census.txt`): an
+OpeningHandAbility 11 trees (M11's five Leylines, M20's five, FDN Leyline Axe); a cast
+prohibition 13 (Rule of Law 10E and M20, Archon of Emeria, Deafening Silence, Grafdigger's Cage,
+Weathered Runestone, Kunoros, Drannith Magistrate, Silence M10, M11, M14, Steel Golem, Single
+Combat); an entering prohibition 3 (the Cage, the Runestone, Kunoros); a life-gain prohibition 5
+(Giant Cindermaw, Leyline of Punishment, Quakebringer, Tibalt, Rakish Instigator, Roiling Vortex);
+a game-outcome prohibition 4 (Platinum Angel 10E, M10, M11, Herald of Eternal Dawn); LOSE_GAME 1
+(Nine Lives); WIN_GAME 0 (the template stands; every "win the game" card of the 19 sets waits on
+another piece: an upkeep condition, Thassa's Oracle's X, Maze's End's cost, Jace's replacement).
+The wordings: `wording_census.py` (`wording_census.txt`).
+
+**Blast radius** (`tree_dump.py`, `tree_diff.py` against main eaedfc1b; `tree_diff.txt`):
+- 33 compiler trees change in 13 sets, and 33 with records applied; 19 cards newly compile whole
+  (10E Platinum Angel, Rule of Law, Steel Golem; ELD Deafening Silence; FDN Giant Cindermaw, Herald
+  of Eternal Dawn, Leyline Axe; IKO Drannith Magistrate; KHM Weathered Runestone; M10 Platinum
+  Angel, Silence; M11 Leyline of Sanctity, Platinum Angel, Silence; M14 Silence; M20 Grafdigger's
+  Cage, Leyline of Sanctity, Rule of Law; THB Kunoros); 13 more have fewer unparsed sentences.
+- Verified: one card leaves, M21 Nine Lives (its LOSE_GAME names YOU); none joins (re-verify
+  Nine Lives). 246 still-verified cards read a changed engine path (life gain, a move onto the
+  battlefield, a cast, the prevention registry).
+- 600 seeded heuristic games on the verified pools (200 each, M21, M20, FDN; 279, 286, 261
+  deckable on both sides, Nine Lives taken out of both): 600/600 identical replay digests,
+  journal dumps and raw event logs, 0 crashes either side, 0 prohibited moves or gains, wins or
+  effect losses (`replay_compare.txt`). No verified card holds an opening-hand ability, so no game
+  of them asks one: 0 games whose deck holds a Leyline, 0 differing games to explain.
+- Soak (`soak.py`: 150 M20 games, the castable pool with the round's records, every deck given
+  four of each of the five Leylines, Rule of Law and Grafdigger's Cage; heuristic seats, which
+  fire every may): 0 crashes, 495 opening-hand asks (every Leyline in a kept hand begun on the
+  battlefield), 1 move the Cage stopped, 150 games won (`soak_branch.json`).
+
+**Tests and packs** (each fails on main eaedfc1b and passes here): `test_ability_tree_b12.py`
+(the forms and their round trips; the refused opening-hand effects and placements, 18
+prohibition forms, the ordinal's two forms, the refused players and placements of LOSE_GAME and
+WIN_GAME), `test_executor_b12.py` (the opening-hand order, an enters trigger waiting for the first
+upkeep, a dealt game's Leylines on the battlefield at turn 1; Rule of Law per player, before it
+arrived, countered spells; Deafening Silence; the Cage against Mystic Forge, Gravewaker, a CAST
+effect and the three move lanes; Silence's turn; Giant Cindermaw against Angel of Vitality; a
+player who can't lose at 0 life, against LOSE_GAME, an empty library and an opponent's win, and
+the lone "can't lose" letting a win through; "that player" of a damage trigger; target player),
+`test_templates_b21.py` (every wording, the cards now whole), the runner's lane test
+(`tools/test_run_scenarios.py`), the network's (`tools/selfplay/test_selfplay.py`). Packs: 11 in
+`tools/scenarios/mapped/M20/` (Rule of Law 3; the Cage 4: Gravewaker, Mystic Forge, a cast from a
+graveyard, a library's creature card, and Gravewaker's twin; Leyline of the Void; the Leylines from
+the opening hand 2) and 3 for compiled cards (Platinum Angel 2, Giant Cindermaw); the 2 twins pass
+on main, the other 12 fail there (`packs_on_main.txt`).
+
+**The fresh-eyes review** (one reviewer on 729e0e12): 1 MAJOR, 5 MINOR, 7 NIT, no FATAL; fixed in
+dba20e50 but one MINOR and one NIT logged, each fix with a test that fails on 729e0e12. MAJOR:
+Lich's Mastery's bare "can't lose" without its drawbacks (held back, above). MINOR: two second
+encodings (a universal actor; the caster in a cast's filter: refused); `stack.cast_card` cast a
+prohibited bound designee (checked); the search and pop lanes untested (tested); the earlier casts
+judged as they are now (logged, assumption 4). NIT: a phantom may over cards that can't enter
+(narrowed), MOVE_ZONE's `target` lane kept a prohibited card in `result` (fixed), WIN_GAME under
+EachPlayer and game results in statics (refused), the refusal note, the combat-death statistic, a
+stale comment (fixed); resolved prohibitions unseen by the network (logged).
+
+**Limits, logged** (BACKLOG, "The prohibition and game-end lanes still blocked"; "What the network
+sees"): Lich's Mastery held back; Phage's and Lich's Mastery's name-bearing triggers; the "can't
+cast" wordings with a condition or a chosen name (Grand Abolisher, Angelic Arbiter, Serra Avenger,
+Alhammarret, Ashiok's Erasure); "Damage can't be prevented"; the win conditions; land plays and the
+enter prohibition; casts judged by the card as it is now; Atemsis's hand reveal.
