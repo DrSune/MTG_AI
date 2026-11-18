@@ -1,8 +1,8 @@
 #!/bin/bash
 # evidence.sh: engine wave W1's registered evidence (KNOWLEDGE/2026-11-18/215 §8 c, d, e, f), CPU
 # only, niced, each process under an 8G cap, at most four at a time (a training run holds the GPU).
-#   BASE:   the W0 follow-up commit e6ac05c8, exported with `git archive` (the engine before W1)
-#   BRANCH: the W1 commit, exported the same way (a fixed snapshot, not the live worktree)
+#   BASE:   the W0 follow-up commit ae2190b4, exported with `git archive` (the engine before W1)
+#   BRANCH: the W1 commit eacf8ab5, exported the same way (a fixed snapshot, not the live worktree)
 # (c, d, f) tools/audit/blast_radius.py run: the 19 sets' trees on both sides, 200 seeded heuristic
 #     replays per verified pool on each, compared, the first differing journal row of each
 #     differing game, and games per CPU-second.

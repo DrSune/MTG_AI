@@ -159,10 +159,10 @@ class PreventionRecord:
 
 def _record_ctx(ctx: ExecCtx, rec: ReplacementRecord | PreventionRecord) -> ExecCtx:
     """The context a record is judged in: its own source and controller. The resolution's
-    ``gone`` register (CR 400.7) names the resolving ability's objects, never the record's
-    source, which is always the object now on the battlefield (a departed source's records are
-    detached): a new object's own "prevent all damage that would be dealt to this creature"
-    applies while an older ability of its card resolves."""
+    ``gone`` register (CR 400.7) describes the resolving ability's objects, not the record's
+    source: a static record's source is the object now on the battlefield (a departed source's
+    statics are detached), so a new object's own "prevent all damage that would be dealt to this
+    creature" applies while an older ability of its card resolves."""
     if "gone" not in ctx.bindings:
         return replace(ctx, source=rec.source, controller=rec.controller)
     bindings = {k: v for k, v in ctx.bindings.items() if k != "gone"}

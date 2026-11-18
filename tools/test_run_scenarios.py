@@ -465,6 +465,22 @@ def test_a_word_for_a_one_candidate_target_fails_the_pack(tmp_path) -> None:
     assert _run(tmp_path, asked) == []
 
 
+def test_a_player_word_is_never_lifted_into_a_casts_targets(tmp_path) -> None:
+    """The cast step lifted every "player:N" word of its decisions into the spell's targets and
+    left it among the words as well (verification wave 7's report, 2026-11-18): a targetless spell
+    got a phantom target (a TARGETING row), and the word still answered a later ask, a copy's new
+    target. A spell's player target is written in "targets" ("p1"); a player word answers an ask
+    that offers that player, as in every other step, and one no ask takes fails the pack."""
+    corpse = {"op": "cast", "key": "wc", "decisions": ["player:1"]}
+    pack = {"set": "M21", "cards": [_card("wc", "Walking Corpse", "hand")], "mana": {"0": {"B": 2}},
+            "steps": [corpse], "expect": {"zone": {"wc": "battlefield"}}}
+    fails = _run(tmp_path, pack)
+    assert _fails_with(fails, "decision words no ask took: ['player:1']"), fails
+    runner = _runner({**pack, "steps": []})
+    runner.run_step({**corpse, "decisions": []})
+    assert not [e for e in runner.ex.journal.events if e.kind == "TARGETING"]
+
+
 def test_a_game_that_ends_before_the_last_step_fails_the_pack(tmp_path) -> None:
     """A two-player game ends at the state check after a loss (CR 704.5a), so the steps after it
     never run: the runner broke off and passed the pack on what they never did (mapper wave 5, an
