@@ -20,7 +20,9 @@ A job: {"gid", "kind" ("train"|"eval"|"bc"|"capture"|"label"), "seed", "deck_mod
 ending in "+search" searches its decisions (search.py, options in job["search"]). A capture job
 (job["capture"] = the share of decisions captured) records the opponent simulator's data (Capture).
 A job with "label" ({"k", "d", "greedy"}) labels its network seats' act decisions (search.Labeller);
-the labels come back in the result.
+the labels come back in the result. A seat whose network is a planner (job["plan"][seat]) reads its
+forecasts back and asks for new ones (planner.Tracker); a recorded one's hindsight labels come back
+in the result's "plans".
 """
 
 from __future__ import annotations
@@ -41,6 +43,7 @@ import numpy as np
 
 from MTG_bot.core.state import ZONE_HAND, ZONE_LIBRARY
 from tools.selfplay import features as FT
+from tools.selfplay import planner as PL
 from tools.selfplay.heuristic import HeuristicAgent
 from tools.selfplay.rig import play_game
 
@@ -80,7 +83,11 @@ class _UniformRandom:
 class NetAgent:
     """A seat played by a network on the learner. Single-option asks are not decisions; the
     network answers every other ask, however many options it has (a ``name`` ask lists every
-    card name of the format's pool, each option pointing at its card: features.O_NAMED)."""
+    card name of the format's pool, each option pointing at its card: features.O_NAMED).
+
+    A planner network's seat (job["plan"]) carries a ``planner.Tracker``: each decision reads the
+    forecast of the last one back and the network writes a new one; a recorded seat's tracker also
+    records every ask it answers, for the hindsight labels (``Worker.play``)."""
 
     def __init__(self, slot: _Slot, job: dict, seat: int, table: FT.CardTable,
                  labeller: Any = None) -> None:
@@ -97,6 +104,8 @@ class NetAgent:
         self.attack_plan = None  # (the turn it was made in, the plan): search.planned
         self.block_plan = None
         self.labeller = labeller
+        self.planner = (PL.Tracker(seat, keep=self.record) if job.get("plan", (False, False))[seat]
+                        else None)
         if spec.endswith(SEARCH_SUFFIX):
             from tools.selfplay.search import Searcher
 
@@ -107,6 +116,14 @@ class NetAgent:
                                      seed=job["seed"] * 2 + seat, noise=not self.greedy, **opts)
 
     def decide(self, ask: Any, obs: Any) -> int:
+        if self.planner is None:
+            return self._decide(ask, obs)
+        self.planner.begin(obs.executor, ask)
+        idx = self._decide(ask, obs)
+        self.planner.end(obs.executor, ask, idx)
+        return idx
+
+    def _decide(self, ask: Any, obs: Any) -> int:
         if len(ask.options) == 1:
             return 0
         if self.attack_plan is not None or self.block_plan is not None:
@@ -115,7 +132,10 @@ class NetAgent:
             idx = planned(ask, obs.executor.world.turn, self.attack_plan, self.block_plan)
             if idx is not None:
                 return idx
-        feats = FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx)
+        if self.planner is None:
+            feats = FT.encode(obs.executor, ask.seat, ask, self.table, obs.ctx)
+        else:
+            feats = self.planner.encode(obs.executor, ask, self.table, obs.ctx)
         if self.searcher is not None and ask.kind in self.searcher.kinds:
             return self.searcher.choose(ask, obs, feats)
         if self.labeller is not None and ask.kind == "act":
@@ -123,8 +143,12 @@ class NetAgent:
                                            self.record, feats, 2))
             self.labeller.offer(obs.game, ask, feats, probs)
             return int(a)
-        return int(self.slot.infer((self.job["gid"], self.seat, self.spec, self.greedy,
-                                    self.record, feats)))
+        req = (self.job["gid"], self.seat, self.spec, self.greedy, self.record, feats)
+        if self.planner is None:
+            return int(self.slot.infer(req))
+        a, forecast = self.slot.infer((*req, 4))  # the action and the network's forecast
+        self.planner.forecast(forecast)
+        return int(a)
 
     def plan_combat(self, game: Any, seat: int) -> None:
         """Called by the rig at the pre-combat boundary (rig.SelfplayRouter.before_attacks)."""
@@ -369,6 +393,11 @@ class Worker:
         if labeller is not None:
             res["labels"] = labeller.labels()
             res["label_stats"] = labeller.stats
+        # a recorded planning seat's samples' hindsight labels: only from a game played to its
+        # end, since an object with no use left is "never" (planner.hindsight)
+        trackers = [getattr(a, "planner", None) for a in agents]
+        if any(t is not None and t.keep for t in trackers) and not res["outcome"].startswith("void"):
+            res["plans"] = [t.result() if t is not None and t.keep else None for t in trackers]
         return res
 
     # --- main thread
