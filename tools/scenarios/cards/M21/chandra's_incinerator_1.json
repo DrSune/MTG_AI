@@ -6,7 +6,7 @@
  ],
  "mana": {"0": {"R": 2, "C": 3}},
  "steps": [
-  {"op": "cast", "key": "s1", "decisions": ["player:1"]},
+  {"op": "cast", "key": "s1", "targets": ["p1"]},
   {"op": "cast", "key": "inc"}
  ],
  "expect": {"life": {"0": 20, "1": 18}, "zone": {"s1": "graveyard", "inc": "battlefield"}, "mana_pool": {"0": {}}}}

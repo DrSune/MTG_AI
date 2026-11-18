@@ -47,8 +47,7 @@
    "op": "enter",
    "key": "dragon",
    "decisions": [
-    "fire",
-    "idol"
+    "fire"
    ]
   },
   {

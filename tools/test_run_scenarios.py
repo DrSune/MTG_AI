@@ -30,7 +30,7 @@ def _run(tmp_path: Path, pack: dict) -> list[str]:
     """run_pack's failures for ``pack``, [] when it passes."""
     path = tmp_path / "pack.json"
     path.write_text(json.dumps(_pack(pack)))
-    return run_pack(path, get_supply("all", "M21"))
+    return run_pack(path, get_supply("all", _pack(pack)["set"]))
 
 
 def _runner(pack: dict) -> ScenarioRunner:
@@ -343,19 +343,20 @@ def test_the_words_of_a_held_cast_answer_no_later_step(tmp_path) -> None:
            "steps": [{"op": "cast", "key": "opt", "hold": True}, {"op": "pass", "decisions": ["top"]}],
            "expect": {"zone": {"lib": "hand"}}}
     assert _run(tmp_path, opt) == []
+    # the held cast's word answers nothing, so it fails the pack (G3), and "top" still wins
     leaked = {**opt, "steps": [{"op": "cast", "key": "opt", "hold": True, "decisions": ["bottom"]},
                                {"op": "pass", "decisions": ["top"]}]}
-    assert _run(tmp_path, leaked) == []
+    assert _fails_with(_run(tmp_path, leaked), "cast: decision words no ask took: ['bottom']")
 
 
 def test_a_refused_cast_taps_nothing(tmp_path) -> None:
     """"tap": the payer taps the sources after the targets are chosen (CR 601.2c, 601.2g), so a
     designation the spell refuses (Swift Response's "target tapped creature" at an untapped one)
     leaves the Plains untapped and the pool empty; c80f45f7 tapped first."""
-    pack = {"cards": [_card("p1", "Plains", "battlefield"), _card("p2", "Plains", "battlefield"),
+    pack = {"cards": [_card("plains1", "Plains", "battlefield"), _card("plains2", "Plains", "battlefield"),
                       _card("sr", "Swift Response", "hand"), _creature("bear", 1)],
             "steps": [{"op": "cast", "key": "sr", "targets": ["bear"], "tap": True, "expect_raise": "illegal target"}],
-            "expect": {"tapped": {"p1": False, "p2": False}, "mana_pool": {"0": {}}, "zone": {"sr": "hand"}}}
+            "expect": {"tapped": {"plains1": False, "plains2": False}, "mana_pool": {"0": {}}, "zone": {"sr": "hand"}}}
     assert _run(tmp_path, pack) == []
 
 
@@ -466,3 +467,83 @@ def test_the_opening_hand_lane_answers_each_ask_with_one_word(tmp_path) -> None:
                          ([], "opening_hand: no word left for may:")):
         fails = _run_set(tmp_path, {**pack, "opening_hand": words, "expect": {}}, "M11")
         assert _fails_with(fails, error), fails
+
+
+# ------------------------------------------ the runner's traps (KNOWLEDGE/2026-11-18/215 G2, G3)
+
+def test_a_word_for_a_one_candidate_target_fails_the_pack(tmp_path) -> None:
+    """M20 Fathom Fleet Cutthroat: "When this creature enters, destroy target creature an opponent
+    controls that was dealt damage this turn." With one damaged creature the target is designated
+    without an ask (CR 601.2c), so a word written for it answers nothing: the runner dropped it
+    unseen, and with a later ask that offered it, it answered that one (mapper wave 5). Now it
+    fails the pack. With two damaged creatures the ask comes and takes the word."""
+    hit = {"op": "deal_damage", "source": "bear", "target": "hit", "amount": 1}
+    enter = {"op": "enter", "key": "ct", "decisions": ["hit"]}
+    pack = {"set": "M20", "cards": [_card("ct", "Fathom Fleet Cutthroat", "hand"), _creature("bear", 0),
+                                    _creature("hit", 1), _creature("spared", 1)],
+            "steps": [hit, enter], "expect": {"zone": {"hit": "graveyard", "spared": "battlefield"}}}
+    fails = _run(tmp_path, pack)
+    assert _fails_with(fails, "enter: decision words no ask took: ['hit']"), fails
+    assert "one legal candidate is made without an ask" in fails[0]
+    asked = {**pack, "steps": [hit, {**hit, "target": "spared"}, enter],
+             "expect": {**pack["expect"], "damage": {"spared": 1}}}
+    assert _run(tmp_path, asked) == []
+
+
+def test_a_player_word_is_never_lifted_into_a_casts_targets(tmp_path) -> None:
+    """The cast step lifted every "player:N" word of its decisions into the spell's targets and
+    left it among the words as well (verification wave 7's report, 2026-11-18): a targetless spell
+    got a phantom target (a TARGETING row), and the word still answered a later ask, a copy's new
+    target. A spell's player target is written in "targets" ("p1"); a player word answers an ask
+    that offers that player, as in every other step, and one no ask takes fails the pack."""
+    corpse = {"op": "cast", "key": "wc", "decisions": ["player:1"]}
+    pack = {"set": "M21", "cards": [_card("wc", "Walking Corpse", "hand")], "mana": {"0": {"B": 2}},
+            "steps": [corpse], "expect": {"zone": {"wc": "battlefield"}}}
+    fails = _run(tmp_path, pack)
+    assert _fails_with(fails, "decision words no ask took: ['player:1']"), fails
+    runner = _runner({**pack, "steps": []})
+    runner.run_step({**corpse, "decisions": []})
+    assert not [e for e in runner.ex.journal.events if e.kind == "TARGETING"]
+
+
+def test_a_game_that_ends_before_the_last_step_fails_the_pack(tmp_path) -> None:
+    """A two-player game ends at the state check after a loss (CR 704.5a), so the steps after it
+    never run: the runner broke off and passed the pack on what they never did (mapper wave 5, an
+    empty library). The step that ends the game may be the last one; a refusal that step was to
+    raise is not the end of the game."""
+    lose = [{"op": "life", "seat": 1, "set": 0}, {"op": "end_turn"}]
+    pack = {"steps": lose, "expect": {"lost": {"1": True}}}
+    assert _run(tmp_path, pack) == []
+    later = _run(tmp_path, {**pack, "steps": [*lose, {"op": "advance_turn"}]})
+    assert later[0] == ("step 1 (end_turn): the game ended (seat 1 lost) before the pack's last step, "
+                        "so steps 2-2 never ran"), later
+    refused = _run(tmp_path, {**pack, "steps": [lose[0], {**lose[1], "expect_raise": "illegal"}]})
+    assert "expected raise 'illegal', but the game ended (seat 1 lost)" in refused[0], refused
+
+
+@pytest.mark.parametrize("key", ["p1", "p0", "first-legal"])
+def test_a_card_key_may_not_shadow_a_word_the_runner_reads(tmp_path, key) -> None:
+    """A word is looked up as a pack key first, so a card keyed "p1" turned the opponent's player
+    word into that card, everywhere (mapper wave 5), and one keyed "first-legal" the first-word
+    answer. Such a key is refused."""
+    fails = _run(tmp_path, {"cards": [_creature(key, 0)]})
+    assert _fails_with(fails, f"setup: card key {key!r} is a word the runner reads itself"), fails
+
+
+def test_a_tap_cast_reports_the_engines_own_refusal(tmp_path) -> None:
+    """"tap": only a mana shortfall is the sources' failing. A sorcery (See the Truth, {1}{U}) cast in
+    the opponent's turn is refused for its window whatever is tapped, and now says so, as a cast
+    without "tap" does: the runner said "cannot pay" for every refusal, so an expect_raise of
+    "cannot pay" passed for the wrong reason (verification wave 6). One Island short of the cost
+    still cannot pay, and names the shortfall."""
+    islands = [_card("i1", "Island", "battlefield"), _card("i2", "Island", "battlefield")]
+    stt = _card("stt", "See the Truth", "hand")
+    cast = {"op": "cast", "key": "stt", "tap": True}
+    late = {"cards": [*islands, stt],
+            "steps": [*THEIR_TURN, {**cast, "expect_raise": "illegal cast: window:not_your_turn"}],
+            "expect": {"tapped": {"i1": False, "i2": False}}}
+    assert _run(tmp_path, late) == []
+    wrong = _run(tmp_path, {**late, "steps": [*THEIR_TURN, {**cast, "expect_raise": "cannot pay"}]})
+    assert "expected raise 'cannot pay', got ValueError: executor: illegal cast: window:not_your_turn" in wrong[0], wrong
+    short = {"cards": [islands[0], stt], "steps": [{**cast, "expect_raise": "its mana sources cannot pay it (cost:mana"}]}
+    assert _run(tmp_path, short) == []

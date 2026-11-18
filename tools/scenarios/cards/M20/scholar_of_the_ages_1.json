@@ -12,11 +12,11 @@
  ],
  "mana": {"0": {"U": 2, "C": 5}},
  "steps": [
-  {"op": "cast", "key": "scholar", "real": "Scholar of the Ages", "decisions": ["inst_a", "sorc_b", "inst_c"]}
+  {"op": "cast", "key": "scholar", "real": "Scholar of the Ages", "decisions": ["inst_a", "sorc_b"]}
  ],
  "expect": {
   "zone": {"scholar": "battlefield", "inst_a": "hand", "sorc_b": "hand", "inst_c": "graveyard", "dead_bear": "graveyard", "opp_inst": "graveyard"},
   "hand": {"0": 2, "1": 0}
  },
- "notes": "Printed: 'When this creature enters, return up to two target instant and/or sorcery cards from your graveyard to your hand.' Three eligible cards: the two chosen return, the third stays even though a third pick is offered in the decision list (no third target slot); a creature card and the opponent's instant are never eligible."
+ "notes": "Printed: 'When this creature enters, return up to two target instant and/or sorcery cards from your graveyard to your hand.' Three eligible cards: the two chosen return and the third stays (two target slots: a third pick would be a word no ask takes, which the runner fails); a creature card and the opponent's instant are never eligible."
 }

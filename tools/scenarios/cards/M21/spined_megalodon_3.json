@@ -6,7 +6,7 @@
   {"key": "md", "real": "Spined Megalodon", "zone": "battlefield", "controller": 0}
  ],
  "steps": [
-  {"op": "combat", "seat": 0, "attack": {"md": true}, "decisions": ["bottom", "bottom"]}
+  {"op": "combat", "seat": 0, "attack": {"md": true}, "decisions": ["bottom"]}
  ],
  "expect": {"life": {"0": 20, "1": 15}, "attackers": {"md": true}, "zone": {"md": "battlefield"},
   "library": {"0": ["Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Library 5"]}}

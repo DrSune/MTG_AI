@@ -1,0 +1,129 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mr",
+   "real": "Masterful Replication",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "inf",
+   "real": "Infuriate",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "oak",
+   "real": "Oakenform",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "alpha",
+   "name": "Alpha Golem",
+   "type": "Artifact Creature — Golem",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0,
+   "start_tapped": true
+  },
+  {
+   "key": "beta",
+   "name": "Beta Construct",
+   "type": "Artifact Creature — Construct",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  {
+   "key": "gamma",
+   "name": "Gamma Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 1,
+   "U": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "enchant",
+   "aura": "oak",
+   "host": "alpha"
+  },
+  {
+   "op": "deal_damage",
+   "source": "gamma",
+   "target": "alpha",
+   "amount": 2
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:inf",
+    "alpha"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:mr",
+    "1",
+    "alpha"
+   ]
+  }
+ ],
+ "expect": {
+  "power": {
+   "alpha": 10,
+   "beta": 5,
+   "gamma": 2
+  },
+  "toughness": {
+   "alpha": 9,
+   "beta": 5,
+   "gamma": 2
+  },
+  "counters": {
+   "beta": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "damage": {
+   "alpha": 2
+  },
+  "tapped": {
+   "alpha": true,
+   "beta": false
+  },
+  "attached": {
+   "oak": "alpha"
+  },
+  "zone": {
+   "mr": "graveyard",
+   "inf": "graveyard"
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "Printed: 'becomes a copy of that artifact'. What is copied is the copiable values (CR 707.2), not what happened to the original. Alpha Golem (4/4) is enchanted by Oakenform (+3/+3), pumped by Infuriate (+3/+2 until end of turn: 10/9), has 2 damage marked and is tapped. Beta Construct (1/1 + a +1/+1 counter) becomes a copy: 5/5 (the printed 4/4, not 10/9; its own counter kept), no damage, untapped; the Aura stays on Alpha only."
+}

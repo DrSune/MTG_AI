@@ -65,5 +65,5 @@
    }
   }
  },
- "notes": "B-49 follow-up #1 (was branch chandra_heart_of_fire:01, the [+1] permission's free cast from exile). The [-9] is now idx 2 and owns its last sentence 'Add six {R}.' (it used to sit on the cast lane, so casting Chandra added six {R}). It searches the lone red sorcery Crash Through out of the graveyard into exile. 'You may cast them this turn.' is suppressed (CR 611.2a; the card is engine-unsupported), so Crash Through stays exiled and no card is drawn. 2026-11-12: \"any number of\" is asked pick by pick with a NONE stop (CR 107.1c); the pack picks every card it expects moved."
+ "notes": "B-49 follow-up #1 (was branch chandra_heart_of_fire:01). The [\u22129] (idx 2): 'Search your graveyard and library for any number of red instant and/or sorcery cards, exile them, then shuffle. You may cast them this turn. Add six {R}.' It finds the lone red sorcery Crash Through in the graveyard and exiles it ('any number' is asked pick by pick with a NONE stop, CR 107.1c; the pack picks the one card), and adds six {R} (10 -> 16). 'You may cast them this turn' compiles since round 13 (a permission, which cards/M21/chandra_heart_of_fire_minus_nine_* cast through), but this pack casts nothing, so Crash Through stays exiled and no card is drawn."
 }

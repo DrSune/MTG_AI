@@ -8,7 +8,7 @@
  ],
  "mana": {"0": {"R": 1}},
  "steps": [
-  {"op": "cast", "key": "s", "real": "Shock", "controller": 0, "targets": ["bt"], "decisions": ["p1"]}
+  {"op": "cast", "key": "s", "real": "Shock", "controller": 0, "targets": ["bt"]}
  ],
  "expect": {
   "life": {"0": 20, "1": 18},

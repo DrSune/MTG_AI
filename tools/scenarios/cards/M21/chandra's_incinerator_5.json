@@ -39,8 +39,8 @@
   {
    "op": "cast",
    "key": "s1",
-   "decisions": [
-    "player:1"
+   "targets": [
+    "p1"
    ]
   }
  ],

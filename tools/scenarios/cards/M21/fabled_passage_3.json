@@ -13,7 +13,7 @@
    "controller": 0
   },
   {
-   "key": "p1",
+   "key": "plains1",
    "real": "Plains",
    "zone": "battlefield",
    "controller": 0
@@ -56,7 +56,7 @@
    "fp": "graveyard",
    "forest": "library",
    "swamp": "battlefield",
-   "p1": "battlefield"
+   "plains1": "battlefield"
   },
   "tapped": {
    "swamp": true

@@ -6,7 +6,7 @@
  ],
  "mana": {"0": {"U": 2}},
  "steps": [
-  {"op": "activate", "key": "tome", "seat": 1, "idx": 0, "hold": true, "decisions": ["top"]},
+  {"op": "activate", "key": "tome", "seat": 1, "idx": 0, "hold": true},
   {"op": "cast", "key": "un", "real": "Unsubstantiate", "targets": ["ability:tome"], "expect_raise": "illegal target"}
  ],
  "expect": {"zone": {"tome": "battlefield", "un": "hand"}},

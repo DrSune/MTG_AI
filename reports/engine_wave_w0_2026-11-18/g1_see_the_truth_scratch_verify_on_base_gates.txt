@@ -1,0 +1,2 @@
+NOT VERIFIED:
+  G3: critical mutant survives every check: controller YOU->OPPONENT at 1/0/effect/steps/1/then_effect/args/destination/controller

@@ -1,0 +1,72 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "reg",
+   "real": "Chandra's Regulator",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "wcreature",
+   "name": "White Knight",
+   "type": "Creature — Knight",
+   "power": "2",
+   "toughness": "2",
+   "colors": [
+    "W"
+   ],
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "gadget",
+   "name": "Gadget",
+   "type": "Artifact",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:reg:1"
+   ],
+   "expect_raise": "does not offer 'act:card:0:1'"
+  }
+ ],
+ "expect": {
+  "tapped": {
+   "reg": false
+  },
+  "graveyard": {
+   "0": []
+  },
+  "hand": {
+   "0": 3
+  },
+  "mana_pool": {
+   "0": {
+    "R": 2
+   }
+  }
+ },
+ "notes": "Printed: 'Discard a Mountain card or a red card'. The hand holds a Forest, a white creature and a colourless artifact: no Mountain card, no red card, so the menu does not offer the ability (nothing is paid: untapped, R stays 2)."
+}

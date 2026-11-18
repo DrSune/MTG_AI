@@ -1,0 +1,26 @@
+# W1's 23 new tests run on the engine before W1 (ae2190b4, exported with git archive), one process:
+#   MTG_bot/core/test_executor_new_object.py (17), test_executor_attachment_legality.py (3),
+#   test_executor_aura_entry.py::AnAuraEnteringWithACreatureTest (2),
+#   test_executor_cast_zone.py::LookThenConditionTest::test_a_card_off_the_stack_answers_for_its_last_cast (1).
+# 15 fail. The 8 that pass are pins and a control: the CR 400.7d/e/h exceptions (4), F14c (closed by
+# 85dd1bfa), "a host it still allows keeps it", and the two review pins (the Lockbox's stale name, a new
+# object's own prevention), which failed on W1's first draft (23af14f9) and pass on the base.
+# On W1 (eacf8ab5) all 23 pass; the engine suite: 7449 passed, 39 deselected, 71 subtests passed.
+FAILED test_executor_new_object.py::TheReturnedSourceIsAnotherObject::test_a_pump_of_this_creature_misses_the_new_object
+FAILED test_executor_new_object.py::TheReturnedSourceIsAnotherObject::test_its_chosen_quality_is_the_old_objects
+FAILED test_executor_new_object.py::TheReturnedSourceIsAnotherObject::test_its_power_is_its_last_known_power
+FAILED test_executor_new_object.py::TheReturnedSourceIsAnotherObject::test_the_new_object_is_another_creature
+FAILED test_executor_new_object.py::AnAurasHostIsTheOneItHadAsItLeft::test_tap_enchanted_creature_after_the_aura_came_back_on_another
+FAILED test_executor_new_object.py::WhatTheResolutionChoosesAndRegisters::test_that_creatures_power_is_its_last_known_once_it_came_back
+FAILED test_executor_new_object.py::WhatTheResolutionChoosesAndRegisters::test_this_creature_cant_be_blocked_of_a_gone_source_makes_no_record
+FAILED test_executor_new_object.py::AnActivatedAbilityNamesItsSource::test_this_creature_does_not_fight_once_it_came_back
+FAILED test_executor_new_object.py::ATokenThatLeftStaysWhereItIs::test_exile_it_then_return_it_leaves_a_token_in_exile
+FAILED test_executor_new_object.py::DamageToAnObjectThatLeft::test_a_creature_moved_earlier_in_the_resolution_is_dealt_no_damage
+FAILED test_executor_attachment_legality.py::AnAurasHostMustStayLegal::test_enchant_creature_you_control_falls_off_a_stolen_creature
+FAILED test_executor_attachment_legality.py::AnEquipmentUnattachedAsItsCreatureDies::test_equipped_creature_dies_in_the_check_that_unattaches_it
+FAILED test_executor_aura_entry.py::AnAuraEnteringWithACreatureTest::test_it_cannot_enchant_a_creature_entering_with_it
+FAILED test_executor_aura_entry.py::AnAuraEnteringWithACreatureTest::test_it_enchants_a_creature_already_there
+FAILED test_executor_cast_zone.py::LookThenConditionTest::test_a_card_off_the_stack_answers_for_its_last_cast
+15 failed, 8 passed in 3.24s
+# On W1's first draft (23af14f9), of the review's pins: the Lockbox, the new object's prevention, the
+# Serpent record and the buried Aura's LastKnown.host fail (4 failed, 16 passed of the two files then).

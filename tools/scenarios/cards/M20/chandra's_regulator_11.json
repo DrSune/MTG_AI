@@ -1,0 +1,82 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "reg",
+   "real": "Chandra's Regulator",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "mountain",
+   "real": "Mountain",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "forest",
+   "real": "Forest",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "wcreature",
+   "name": "White Knight",
+   "type": "Creature — Knight",
+   "power": "2",
+   "toughness": "2",
+   "colors": [
+    "W"
+   ],
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "rg",
+   "name": "Gruul Brute",
+   "type": "Creature — Human",
+   "power": "2",
+   "toughness": "2",
+   "colors": [
+    "R",
+    "G"
+   ],
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "gadget",
+   "name": "Gadget",
+   "type": "Artifact",
+   "zone": "hand",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:reg:1"
+   ],
+   "expect_raise": "it offers ('card:1', 'card:2', 'card:5')"
+  }
+ ],
+ "expect": {},
+ "notes": "Printed: 'Discard a Mountain card or a red card'. The discard ask offers exactly the three cards that qualify: Shock (card:1, red), the Mountain (card:2) and the red-green creature (card:5). Not the Forest (card:3), the white creature (card:4) nor the colourless artifact (card:6). The step stops at that ask (a pack puts it last)."
+}

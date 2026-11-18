@@ -1,0 +1,104 @@
+{
+ "set": "M21",
+ "name": "A04_1_cast_from_hand_one_to_hand_the_rest_on_the_bottom_in_the_owners_order",
+ "notes": "Printed: 'Look at the top three cards of your library. Put one of those cards into your hand and the rest on the bottom of your library in any order. If this spell was cast from anywhere other than your hand, ...' Cast from the hand (two Islands, the game's own payment). The top three are Top One, Top Two, Top Three. The owner picks Top Two for the hand and then orders the rest: Top Three goes higher, so Top One is the very bottom card of the library. The fillers keep their order above them. Only the picked card is in the hand (not all three). The cards are only LOOKED at: no REVEAL shows them to the opponent.",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "library_top": true
+ },
+ "cards": [
+  {
+   "key": "stt",
+   "real": "See the Truth",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "i1",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "i2",
+   "real": "Island",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "t3",
+   "name": "Top Three",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "t2",
+   "name": "Top Two",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  },
+  {
+   "key": "t1",
+   "name": "Top One",
+   "type": "Creature",
+   "power": "1",
+   "toughness": "1",
+   "zone": "library",
+   "controller": 0
+  }
+ ],
+ "steps": [
+  {
+   "op": "cast",
+   "key": "stt",
+   "real": "See the Truth",
+   "tap": true,
+   "decisions": [
+    "t2",
+    "t3"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "stt": "graveyard",
+   "t2": "hand",
+   "t1": "library",
+   "t3": "library"
+  },
+  "tapped": {
+   "i1": true,
+   "i2": true
+  },
+  "hand": {
+   "0": 1
+  },
+  "library": {
+   "0": [
+    "Library 5",
+    "Library 4",
+    "Library 3",
+    "Library 2",
+    "Library 1",
+    "Library 0",
+    "Top Three",
+    "Top One"
+   ]
+  },
+  "mana_pool": {
+   "0": {}
+  },
+  "revealed": {
+   "t1": false,
+   "t2": false,
+   "t3": false
+  }
+ }
+}

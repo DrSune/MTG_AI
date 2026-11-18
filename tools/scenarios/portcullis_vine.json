@@ -34,10 +34,7 @@
    "op": "activate",
    "key": "v",
    "idx": 0,
-   "seat": 0,
-   "decisions": [
-    "v"
-   ]
+   "seat": 0
   }
  ],
  "expect": {

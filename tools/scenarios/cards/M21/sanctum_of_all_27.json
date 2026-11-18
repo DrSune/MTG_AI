@@ -49,8 +49,7 @@
    "op": "advance_turn",
    "decisions": [
     "fire",
-    "1",
-    "sl"
+    "1"
    ]
   }
  ],

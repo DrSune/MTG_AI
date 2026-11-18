@@ -36,8 +36,7 @@
    "op": "enter",
    "key": "dragon",
    "decisions": [
-    "fire",
-    "relic"
+    "fire"
    ]
   },
   {

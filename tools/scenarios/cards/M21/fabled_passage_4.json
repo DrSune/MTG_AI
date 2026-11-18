@@ -12,7 +12,7 @@
    "controller": 0
   },
   {
-   "key": "p1",
+   "key": "plains1",
    "real": "Plains",
    "zone": "battlefield",
    "controller": 0
@@ -102,7 +102,7 @@
   },
   "tapped": {
    "forest": true,
-   "p1": false,
+   "plains1": false,
    "i1": false
   },
   "library": {

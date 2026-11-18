@@ -13,7 +13,7 @@
   {"op": "to_step", "step": "END_TURN", "decisions": ["DECLINE", "0"]},
   {"op": "end_turn"},
   {"op": "advance_turn"},
-  {"op": "end_turn", "decisions": ["DECLINE"]},
+  {"op": "end_turn"},
   {"op": "advance_turn"},
   {"op": "to_step", "step": "END_TURN", "decisions": ["DECLINE"]},
   {"op": "end_turn"}

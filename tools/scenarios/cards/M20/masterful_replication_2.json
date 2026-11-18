@@ -1,0 +1,106 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mr",
+   "real": "Masterful Replication",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "alpha",
+   "name": "Alpha Golem",
+   "type": "Artifact Creature — Golem",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "beta",
+   "name": "Beta Construct",
+   "type": "Artifact Creature — Construct",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  {
+   "key": "gamma",
+   "name": "Gamma Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "delta",
+   "name": "Delta Construct",
+   "type": "Artifact Creature — Construct",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "trinket",
+   "name": "Trinket",
+   "type": "Artifact",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:mr",
+    "1",
+    "alpha"
+   ]
+  },
+  {
+   "op": "advance_turn"
+  }
+ ],
+ "expect": {
+  "power": {
+   "alpha": 4,
+   "beta": 2,
+   "gamma": 2,
+   "delta": 1,
+   "trinket": null
+  },
+  "toughness": {
+   "alpha": 4,
+   "beta": 2,
+   "gamma": 2,
+   "delta": 1,
+   "trinket": null
+  },
+  "counters": {
+   "beta": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "lost": {
+   "0": false,
+   "1": false
+  }
+ },
+ "notes": "Printed: 'becomes a copy of that artifact UNTIL END OF TURN'. After the turn ends Beta Construct is itself again (1/1 and its +1/+1 counter: 2/2) and the Trinket is a plain noncreature artifact again (no power or toughness)."
+}

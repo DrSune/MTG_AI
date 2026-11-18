@@ -1,0 +1,10 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+E   AssertionError: assert not True
+     +  where True = <function _draw_idiom at 0xe81eb259a2a0>(Atom(verb=<Verb.MOVE_ZONE: 'MOVE_ZONE'>, args=AtomArgs(pairs=(('cards', Selector(count=QUnbounded(), mode=<SelectorMod...nt=None)), ('destination', Zone(kind=<ZoneKind.HAND: 'HAND'>, controller=<ControllerRef.YOU: 'YOU'>, position=None))))))
+     +    where <function _draw_idiom at 0xe81eb259a2a0> = gates._draw_idiom
+     +    and   Atom(verb=<Verb.MOVE_ZONE: 'MOVE_ZONE'>, args=AtomArgs(pairs=(('cards', Selector(count=QUnbounded(), mode=<SelectorMod...nt=None)), ('destination', Zone(kind=<ZoneKind.HAND: 'HAND'>, controller=<ControllerRef.YOU: 'YOU'>, position=None))))) = _at(CardRecord(oracle_id='b23c1f40-291d-43b3-971d-97ded8b367cb', name='See the Truth', type_line='Sorcery', types=('Sorcer...<ControllerRef.YOU: 'YOU'>, position=<ZonePosition.BOTTOM: 'BOTTOM'>)))))))))), additional_costs=()),), is_token=False), '1/0/effect/steps/1/then_effect')
+/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w0/base/tools/cards/test_gates.py:657: AssertionError: assert not True
+=========================== short test summary info ============================
+FAILED tools/cards/test_gates.py::test_an_all_over_a_library_top_is_a_partition_not_the_draw_idiom
+1 failed, 43 deselected in 2.37s

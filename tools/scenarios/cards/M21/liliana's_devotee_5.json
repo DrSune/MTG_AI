@@ -10,7 +10,7 @@
  "steps": [
   {"op": "advance_turn"},
   {"op": "deal_damage", "source": "src", "target": "ob", "amount": 2},
-  {"op": "end_turn", "decisions": ["fire"]}
+  {"op": "end_turn"}
  ],
  "expect": {"zone": {"ob": "graveyard"}, "tokens": {"Zombie": 0}, "tapped": {"sw1": false, "sw2": false}},
  "notes": "Printed: 'At the beginning of YOUR end step ...'. A creature dies on the opponent's turn; the opponent's end step does not trigger the Devotee, so nothing is paid and no Zombie is created."}

@@ -1,0 +1,85 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dv",
+   "real": "Double Vision",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "shock1",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "shock2",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Ogre",
+   "type": "Creature — Ogre",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 7
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:shock1",
+    "ogre"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:dv"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:shock2",
+    "p1"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "zone": {
+   "ogre": "battlefield",
+   "dv": "battlefield",
+   "shock1": "graveyard",
+   "shock2": "graveyard"
+  },
+  "damage": {
+   "ogre": 2
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "Printed: 'your first instant or sorcery spell each turn' counts the turn's casts, not only those made while Double Vision is in play. A Shock is cast before Double Vision is (nothing triggers); after Double Vision resolves, the second Shock is the turn's second instant or sorcery and is not copied (no new-target ask: the step has no word left): the opponent takes 2 once (18, not 16). The Ogre has the first Shock's 2 damage."
+}

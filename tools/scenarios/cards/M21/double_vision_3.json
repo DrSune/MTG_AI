@@ -1,0 +1,77 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dv",
+   "real": "Double Vision",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock1",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "shock2",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Ogre",
+   "type": "Creature — Ogre",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:shock1",
+    "ogre",
+    "ogre"
+   ]
+  },
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:shock2",
+    "p1"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "zone": {
+   "ogre": "graveyard",
+   "shock1": "graveyard",
+   "shock2": "graveyard"
+  },
+  "mana_pool": {
+   "0": {
+    "R": 1
+   }
+  }
+ },
+ "notes": "Printed: 'your FIRST instant or sorcery spell each turn'. The first Shock (copy kept on the Ogre) kills the 4/4. The second Shock, at the opponent, is the turn's second instant or sorcery: it is not copied (no new-target ask: the step has no word left and an ask would raise), so the opponent takes 2 once (20 -> 18, not 16)."
+}

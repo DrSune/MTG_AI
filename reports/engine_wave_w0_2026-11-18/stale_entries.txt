@@ -1,0 +1,24 @@
+== F01: a target-player slot with no legal player (CR 603.3d; spells 601.2c; abilities 602.2b)
+check    PASS  MTG_bot/core/test_executor_hexproof.py::TestPlayerHexproof::test_a_trigger_targeting_an_opponent_with_hexproof_is_removed: 1 passed in 1.84s
+check    PASS  tools/scenarios/runed_halo_names_brash_taunter.json
+control  PASS  reports/engine_wave_w0_2026-11-18/checks/f01_trigger_control_halo_names_another_card.json
+check    PASS  reports/engine_wave_w0_2026-11-18/checks/f01_spell_duress_with_no_legal_opponent_is_no_row.json
+control  PASS  reports/engine_wave_w0_2026-11-18/checks/f01_spell_control_duress_with_a_legal_opponent.json
+check    PASS  reports/engine_wave_w0_2026-11-18/checks/f01_activated_steward_with_no_legal_opponent_is_refused.json
+control  PASS  reports/engine_wave_w0_2026-11-18/checks/f01_activated_control_steward_with_a_legal_opponent.json
+== F15 (B-54): a spell whose required target has no legal candidate is offered
+check    PASS  reports/engine_wave_w0_2026-11-18/checks/f15_swift_response_with_no_tapped_creature_is_no_row.json
+control  PASS  reports/engine_wave_w0_2026-11-18/checks/f15_control_swift_response_with_a_tapped_creature.json
+check    PASS  query.legal_casts has no caller left: none
+== F49: 'doesn't untap during its controller's untap step' blocks every untap (CR 502.3)
+check    PASS  reports/engine_fault_triage_2026-11-18/closed_checks/act_of_treason_untaps_a_creature_sleep_paralysis_holds.json
+control  PASS  reports/engine_fault_triage_2026-11-18/closed_checks/sleep_paralysis_taps_the_bear_control.json
+== F64: Teferi, Master of Time's -3 duration (CR 702.26)
+check    PASS  the printed -3 reads classic phasing: "[−3]: Target creature you don't control phases out. (Treat it and anything attached to it as though they don't exist until its controller's next turn.)"
+check    PASS  tools/scenarios/teferi_master_of_time_phased_out_waits_for_its_controller.json
+control  PASS  tools/scenarios/teferi_master_of_time_phase_in_at_controllers_untap.json
+== K1: known_bugs/2026-11-05/up_to_one_none_chosen_crashes (Cavalier of Dawn, 'up to one' and none chosen)
+check    PASS  reports/engine_wave_w0_2026-11-18/checks/k1_pack_none.json
+check    PASS  the folder's pack against its draft (cardtool runpack): PASS k1_pack_none.json
+covered  PASS  tools/scenarios/mapped/M20/cavalier_of_dawn_no_target_makes_no_golem.json
+control  PASS  tools/scenarios/mapped/M20/cavalier_of_dawn_its_controller_gets_the_golem.json

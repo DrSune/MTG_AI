@@ -5,7 +5,7 @@
  ],
  "steps": [
   {"op": "enter", "key": "sanc"},
-  {"op": "advance_turn", "decisions": ["G"]},
+  {"op": "advance_turn"},
   {"op": "advance_turn", "decisions": ["G"]}
  ],
  "expect": {"zone": {"sanc": "battlefield"}, "mana_pool": {"0": {"G": 1}, "1": {}}}}

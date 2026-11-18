@@ -7,7 +7,7 @@
  ],
  "mana": {"0": {"B": 1}},
  "steps": [
-  {"op": "cast", "real": "Village Rites", "key": "vr", "decisions": ["spirit"]}
+  {"op": "cast", "real": "Village Rites", "key": "vr"}
  ],
  "expect": {
   "zone": {"spirit": "graveyard", "vr": "graveyard"},

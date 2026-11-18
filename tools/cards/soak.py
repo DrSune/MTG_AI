@@ -92,10 +92,11 @@ def play_one(job: tuple[str, str, bool, str, int]) -> dict[str, Any]:
     game = _setup_game(seed, sup, decks)
     start_life = {str(h): int(p.life) for h, p in game.world.players.items()}
     seen: set[str] = set()  # I1's findings, once per game
+    watch = det.Watch()  # what the detectors need to see while the game runs (D5, D6)
 
-    def invariants(g: Any, _boundary: str) -> bool:  # _play's stop_after: reads, never stops
+    def invariants(g: Any, boundary: str) -> bool:  # _play's stop_after: reads, never stops
         seen.update(tokens_off_battlefield(g.world))
-        return False
+        return watch(g, boundary)
 
     crash = None
     try:
@@ -114,25 +115,7 @@ def play_one(job: tuple[str, str, bool, str, int]) -> dict[str, Any]:
             casts[world.cards[e.subject].identity.oracle_id].append(str(e.data[0]))
     per_turn = Counter(d.split(".", 1)[0] + "|" + d.split(":", 1)[1] for d in game.digest if ".act:" in d)
     loops = sorted(str(x) for x in ex.trigger_loops)
-    rows = [det.Row(i, int(str(r[0])), str(r[1]), str(r[2]), str(r[3]), str(r[4]), det._parse_data(r[5]))
-            for i, r in enumerate(ex.journal.dump())]
-    final_zone, names = {}, {}
-    for handle, record in world.cards.items():
-        try:
-            final_zone[str(handle)] = str(world.zone_of(handle).kind)
-        except (KeyError, ValueError):
-            pass
-        names[str(handle)] = str(record.identity.name)
-    binder: dict[str, list[Any]] = {}
-    for group in ex.binder.dump():
-        if isinstance(group, tuple) and len(group) == 2 and isinstance(group[1], (list, tuple)):
-            binder[str(group[0])] = list(group[1])
-    data = det.ReplayData(seed=str(seed), rows=rows, start_life=start_life,
-                          final_life={str(h): int(p.life) for h, p in world.players.items()},
-                          final_zone=final_zone, identity_name=names,
-                          layers_rows=[tuple(r) for r in ex.layers.dump()],
-                          repl_rows=[tuple(r) for r in ex.replacements.dump()],
-                          binder_dump=binder, crashed=crash["error"] if crash else None)
+    data = det.replay_data(game, seed, start_life, crash["error"] if crash else None, watch)
     hits = []
     for fn in (det.d1_life, det.d2_mana, det.d3_counters, det.d4_tokens, det.d5_pt_recompute, det.d6_lifecycle):
         try:

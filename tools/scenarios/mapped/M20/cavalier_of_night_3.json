@@ -56,10 +56,7 @@
    "op": "deal_damage",
    "source": "src",
    "target": "cn",
-   "amount": 5,
-   "decisions": [
-    "g3"
-   ]
+   "amount": 5
   }
  ],
  "expect": {

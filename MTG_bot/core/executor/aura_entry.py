@@ -26,7 +26,7 @@ if TYPE_CHECKING:  # pragma: no cover - import cycle guard only
     from MTG_bot.core.identity import Handle
 
 
-def _enchant_filter(executor: Executor, aura: Handle) -> Filter:
+def enchant_filter(executor: Executor, aura: Handle) -> Filter:
     """The Aura's ENCHANT keyword restriction (CR 702.5a); any permanent when it names none."""
     record = spell_record(executor, aura)
     if record is not None:
@@ -42,7 +42,7 @@ def aura_entry_hosts(executor: Executor, aura: Handle, controller: Handle) -> li
     excluded (303.4d). A phased-out permanent is treated as though it does not exist (CR 702.26b),
     so ``Executor.battlefield`` leaves it out. Handle-sorted."""
     world = executor.world
-    enchant = _enchant_filter(executor, aura)
+    enchant = enchant_filter(executor, aura)
     ctx = ctx_for(executor, source=aura, controller=controller)
     hosts = [
         card

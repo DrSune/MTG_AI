@@ -1,0 +1,56 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "6629a48b-be9a-4636-8add-69d096a1ca7e",
+ "name": "Double Vision",
+ "text_sha": "3448340d42cdb5dde6fee8eb8ee754dc959bb6cefe0f496c7a64b2f519f2a00d",
+ "verified": {
+  "tree_sha": "bb90d45d93189e820bb42dbb4bf11bfeaa22eb7c59744e7d87805abddbd1461c",
+  "probe_sha": "e58085b91d425143883462e82b575e76570ceb4d9a792289ff99828739dbb5ff",
+  "date": "2026-11-18",
+  "reviewer": "claude-sonnet-verifier-wave7",
+  "clauses": [
+   {
+    "clause": "Whenever you cast your first instant or sorcery spell each turn, copy that spell. [a cast instant or sorcery is copied]",
+    "status": "OK",
+    "evidence": "Probe '[stimulus: you cast an instant or sorcery (Crash Through)]' and '[... Crash Through, then your end step comes]': 'card's triggered ability [0] triggers', 'card:37 moves new -> stack (by card/COPY)', the copy draws ('by card:37/DRAW') and resolves BEFORE the original ('you_cast_spell/DRAW' after it), two draws in all (hand 6 -> 7 after the cast: -1 +2); '[... on the opponent's turn, you cast an instant (Life Goes On)]': the copy gains 4 and the original 4 (20 -> 28). '[... you cast a creature (Staunch Shieldmate)]': no trigger. The copy is not cast (CR 707.10): no CAST event for card:37, mana spent once (R-1), and it ceases to exist leaving the stack (A03_1: my graveyard holds one Shock; A03_8: a 'whenever you cast a noncreature spell' watcher sees one cast).",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever you cast your first instant or sorcery spell each turn, copy that spell. [only your first each turn: the second is not copied, a creature or an artifact spell does not use it up, the opponent's casts neither trigger nor count, the count restarts each turn]",
+    "status": "NOT_EXERCISED",
+    "evidence": "The trace never has two casts in one turn, an opponent's cast, or a non-instant spell before the instant. Tree: CastSpellEvent(filter Instant or Sorcery, actor you, ordinal 1). Packs (pass on the live tree and the packet's tree): A03_3 (second instant: not copied), A03_13 (a sorcery first, then an instant: one count over both kinds, the instant is not copied), A03_4 (a creature spell first: the instant is still the first instant or sorcery and is copied), A03_12 (an artifact spell first: no trigger, does not use it up), A03_5 (a Shock cast before Double Vision entered counts: the next one is not the first; assumption: 'first each turn' is the turn's cast history, not the permanent's), A03_6 (the opponent's Shock triggers nothing and is not counted for me), A03_7 (the count restarts: my first spell of the opponent's turn is copied, my second is not).",
+    "issue": ""
+   },
+   {
+    "clause": "You may choose new targets for the copy.",
+    "status": "NOT_EXERCISED",
+    "evidence": "Every probe stimulus spell is untargeted (Crash Through, Life Goes On), so no new-target ask ever appears. Tree: COPY(new_targets=True). Packs: A03_1 (Shock at an Ogre, copy redirected to the opponent), A03_2 (copy keeps the target: the 4/4 dies), A03_11 (two targets of Rookie Mistake trade places in the copy, CR 707.10c: only the final set must be legal), A03_9 (the copy keeps the original's X), A03_10 (and its mode), A03_14 (a choice made on resolution is not copied: the copy asks its own colour), A03_15 (a new target must be legal: a hexproof creature is not offered).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/double_vision_1.json",
+   "tools/scenarios/cards/M21/double_vision_2.json",
+   "tools/scenarios/cards/M21/double_vision_3.json",
+   "tools/scenarios/cards/M21/double_vision_4.json",
+   "tools/scenarios/cards/M21/double_vision_5.json",
+   "tools/scenarios/cards/M21/double_vision_6.json",
+   "tools/scenarios/cards/M21/double_vision_7.json",
+   "tools/scenarios/cards/M21/double_vision_8.json",
+   "tools/scenarios/cards/M21/double_vision_9.json",
+   "tools/scenarios/cards/M21/double_vision_10.json",
+   "tools/scenarios/cards/M21/double_vision_11.json",
+   "tools/scenarios/cards/M21/double_vision_12.json",
+   "tools/scenarios/cards/M21/double_vision_13.json",
+   "tools/scenarios/cards/M21/double_vision_14.json",
+   "tools/scenarios/cards/M21/double_vision_15.json"
+  ],
+  "mutation": {
+   "mutants": 1,
+   "killed": 1,
+   "score": 1.0,
+   "survived": []
+  }
+ }
+}

@@ -3,7 +3,7 @@
   "world": {"life": 20, "seed": 7},
   "cards": [
     {"key": "fp", "real": "Fabled Passage", "zone": "battlefield", "controller": 0},
-    {"key": "p1", "real": "Plains", "zone": "battlefield", "controller": 0},
+    {"key": "plains1", "real": "Plains", "zone": "battlefield", "controller": 0},
     {"key": "i1", "real": "Island", "zone": "battlefield", "controller": 0},
     {"key": "om", "real": "Mountain", "zone": "battlefield", "controller": 1},
     {"key": "forest", "real": "Forest", "zone": "library", "controller": 0},

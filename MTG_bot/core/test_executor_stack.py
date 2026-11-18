@@ -64,8 +64,8 @@ from MTG_bot.core.executor.legality import (
     ctx_for,
     spell_castable,
 )
+from MTG_bot.core.executor.menu import menu
 from MTG_bot.core.executor.query import (
-    legal_casts,
     optional_offer,
     spell_target_slots,
     verb_choose_options,
@@ -488,18 +488,19 @@ class TestXGate(StackCase):
 
     def test_zero_witness_keeps_the_row_enumerable(self):
         self.mana(self.p0, C=4)
-        rows = legal_casts(self.world, self.ex, self.p0)  # x=None -> X=0 witness
-        row = next(r for r in rows if r.handle == self.xspell)
-        self.assertFalse(row.land)
-        assert row.payment is not None
-        self.assertEqual(row.payment.mana, ())  # X=0 folds a zero cost
+        reason, _node, _record, plan = spell_castable(self.ex, self.p0, self.xspell)  # x=None -> X=0
+        self.assertIsNone(reason)
+        assert plan is not None
+        self.assertEqual(plan.mana, ())  # X=0 folds a zero cost
+        # the menu offers X = 0 (no ":x" in the token) and every X the pool pays (CR 107.3a)
+        tokens = [r.token for r in menu(self.ex, self.p0) if r.handle == self.xspell]
+        self.assertEqual(tokens, [f"cast:{self.xspell}", *(f"cast:{self.xspell}:x{x}" for x in range(1, 5))])
 
     def test_declared_x_folds_into_the_plan_and_effect(self):
         self.mana(self.p0, C=4)
-        rows = legal_casts(self.world, self.ex, self.p0, x=3)
-        row = next(r for r in rows if r.handle == self.xspell)
-        assert row.payment is not None
-        self.assertEqual(row.payment.mana, (("C", 3),))
+        plan = spell_castable(self.ex, self.p0, self.xspell, x=3)[3]
+        assert plan is not None
+        self.assertEqual(plan.mana, (("C", 3),))
         cast(self.ex, self.p0, self.xspell, x=3, targets=(self.p1,))
         self.assertEqual(self.world.players[self.p1].life, 17)  # X=3 damage
         self.assertEqual(self.world.players[self.p0].mana_pool.get("C"), 1)
@@ -631,20 +632,19 @@ class TestLandDrop(StackCase):
         play_land(self.ex, self.p0, gear)
         self.assertEqual(self.world.cards[gear].counters.get("SOUL"), 1)
 
-    def test_legal_casts_row_shapes(self):
+    def test_menu_rows_of_a_land_and_a_spell(self):
         shock = self.shock()
         self.mana(self.p0, R=1)
-        rows = legal_casts(self.world, self.ex, self.p0)
+        rows = [r for r in menu(self.ex, self.p0) if r.kind in ("land", "cast")]
         handles = [r.handle for r in rows]
-        self.assertEqual(handles, sorted(handles))  # Handle-sorted
+        self.assertEqual(handles, sorted(handles))  # in hand order, Handle-sorted
         land_row = next(r for r in rows if r.handle == self.plains)
         spell_row = next(r for r in rows if r.handle == shock)
-        self.assertTrue(land_row.land)
-        self.assertIsNone(land_row.payment)
-        self.assertIsNone(land_row.node)
-        self.assertFalse(spell_row.land)
-        assert spell_row.payment is not None
-        self.assertEqual(spell_row.payment.mana, (("R", 1),))
+        self.assertEqual((land_row.token, land_row.kind, land_row.node), (f"land:{self.plains}", "land", None))
+        self.assertEqual((spell_row.token, spell_row.kind), (f"cast:{shock}", "cast"))
+        plan = spell_castable(self.ex, self.p0, shock)[3]  # the pool pays it, its {R} folded
+        assert plan is not None
+        self.assertEqual(plan.mana, (("R", 1),))
 
 
 class TestBothMainPhases(StackCase):

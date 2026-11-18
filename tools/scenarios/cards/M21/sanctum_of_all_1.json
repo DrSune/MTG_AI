@@ -9,7 +9,7 @@
  "steps": [
   {"op": "enter", "key": "a"},
   {"op": "advance_turn"},
-  {"op": "advance_turn", "decisions": ["fire", "2", "sh"]}
+  {"op": "advance_turn", "decisions": ["fire", "2"]}
  ],
  "expect": {
   "zone": {"a": "battlefield", "sh": "battlefield", "drawn": "hand"},

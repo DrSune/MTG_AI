@@ -1,0 +1,61 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dv",
+   "real": "Double Vision",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "shock",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Hexproof Ogre",
+   "type": "Creature — Ogre",
+   "power": "4",
+   "toughness": "4",
+   "keywords": [
+    "HEXPROOF"
+   ],
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:shock",
+    "p1",
+    "ogre"
+   ],
+   "expect_raise": "does not offer 'card:2'"
+  }
+ ],
+ "expect": {},
+ "notes": "Printed: 'You may choose new targets for the copy.' A new target must be one the copy may legally target: Shock is cast at the opponent, and the opponent's Hexproof Ogre (card:2) is not offered as the copy's new target (hexproof, CR 702.11b), while the Bear is (the ask exists and the word for the Ogre is refused). The step stops at that ask."
+}

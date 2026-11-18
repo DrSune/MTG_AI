@@ -1,0 +1,10 @@
+M21 Tormod's Crypt 0 designated-player ref
+M21 Teferi, Timeless Voyager 2 designated-player ref
+M21 Chandra's Magmutt 0 player slot
+M21 Leafkin Avenger 1 player slot
+M21 Liliana's Steward 0 designated-player ref
+M21 Liliana, Death Mage 2 designated-player ref
+M20 Pyroclastic Elemental 0 player slot
+M20 Chandra, Flame's Fury 2 player slot
+M20 Sorcerer of the Fang 0 player slot
+9 activated abilities with a target-player designation in the three verified pools

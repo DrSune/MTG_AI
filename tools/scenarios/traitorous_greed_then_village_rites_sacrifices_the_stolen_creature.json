@@ -12,7 +12,7 @@
  ],
  "mana": {"0": {"R": 4}},
  "steps": [
-  {"op": "cast", "key": "greed", "real": "Traitorous Greed", "targets": ["ogre"], "decisions": ["B", "B"]},
+  {"op": "cast", "key": "greed", "real": "Traitorous Greed", "targets": ["ogre"], "decisions": ["B"]},
   {"op": "cast", "key": "rites", "real": "Village Rites"}
  ],
  "expect": {

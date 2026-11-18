@@ -14,7 +14,7 @@
   {"op": "enter", "key": "olili"},
   {"op": "loyalty", "key": "olili", "set": 3},
   {"op": "deal_damage", "source": "sc", "target": "bear", "amount": 99},
-  {"op": "end_turn", "decisions": ["fire", "olili"]}
+  {"op": "end_turn", "decisions": ["fire"]}
  ],
  "expect": {
   "zone": {"bear": "graveyard", "lili": "battlefield", "olili": "battlefield"},

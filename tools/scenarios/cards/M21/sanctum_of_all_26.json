@@ -81,8 +81,7 @@
    "op": "advance_turn",
    "decisions": [
     "fire",
-    "1",
-    "la"
+    "1"
    ]
   }
  ],

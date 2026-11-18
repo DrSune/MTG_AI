@@ -1,0 +1,22 @@
+{
+ "set": "M20",
+ "notes": "Engine wave W1 (KNOWLEDGE/2026-11-18/215, fault F45d; a known bug, failing, until W1): an Aura entering by an effect chooses its host among the objects already on the battlefield (verbs._entering_hosts, every host chosen before anything moves). Brought Back (verified, M20), its ruling of 2025-10-02: 'If you return an Aura this way, you choose what the Aura will enchant just before it enters, but you can't choose any permanent cards that will enter at the same time as that Aura ... If there's nothing legal for the Aura to enchant, it stays in the graveyard' (CR 303.4f-g). Seat 0's Bear wears Oakenform (+3/+3, verified M20); the Bear dies (a move by another effect) and Oakenform goes to the graveyard with it (CR 704.5m). Brought Back returns both: the Bear enters, and Oakenform, with no creature on the battlefield before the move, stays in the graveyard. Before W1 the move loop let the Aura pick the Bear moving just before it, a 5/5, stronger than printed. The Bear is listed first so that it has the lower handle and moves first; with the Aura first the old engine got it right by accident.",
+ "world": {"life": 20, "seed": 7},
+ "cards": [
+  {"key": "bear", "name": "Bear", "type": "Creature — Bear", "power": "2", "toughness": "2", "zone": "battlefield", "controller": 0},
+  {"key": "oak", "real": "Oakenform", "zone": "hand", "controller": 0},
+  {"key": "bb", "real": "Brought Back", "zone": "hand", "controller": 0}
+ ],
+ "mana": {"0": {"W": 2}},
+ "steps": [
+  {"op": "enchant", "aura": "oak", "host": "bear"},
+  {"op": "move", "key": "bear", "to": "graveyard"},
+  {"op": "cast", "key": "bb", "targets": ["bear", "oak"]}
+ ],
+ "expect": {
+  "zone": {"bear": "battlefield", "oak": "graveyard", "bb": "graveyard"},
+  "attached": {"oak": null},
+  "power": {"bear": 2},
+  "toughness": {"bear": 2}
+ }
+}

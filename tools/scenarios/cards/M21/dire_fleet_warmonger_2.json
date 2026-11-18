@@ -6,7 +6,7 @@
   {"key": "opp_c", "name": "Opp Guard", "type": "Creature", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
  ],
  "steps": [
-  {"op": "combat", "seat": 0, "attack": {"wm": false}, "may": {"wm": true}, "decisions": ["opp_c", "wm"]}
+  {"op": "combat", "seat": 0, "attack": {"wm": false}, "may": {"wm": true}}
  ],
  "expect": {
   "zone": {"wm": "battlefield", "opp_c": "battlefield"},

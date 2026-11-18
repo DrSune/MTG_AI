@@ -150,6 +150,33 @@ class LookThenConditionTest(unittest.TestCase):
         )))
         self.assertEqual(self._hand(), ["Lib 4"])
 
+    def test_a_card_off_the_stack_answers_for_its_last_cast(self) -> None:
+        """F33 (CR 400.7, 608.2h): cast from the graveyard, returned to the hand and cast again from
+        there the same turn, the card now in the graveyard is the object the second cast made, so
+        "you cast it from your graveyard" is false of it. Before W1 any cast of the card this turn
+        answered for it."""
+        ident = CardIdentity(oracle_id=card_id("Recast").oracle_id, name="Recast",
+                             type_line="Sorcery", cmc=0)
+        spell = self.world.add_card(ident, self.p0, ZONE_GRAVEYARD)
+        gain = _atom(Verb.GAIN_LIFE, controller=ControllerRef.YOU, amount=QConst(1))
+        self.ex.attach_card(spell, record_of([SpellAbility(kind=SpellKind.SORCERY, effect=gain)],
+                                             name="Recast", oid=ident.oracle_id))
+        with self.ex.holding_priority():
+            cast_card(self.ex, self.p0, spell)
+        self.ex.fire_triggers()  # it resolves into the graveyard
+        graveyard = Zone(ZoneKind.GRAVEYARD, ControllerRef.YOU)
+        to_hand = _atom(Verb.MOVE_ZONE, cards=Selector(QConst(1), SelectorMode.TARGET, FAnd(()),
+                                                       zones=(graveyard,)), destination=_HAND)
+        self.ex.execute(to_hand, source=spell, controller=self.p0, bindings={"cards": [spell]})
+        cast(self.ex, self.p0, spell)
+        self.assertEqual(self.world.zone_of(spell).kind, ZONE_GRAVEYARD)
+        ctx = ctx_for(self.ex, source=spell, controller=self.p0)
+
+        def cast_from(zone: Zone) -> bool:
+            return eval_filter(FAtom(FAtomPred.CAST_THIS_TURN_FROM, zone=zone, who=ControllerRef.YOU), spell, ctx)
+
+        self.assertEqual((cast_from(graveyard), cast_from(_HAND)), (False, True))
+
 
 class SeeTheTruthTreeTest(unittest.TestCase):
     """The compiled card (B5b-cast-elsewhere-instead) on a spell that was not cast."""

@@ -8,7 +8,7 @@
   {"key": "brute", "name": "Their Brute", "type": "Creature — Ogre", "power": "3", "toughness": "3", "zone": "battlefield", "controller": 1}
  ],
  "steps": [
-  {"op": "enter", "key": "frog", "decisions": ["brute"]},
+  {"op": "enter", "key": "frog"},
   {"op": "end_turn"}
  ],
  "expect": {

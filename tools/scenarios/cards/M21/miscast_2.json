@@ -53,10 +53,7 @@
     "shock"
    ],
    "tap": true,
-   "real": "Miscast",
-   "decisions": [
-    "PAY"
-   ]
+   "real": "Miscast"
   }
  ],
  "expect": {

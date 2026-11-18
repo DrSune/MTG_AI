@@ -1,7 +1,7 @@
 {
  "set": "M20",
  "name": "bloodsoaked_altar_demon_is_black",
- "notes": "Printed: 'a 5/5 black Demon creature token with flying'. The opponent activates the Altar on their own turn (their Yoked Ox is sacrificed, their Forest discarded): a flying Demon token. On the controller's turn Apostle of Purifying Light (protection from black: it can't be blocked by black creatures, CR 702.16f) attacks. The token is a flier and untapped, so it could block any other attacker, but not this one: the script word that would have it block Apostle is never used and no block is declared. (The same pack with a non-protected attacker, Leafkin Druid, has the token block it.)",
+ "notes": "Printed: 'a 5/5 black Demon creature token with flying'. The opponent activates the Altar on their own turn (their Yoked Ox is sacrificed, their Forest discarded): a flying Demon token. On the controller's turn Apostle of Purifying Light (protection from black: it can't be blocked by black creatures, CR 702.16f) attacks. The token is a flier and untapped, so it could block any other attacker, but not this one: it is never asked to block (not_asked_to_block names the token by its handle) and no block is declared. (The same pack with a non-protected attacker, Leafkin Druid, has the token block it.)",
  "world": {
   "life": 20,
   "seed": 7
@@ -52,10 +52,7 @@
    "seat": 0,
    "attack": {
     "apo": true
-   },
-   "decisions": [
-    "apo"
-   ]
+   }
   }
  ],
  "expect": {
@@ -80,6 +77,7 @@
   "zone": {
    "ox": "graveyard",
    "forest": "graveyard"
-  }
+  },
+  "not_asked_to_block": ["card:16"]
  }
 }

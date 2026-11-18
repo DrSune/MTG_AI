@@ -6,7 +6,7 @@
   {"key": "zap", "name": "Zap", "type": "Instant", "zone": "hand", "controller": 1}
  ],
  "steps": [
-  {"op": "enter", "key": "k", "decisions": ["zap"]},
+  {"op": "enter", "key": "k"},
   {"op": "end_turn"},
   {"op": "advance_turn"}
  ],

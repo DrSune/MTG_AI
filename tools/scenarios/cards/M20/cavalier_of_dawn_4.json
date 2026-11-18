@@ -7,5 +7,5 @@
   {"key":"ob","real":"Ancestral Blade","zone":"graveyard","controller":1},
   {"key":"giant","name":"Giant","power":"6","toughness":"6","type":"Creature","zone":"battlefield","controller":1}],
  "steps":[
-  {"op":"deal_damage","source":"giant","target":"cav","amount":99,"decisions":["pac"]}],
+  {"op":"deal_damage","source":"giant","target":"cav","amount":99}],
  "expect":{"zone":{"cav":"graveyard","pac":"hand","db":"graveyard","ob":"graveyard"},"hand":{"0":1}}}

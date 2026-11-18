@@ -1,0 +1,5 @@
+compiler trees changed (0): []
+trees with records applied changed (0): []
+verified cards leaving the verified pool (0): []
+verified cards joining (0): []
+verified stamps per set (base -> branch): {'10E': '23->23', 'DOM': '18->18', 'ELD': '14->14', 'FDN': '261->261', 'IKO': '24->24', 'KHM': '9->9', 'M10': '30->30', 'M11': '28->28', 'M12': '27->27', 'M13': '30->30', 'M14': '31->31', 'M15': '26->26', 'M19': '66->66', 'M20': '286->286', 'M21': '280->280', 'ORI': '23->23', 'THB': '16->16', 'WAR': '22->22', 'ZNR': '14->14'}

@@ -8,6 +8,6 @@
   {"key": "drawme", "zone": "hand", "controller": 0, "name": "Opening Draw", "type": "Instant", "cmc": 1}
  ],
  "steps": [
-  {"op": "enter", "key": "emp", "decisions": ["fire", "mid5"]}
+  {"op": "enter", "key": "emp", "decisions": ["fire"]}
  ],
  "expect": {"zone": {"emp": "battlefield", "big6": "hand", "mid5": "library", "art7": "library", "drawme": "hand"}, "hand": {"0": 2}}}

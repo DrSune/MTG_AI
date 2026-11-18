@@ -1,0 +1,66 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "reg",
+   "real": "Chandra's Regulator",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "chandra",
+   "real": "Chandra, Novice Pyromancer",
+   "zone": "battlefield",
+   "controller": 0,
+   "counters": {
+    "LOYALTY": 2
+   }
+  },
+  {
+   "key": "ogre",
+   "name": "Ogre",
+   "type": "Creature — Ogre",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 3
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "act:chandra:2",
+    "ogre",
+    "fire",
+    "ogre"
+   ]
+  }
+ ],
+ "expect": {
+  "zone": {
+   "chandra": "graveyard",
+   "ogre": "graveyard"
+  },
+  "life": {
+   "0": 20,
+   "1": 20
+  },
+  "mana_pool": {
+   "0": {
+    "R": 2
+   }
+  }
+ },
+ "notes": "Printed: 'copy that ability'. Chandra, Novice Pyromancer (2 loyalty) uses [-2] and dies at 0 before the Regulator's trigger resolves; the ability on the stack is independent of its source (CR 113.7a), so the trigger still copies it: the Regulator's {1} is paid (R 3 -> 2), the copy keeps the Ogre as its target, and the copy and the original deal 2 each: the Ogre (4/4) dies."
+}

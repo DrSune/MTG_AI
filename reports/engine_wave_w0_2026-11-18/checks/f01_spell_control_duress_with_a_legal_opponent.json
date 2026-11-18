@@ -1,0 +1,16 @@
+{
+ "set": "M21",
+ "world": {"life": 20, "seed": 7},
+ "notes": "F01 CONTROL of f01_spell_duress_with_no_legal_opponent_is_no_row.json: the Halo names Opt, so seat 1 is a legal target. The menu offers Duress, the act op casts it (its one opponent designated without an ask), and seat 0 takes seat 1's Opt (a noncreature, nonland card): the check's refusal is the protection's, not a Duress the menu never offers.",
+ "cards": [
+  {"key": "halo", "real": "Runed Halo", "zone": "hand", "controller": 1},
+  {"key": "du", "real": "Duress", "zone": "hand", "controller": 0},
+  {"key": "opt", "real": "Opt", "zone": "hand", "controller": 1}
+ ],
+ "mana": {"0": {"B": 1}},
+ "steps": [
+  {"op": "enter", "key": "halo", "decisions": ["Opt"]},
+  {"op": "act", "seat": 0, "words": ["cast:du"]}
+ ],
+ "expect": {"zone": {"du": "graveyard", "opt": "graveyard"}}
+}

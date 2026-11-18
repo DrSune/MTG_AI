@@ -1,0 +1,82 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dv",
+   "real": "Double Vision",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "feat",
+   "real": "Feat of Resistance",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "a",
+   "name": "Bear A",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "b",
+   "name": "Bear B",
+   "type": "Creature — Bear",
+   "power": "3",
+   "toughness": "3",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "W": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:feat",
+    "a",
+    "b",
+    "3",
+    "1"
+   ]
+  }
+ ],
+ "expect": {
+  "counters": {
+   "a": {
+    "PLUS_1_PLUS_1": 1
+   },
+   "b": {
+    "PLUS_1_PLUS_1": 1
+   }
+  },
+  "power": {
+   "a": 3,
+   "b": 4
+  },
+  "toughness": {
+   "a": 3,
+   "b": 4
+  },
+  "zone": {
+   "feat": "graveyard"
+  },
+  "mana_pool": {
+   "0": {}
+  }
+ },
+ "notes": "Printed: 'copy that spell. You may choose new targets for the copy.' Feat of Resistance ('Put a +1/+1 counter on target creature you control. It gains protection from the color of your choice') is cast at Bear A; the copy's target is changed to Bear B. Each puts one counter on its own target (A 3/3, B 4/4). The colour is a choice made on resolution, so it is not copied: the copy and the original each ask for their own (the step's two colour words are both taken: one left over would raise). {1}{W} is paid once."
+}

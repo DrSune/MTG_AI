@@ -1,0 +1,23 @@
+{
+ "set": "M21",
+ "name": "A04_5_cast_from_the_top_of_your_library_all_three_below_it_go_to_your_hand",
+ "notes": "Printed: 'If this spell was cast from anywhere other than your hand, put each of those cards into your hand instead.' See the Truth is the top card of seat 0's library and is cast from there (the test permission, {1}{U} from the pool). Once it has left, the top three cards are Top One, Top Two and Top Three: all of them go to the hand, none is put on the bottom. The spell ends in the graveyard.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "t3", "name": "Top Three", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "t2", "name": "Top Two", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "t1", "name": "Top One", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "stt", "real": "See the Truth", "zone": "library", "controller": 0}
+ ],
+ "mana": {"0": {"U": 2}},
+ "steps": [
+  {"op": "test_permission_cast", "key": "stt", "from": "library"}
+ ],
+ "expect": {
+  "zone": {"stt": "graveyard", "t1": "hand", "t2": "hand", "t3": "hand"},
+  "hand": {"0": 3},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0"]},
+  "mana_pool": {"0": {}},
+  "kick_rows": {"stt": {"from": "library"}}
+ }
+}

@@ -1,0 +1,24 @@
+{
+ "set": "M21",
+ "name": "A04_2_the_order_of_the_bottom_cards_is_the_owners_choice_the_other_way",
+ "notes": "Printed: '... the rest on the bottom of your library in any order.' The same cast as A04_1 with the other pick and the other order: Top Three goes to the hand; of the rest, the owner puts Top One higher and Top Two is the very bottom card. A fixed order could pass only one of the two packs.",
+ "world": {"life": 20, "seed": 7, "library_top": true},
+ "cards": [
+  {"key": "stt", "real": "See the Truth", "zone": "hand", "controller": 0},
+  {"key": "i1", "real": "Island", "zone": "battlefield", "controller": 0},
+  {"key": "i2", "real": "Island", "zone": "battlefield", "controller": 0},
+  {"key": "t3", "name": "Top Three", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "t2", "name": "Top Two", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0},
+  {"key": "t1", "name": "Top One", "type": "Creature", "power": "1", "toughness": "1", "zone": "library", "controller": 0}
+ ],
+ "steps": [
+  {"op": "cast", "key": "stt", "real": "See the Truth", "tap": true, "decisions": ["t3", "t1"]}
+ ],
+ "expect": {
+  "zone": {"stt": "graveyard", "t3": "hand", "t1": "library", "t2": "library"},
+  "tapped": {"i1": true, "i2": true},
+  "hand": {"0": 1},
+  "library": {"0": ["Library 5", "Library 4", "Library 3", "Library 2", "Library 1", "Library 0", "Top One", "Top Two"]},
+  "mana_pool": {"0": {}}
+ }
+}

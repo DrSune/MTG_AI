@@ -9,7 +9,7 @@
  ],
  "mana": {"0": {"B": 1, "C": 3}},
  "steps": [
-  {"op": "cast", "key": "cl", "real": "Crypt Lurker", "decisions": ["fire", "1", "crit"]}
+  {"op": "cast", "key": "cl", "real": "Crypt Lurker", "decisions": ["fire", "1"]}
  ],
  "expect": {
   "zone": {"cl": "battlefield", "inst": "hand", "crit": "graveyard", "bear": "battlefield"},

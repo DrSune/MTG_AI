@@ -8,7 +8,7 @@
   {"key": "charm", "name": "Silver Charm", "type": "Enchantment", "zone": "battlefield", "controller": 1}
  ],
  "steps": [
-  {"op": "combat", "seat": 0, "attack": {"dog": true, "feline": true, "kitty": true}, "decisions": ["relic", "charm"]}
+  {"op": "combat", "seat": 0, "attack": {"dog": true, "feline": true, "kitty": true}, "decisions": ["relic"]}
  ],
  "expect": {
   "zone": {"relic": "graveyard", "charm": "battlefield"},

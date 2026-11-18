@@ -12,19 +12,19 @@
    "controller": 0
   },
   {
-   "key": "p1",
+   "key": "plains1",
    "real": "Plains",
    "zone": "battlefield",
    "controller": 0
   },
   {
-   "key": "p2",
+   "key": "plains2",
    "real": "Plains",
    "zone": "battlefield",
    "controller": 0
   },
   {
-   "key": "p3",
+   "key": "plains3",
    "real": "Plains",
    "zone": "battlefield",
    "controller": 0
@@ -90,9 +90,9 @@
    "1": 20
   },
   "tapped": {
-   "p1": true,
-   "p2": true,
-   "p3": true,
+   "plains1": true,
+   "plains2": true,
+   "plains3": true,
    "isl": true
   },
   "mana_pool": {

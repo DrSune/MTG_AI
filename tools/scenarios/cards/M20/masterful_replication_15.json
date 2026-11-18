@@ -1,0 +1,78 @@
+{
+ "set": "M20",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "mr",
+   "real": "Masterful Replication",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "trinket",
+   "name": "Trinket",
+   "type": "Artifact",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "beta",
+   "name": "Beta Construct",
+   "type": "Artifact Creature — Construct",
+   "power": "1",
+   "toughness": "1",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "gamma",
+   "name": "Gamma Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 6
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:mr",
+    "1",
+    "trinket"
+   ]
+  },
+  {
+   "op": "combat",
+   "seat": 0,
+   "attack": {
+    "gamma": true,
+    "beta": true
+   }
+  }
+ ],
+ "expect": {
+  "not_asked": [
+   "beta"
+  ],
+  "attackers": {
+   "gamma": true,
+   "beta": false
+  },
+  "life": {
+   "0": 20,
+   "1": 18
+  }
+ },
+ "notes": "Printed: 'Choose target artifact you control. Each other artifact you control becomes a copy of that artifact'. The target may be a noncreature artifact: Beta Construct (an artifact creature) becomes a copy of the Trinket, a plain artifact, and is no longer a creature: it is never asked to attack, while Gamma Bear (not an artifact) attacks and deals 2 (20 -> 18)."
+}

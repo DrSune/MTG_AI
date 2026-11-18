@@ -243,7 +243,10 @@ Pack vocabulary (all keys required as noted):
              "block_asks": {key: "a,b,NONE"},— vocab per block site,
              "policy_asks": {key: "..."},    — vocab per policy ask,
              "not_asked": [key...],        — creatures never asked,
-             "not_asked_to_block": [key],  — never offered a block ask,
+             "not_asked_to_block": [key],  — never offered a block ask
+                                        (a key, or an effect's object by
+                                        its handle, "card:14": a token that
+                                        can't block),
              "tokens": {Name: n},          — battlefield token records
              "tapped": {key: bool},
              "attached": {key: hostKey|null},  the attachment table
@@ -293,16 +296,25 @@ Pack vocabulary (all keys required as noted):
   setup cards may carry "counters": {"KIND": n}; an activate step's targets
   may name a player as "p<N>". A seat a pack names (a card's controller, a
   step's seat, a lane's seat key) must be one of the world's: any other is
-  refused, never read as another seat.
+  refused, never read as another seat. A card key may not be a word the
+  runner reads itself, "p<N>" or "first-legal": the key would shadow it.
   any step may carry "expect_raise": "<text>": the step must raise, with the
   text in its message (a refusal: "illegal target"), in a combat window too.
+  A "tap" cast the sources cannot pay raises "cannot pay it" with the
+  planner's reason; any other refusal raises the engine's own ("illegal
+  cast: window:..."), as a cast without "tap" does.
   A step without "decisions", or whose words are used up, raises at its next
   ask that is not a response window ("pay:" asks take PASS), and the message
   names the ask and every word it offers: "mana:card:1 needs a decision from
   ('W', 'U', 'B', 'R', 'G')". So expect_raise pins an ask's exact words, even
   one after a may-offer, which is how a pack says "X is not offered" (a
   decision word the ask lacks fails the pack instead). The step stops at that
-  ask; a pack puts it last.
+  ask; a pack puts it last. A decision word no ask took fails the pack too: a
+  target with one legal candidate is designated without an ask (CR 601.2c),
+  so a word written for it would otherwise drift onto the next ask.
+  A two-player game that ends (a player loses, CR 704.5a/b) before the
+  pack's last step fails the pack: the later steps never ran, so it would
+  pass on what they never did. The step that ends it is the last.
   Steps no game takes are refused: an activate of a mana ability (above), and
   "hold_triggers" (gone 2026-11-17: no game acts while a trigger waits off the
   stack, CR 117.5; "hold" keeps it on the stack instead).
@@ -420,6 +432,16 @@ def _bf_target():
 #: Any other word must be one the ask offers, or the pack fails (a silent fallback would let a
 #: shifted queue pass).
 FIRST_LEGAL = "first-legal"
+#: The note every report of an unused decision word carries: the usual cause.
+ONE_CANDIDATE = ("a target or pick with one legal candidate is made without an ask (CR 601.2c), so a "
+                 "word written for it is left over or drifts onto the next ask")
+
+
+def _player_word(word: str) -> bool:
+    """Is ``word`` a player word, ``p<N>`` (``p0``, ``p2``)?"""
+    return word[:1] == "p" and word[1:].isdecimal()
+
+
 #: The asks a combat step's maps describe: the combat itself (attackers, blockers, the division
 #: of a blocked creature's damage, damage policy). An unspecified one keeps the combat op's default.
 COMBAT_DECLARATIONS = ("attack:", "block:", "divide:", "policy:")
@@ -476,6 +498,10 @@ class ScenarioRunner:
         synth = 0
         start_tapped: list[Any] = []
         for card in pack["cards"]:
+            if _player_word(card["key"]) or card["key"] == FIRST_LEGAL:
+                # Every word is looked up as a pack key first, so the key would shadow the word:
+                # "p1" written for the opponent would name this card.
+                raise PackError(f"card key {card['key']!r} is a word the runner reads itself: rename the card")
             if "real" in card:
                 record = None
                 for oid, meta in supply.metas.items():
@@ -646,7 +672,7 @@ class ScenarioRunner:
 
     def _player(self, word: str):
         """The player a ``p<N>`` word names (``p0``, ``p2``), or None for any other word."""
-        if word[:1] == "p" and word[1:].isdecimal():
+        if _player_word(word):
             return self._seat(word[1:], f"player word {word!r}")
         return None
 
@@ -738,8 +764,8 @@ class ScenarioRunner:
             finally:
                 self.ex.decisions.provider = None
                 self.queue = None
-            if queue and step["op"] == "test_permission_cast":  # a word no ask took tested nothing
-                self.unoffered.append(f"test_permission_cast {step['key']}: words no ask took: {queue}")
+            if queue:  # a word no ask took tested nothing
+                self.unoffered.append(f"{step['op']}: decision words no ask took: {queue}; {ONE_CANDIDATE}")
             return
         if step["op"] != "combat":
             self.ex.decisions.provider = quiet
@@ -783,15 +809,11 @@ class ScenarioRunner:
             spell_key = step.get("key") or f"cast_{step['real']}"
             if spell_key not in self.handles:
                 raise PackError(f"no hand card {spell_key!r} — add it under cards")
+            # The spell's targets are its "targets" ("p<N>" names a player). A "player:N" word
+            # among the decisions answers an ask that offers that player, as in any step: it is
+            # no longer also lifted into the targets, a double use that gave a targetless spell
+            # a target and left the word for a later ask too (G3, 2026-11-18).
             targets = [self._target_handle(k) for k in step.get("targets", ())]
-            # A cast step's "player:N" decision token is a PLAYER
-            # designation for the spell's target slot. The ASK channel never
-            # answers CAST-time multi-candidate targeting (that stays loud by
-            # harness policy), so the token lifts straight into the explicit
-            # target list — the pack says WHO, seat-indexed.
-            for tok in step.get("decisions", ()):
-                if isinstance(tok, str) and tok.startswith("player:"):
-                    targets.append(self._seat(tok.split(":", 1)[1], f"cast {spell_key}: {tok}"))
             seat = self._seat(step.get("controller", 0), f"cast {spell_key}")
             handle = self.handles[spell_key]
             if step.get("tap"):
@@ -799,7 +821,7 @@ class ScenarioRunner:
                 # does while casting (CR 601.2g, 605.3a; the menu's automatic payment),
                 # after choosing the targets (601.2c): a designation the spell refuses is
                 # refused before anything is tapped, the engine's own check of it.
-                from MTG_bot.core.executor.legality import tap_for_payment
+                from MTG_bot.core.executor.legality import _mana_shortfall, spell_castable, tap_for_payment
                 from MTG_bot.core.executor.menu import cast_taps
                 from MTG_bot.core.executor.query import modal_choose
                 from MTG_bot.core.executor.stack import _plan_cast_designation
@@ -809,10 +831,16 @@ class ScenarioRunner:
                 if node is not None and modal_choose(node) is None:  # a mode would be asked first
                     _plan_cast_designation(self.ex, seat, handle, node, targets=tuple(targets),
                                            decisions=(), mode_choices=())
-                taps = cast_taps(self.ex, seat, handle, bool(step.get("kicked", False)), step.get("x"),
-                                 tuple(targets))
+                kicked, x = bool(step.get("kicked", False)), step.get("x")
+                taps = cast_taps(self.ex, seat, handle, kicked, x, tuple(targets))
                 if taps is None:
-                    raise PackError(f"cast {spell_key}: its mana sources cannot pay it")
+                    # cast_taps says None for every refusal, so name the engine's own: only a mana
+                    # shortfall is the sources' failing; a window or another gate refuses the cast
+                    # whatever is tapped, and says so as the untapped cast below would.
+                    reason = spell_castable(self.ex, seat, handle, x=x, kicked=kicked, targets=tuple(targets))[0]
+                    if _mana_shortfall(reason) is None:
+                        raise ValueError(f"executor: illegal cast: {reason}")
+                    raise PackError(f"cast {spell_key}: its mana sources cannot pay it ({reason})")
                 tap_for_payment(self.ex, seat, taps)
             words = tuple(step.get("decisions", ()))
             with self.ex.holding_priority():
@@ -1254,6 +1282,8 @@ class ScenarioRunner:
             self.ex.combat_blocks(seat)
         finally:
             self.ex.decisions.provider = outer
+        if script:  # a word no ask took tested nothing, as in any other step
+            self.unoffered.append(f"combat: decision words no ask took: {script}; {ONE_CANDIDATE}")
 
     def _run_expecting(self, step: dict) -> None:
         """A step of a combat window, its "expect_raise" honoured as a top-level step's is
@@ -1467,7 +1497,7 @@ class ScenarioRunner:
             ("not_asked_to_block", "block"),
         ):
             for key in expect.get(lane, []):
-                handle = self.handles[key]
+                handle = self._object(key)  # a token an effect made has no pack key
                 if any(w.startswith(f"{prefix}:{handle}:") for w, _ in self.asks_seen):
                     fails.append(f"{lane}[{key}]: the engine asked anyway")
         if "tokens" in expect:  # battlefield TOKEN records by name
@@ -1728,13 +1758,22 @@ def _run_pack(pack: dict, supply) -> list[str]:
     except Exception as e:  # noqa: BLE001
         # a pool/attach failure is that pack's result, not a crash of the whole sweep
         return [f"setup: {type(e).__name__}: {e}"]
-    for step in pack["steps"]:
+    steps = pack["steps"]
+    for i, step in enumerate(steps):
         want = step.get("expect_raise")
         try:
             runner.run_step(step)
-        except GameOver:
+        except GameOver as over:
             # A player lost at a state-based-action check (CR 704.5a/b): the
             # game is over, so no later step can happen. "lost" checks who.
+            # A step after it, or a refusal this step was to raise, would pass
+            # on what never ran (mapper wave 5: an empty library ended a pack early).
+            lost = ", ".join(f"seat {runner.seats.index(p)}" for p in runner.ex.lost_players) or over
+            if want is not None:
+                return [f"step {i} {step}: expected raise {want!r}, but the game ended ({lost} lost)"]
+            if i < len(steps) - 1:
+                return [f"step {i} ({step['op']}): the game ended ({lost} lost) before the pack's last step, "
+                        f"so steps {i + 1}-{len(steps) - 1} never ran"]
             break
         except Exception as e:
             if want is None:

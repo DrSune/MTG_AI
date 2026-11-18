@@ -1,0 +1,75 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "cards": [
+  {
+   "key": "dv",
+   "real": "Double Vision",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "rm",
+   "real": "Rookie Mistake",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "bear",
+   "name": "Bear",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "ogre",
+   "name": "Ogre",
+   "type": "Creature — Ogre",
+   "power": "4",
+   "toughness": "4",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "U": 2
+  }
+ },
+ "steps": [
+  {
+   "op": "act",
+   "seat": 0,
+   "words": [
+    "cast:rm",
+    "bear",
+    "ogre",
+    "ogre"
+   ]
+  }
+ ],
+ "expect": {
+  "power": {
+   "bear": 0,
+   "ogre": 2
+  },
+  "toughness": {
+   "bear": 4,
+   "ogre": 6
+  },
+  "zone": {
+   "rm": "graveyard"
+  },
+  "mana_pool": {
+   "0": {
+    "U": 1
+   }
+  }
+ },
+ "notes": "Printed: 'copy that spell. You may choose new targets for the copy' (CR 707.10c: any number of the targets may change; only the final set must be legal, so two targets may trade places). Rookie Mistake ('target creature gets +0/+2 and another target creature gets -2/-0', {U}) is cast with my Bear as the first target and the opposing Ogre as the second. The copy's targets trade places: Ogre +0/+2 and Bear -2/-0, the original Bear +0/+2 and Ogre -2/-0: in all the Bear is 0/4 and the Ogre 2/6 (had the copy kept its targets: Bear 2/6, Ogre 0/4). One {U} is spent (the copy is not cast)."
+}

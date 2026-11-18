@@ -6,8 +6,8 @@
   {"key": "att4", "name": "Four Attacker", "power": "4", "toughness": "4", "type": "Creature", "zone": "battlefield", "controller": 0},
   {"key": "jt1", "real": "Joust Through", "zone": "hand", "controller": 1},
   {"key": "jt2", "real": "Joust Through", "zone": "hand", "controller": 1},
-  {"key": "p1", "real": "Plains", "zone": "battlefield", "controller": 1},
-  {"key": "p2", "real": "Plains", "zone": "battlefield", "controller": 1}
+  {"key": "plains1", "real": "Plains", "zone": "battlefield", "controller": 1},
+  {"key": "plains2", "real": "Plains", "zone": "battlefield", "controller": 1}
  ],
  "steps": [
   {"op": "combat", "seat": 0, "attack": {"att3": true, "att4": true},

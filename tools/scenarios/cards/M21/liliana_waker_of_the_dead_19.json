@@ -7,6 +7,6 @@
  "steps": [
   {"op": "loyalty", "key": "lil", "set": 7},
   {"op": "activate", "key": "lil", "idx": 2, "seat": 0},
-  {"op": "combat", "seat": 0, "attack": {"dead": true}, "decisions": ["dead"]}
+  {"op": "combat", "seat": 0, "attack": {"dead": true}}
  ],
  "expect": {"zone": {"lil": "graveyard", "dead": "battlefield"}, "controller": {"dead": 0}, "attackers": {"dead": true}, "life": {"0": 20, "1": 17}, "tapped": {"dead": true}}}

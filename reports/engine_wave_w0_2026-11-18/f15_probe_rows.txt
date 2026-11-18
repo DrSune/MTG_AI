@@ -1,0 +1,57 @@
+M21 Cancel: legal_casts [('cast', False)] -> menu []
+M21 Lofty Denial: legal_casts [('cast', False)] -> menu []
+M21 Miscast: legal_casts [('cast', False)] -> menu []
+M21 Rewind: legal_casts [('cast', False)] -> menu []
+M21: 285 cards on the board, 4 with other rows
+M20 Bone to Ash: legal_casts [('cast', False)] -> menu []
+M20 Convolute: legal_casts [('cast', False)] -> menu []
+M20 Negate: legal_casts [('cast', False)] -> menu []
+M20 Tale's End: legal_casts [('cast', False)] -> menu []
+M20: 329 cards on the board, 4 with other rows
+FDN An Offer You Can't Refuse: legal_casts [('cast', False)] -> menu []
+FDN Cancel: legal_casts [('cast', False)] -> menu []
+FDN Elspeth's Smite: legal_casts [('cast', False)] -> menu []
+FDN Essence Scatter: legal_casts [('cast', False)] -> menu []
+FDN Flashfreeze: legal_casts [('cast', False)] -> menu []
+FDN Joust Through: legal_casts [('cast', False)] -> menu []
+FDN Negate: legal_casts [('cast', False)] -> menu []
+FDN Refute: legal_casts [('cast', False)] -> menu []
+FDN: 513 cards on the board, 8 with other rows
+probe shas, base (/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w0/base):
+M21 Cancel 89d0e496cfa62172
+M21 Lofty Denial 98a40e66f0acea96
+M21 Miscast 44fd6d04bb6a1771
+M21 Rewind 7c0ace0ee2340ac6
+probe shas, branch (/home/sune/Desktop/MTG_AI/.claude/worktrees/agent-af072464b36a522b6):
+M21 Cancel db72074d18735a90
+M21 Lofty Denial e7fb230656f1c6ff
+M21 Miscast 4122b9313101cb60
+M21 Rewind 584b892bc3977bfa
+probe shas, base (/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w0/base):
+M20 Bone to Ash d040440396a5b03b
+M20 Convolute 0365c2af26b055df
+M20 Negate 313b41d1f5834919
+M20 Tale's End 1a7c137b9986fdc9
+probe shas, branch (/home/sune/Desktop/MTG_AI/.claude/worktrees/agent-af072464b36a522b6):
+M20 Bone to Ash 410732d5a1d391ec
+M20 Convolute 50d1ba1baa6452d8
+M20 Negate 2c7d1eaf957dd6a2
+M20 Tale's End d1b7fb61d232e9b2
+probe shas, base (/tmp/claude-1000/-home-sune/53a867d9-979e-400a-9ce1-caf029cc7b16/scratchpad/w0/base):
+FDN An Offer You Can't Refuse f3e8cb4b0ad1a29a
+FDN Cancel 4b45b571769eb39b
+FDN Elspeth's Smite 4b8a74575a9d1ff9
+FDN Essence Scatter 7a4326dc116551c7
+FDN Flashfreeze dd2cddfe18ccf57e
+FDN Joust Through f2501bb6cc017123
+FDN Negate 2bfca95964a03c6b
+FDN Refute a5829d415d62fdd7
+probe shas, branch (/home/sune/Desktop/MTG_AI/.claude/worktrees/agent-af072464b36a522b6):
+FDN An Offer You Can't Refuse 480df1271c36003d
+FDN Cancel 9483cf709cdcdb01
+FDN Elspeth's Smite 9821f7296080c4ca
+FDN Essence Scatter c8c70203e969ed51
+FDN Flashfreeze 14e8d69da1796956
+FDN Joust Through 1ca06fd54ed2a48d
+FDN Negate 1a89a547e5633317
+FDN Refute eae950836ded9f55
