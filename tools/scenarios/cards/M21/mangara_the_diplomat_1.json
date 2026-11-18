@@ -1,0 +1,75 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Mangara, the Diplomat, printed: 'Whenever an opponent attacks with creatures, if two or more of those creatures are attacking you and/or planeswalkers you control, draw a card.' Seat 1 attacks seat 0 with three creatures: the trigger is once per declaration, so seat 0 draws exactly one card (hand 1; it skipped its first-turn draw), not one per attacker. Seat 1 drew for its turn. Three unblocked 2/2s: 20 -> 14.",
+ "cards": [
+  {
+   "key": "mangara",
+   "real": "Mangara, the Diplomat",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "a",
+   "name": "Raider A",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "b",
+   "name": "Raider B",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "c",
+   "name": "Raider C",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "a": true,
+    "b": true,
+    "c": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 14,
+   "1": 20
+  },
+  "hand": {
+   "0": 1,
+   "1": 1
+  },
+  "attackers": {
+   "a": true,
+   "b": true,
+   "c": true
+  }
+ }
+}

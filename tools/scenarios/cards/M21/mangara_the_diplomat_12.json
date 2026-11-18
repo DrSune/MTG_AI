@@ -1,0 +1,93 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Mangara, the Diplomat, printed: 'Whenever an opponent attacks with creatures, if two or more of those creatures are attacking you and/or planeswalkers you control, draw a card.' The intervening 'if' is read again as the ability resolves (CR 603.4). Seat 1's two creatures attack: one attacks seat 0, one attacks seat 0's planeswalker, so the trigger goes on the stack. In response seat 1 gains control of that planeswalker (an effect, the gain_control op): it is no longer a planeswalker seat 0 controls, so only ONE attacking creature is attacking 'you and/or planeswalkers you control' as the ability resolves, and seat 0 draws nothing (hand 0). Seat 1 keeps the walker (5 loyalty) and drew for its turn; the unblocked creature takes seat 0 to 18.",
+ "cards": [
+  {
+   "key": "mangara",
+   "real": "Mangara, the Diplomat",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "pw",
+   "name": "Walker",
+   "type": "Legendary Planeswalker — Test",
+   "loyalty": "5",
+   "counters": {
+    "LOYALTY": 5
+   },
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "a",
+   "name": "Raider A",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "b",
+   "name": "Raider B",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "a": true,
+    "b": "pw"
+   },
+   "respond_to_triggers": {
+    "DECLARE_ATTACKERS": [
+     {
+      "op": "gain_control",
+      "key": "pw",
+      "seat": 1
+     }
+    ]
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 18,
+   "1": 20
+  },
+  "hand": {
+   "0": 0,
+   "1": 1
+  },
+  "controller": {
+   "pw": 1,
+   "mangara": 0
+  },
+  "counters": {
+   "pw": {
+    "LOYALTY": 5
+   }
+  },
+  "attackers": {
+   "a": true,
+   "b": true
+  }
+ }
+}

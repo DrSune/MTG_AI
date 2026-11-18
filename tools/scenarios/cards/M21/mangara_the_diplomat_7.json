@@ -1,0 +1,48 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Mangara, the Diplomat, printed: 'Whenever an opponent casts their second spell each turn, draw a card.' Seat 1 casts ONE Shock during turn 1: its first spell of the turn, so seat 0 draws nothing (hand 0).",
+ "cards": [
+  {
+   "key": "mangara",
+   "real": "Mangara, the Diplomat",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "s1",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "1": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "s1",
+   "real": "Shock",
+   "controller": 1,
+   "targets": [
+    "p1"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 20,
+   "1": 18
+  },
+  "hand": {
+   "0": 0,
+   "1": 0
+  }
+ }
+}

@@ -1,0 +1,78 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Mangara, the Diplomat, printed: 'Whenever an opponent attacks with creatures, if two or more of those creatures are attacking you and/or planeswalkers you control, draw a card.' One attacker attacks seat 0 and one attacks seat 0's planeswalker: 'you and/or planeswalkers you control' counts both, two creatures, so seat 0 draws (hand 1). Seat 0 takes 2 (18) and the walker loses 2 loyalty (3).",
+ "cards": [
+  {
+   "key": "mangara",
+   "real": "Mangara, the Diplomat",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "pw",
+   "name": "Walker",
+   "type": "Legendary Planeswalker — Test",
+   "loyalty": "5",
+   "counters": {
+    "LOYALTY": 5
+   },
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "a",
+   "name": "Raider A",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "b",
+   "name": "Raider B",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "a": true,
+    "b": "pw"
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 18
+  },
+  "hand": {
+   "0": 1
+  },
+  "counters": {
+   "pw": {
+    "LOYALTY": 3
+   }
+  },
+  "attackers": {
+   "a": true,
+   "b": true
+  }
+ }
+}

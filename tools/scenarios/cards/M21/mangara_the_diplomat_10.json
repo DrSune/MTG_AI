@@ -1,0 +1,109 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7
+ },
+ "notes": "Mangara, the Diplomat, printed: 'Whenever an opponent casts their second spell each turn, draw a card.' 'Opponent' and 'each turn': in turn 1 seat 0 casts two Shocks of its own (an opponent's second spell only counts) and seat 1 casts one (its first); in turn 2 seat 1 casts one (its first spell of THAT turn). Seat 0 never draws (hand 0). Seat 1: 2 Shocks - 1 + its turn-2 draw - 1 = 1.",
+ "cards": [
+  {
+   "key": "mangara",
+   "real": "Mangara, the Diplomat",
+   "zone": "battlefield",
+   "controller": 0
+  },
+  {
+   "key": "m1",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "m2",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 0
+  },
+  {
+   "key": "s1",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
+  },
+  {
+   "key": "s2",
+   "real": "Shock",
+   "zone": "hand",
+   "controller": 1
+  }
+ ],
+ "mana": {
+  "0": {
+   "R": 2
+  },
+  "1": {
+   "R": 1
+  }
+ },
+ "steps": [
+  {
+   "op": "cast",
+   "key": "m1",
+   "real": "Shock",
+   "controller": 0,
+   "targets": [
+    "p1"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "m2",
+   "real": "Shock",
+   "controller": 0,
+   "targets": [
+    "p1"
+   ]
+  },
+  {
+   "op": "cast",
+   "key": "s1",
+   "real": "Shock",
+   "controller": 1,
+   "targets": [
+    "p0"
+   ]
+  },
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "mana",
+   "seat": 1,
+   "add": {
+    "R": 1
+   }
+  },
+  {
+   "op": "cast",
+   "key": "s2",
+   "real": "Shock",
+   "controller": 1,
+   "targets": [
+    "p0"
+   ]
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 16,
+   "1": 16
+  },
+  "hand": {
+   "0": 0,
+   "1": 1
+  }
+ }
+}

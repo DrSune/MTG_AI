@@ -1,0 +1,72 @@
+{
+ "schema": 1,
+ "set": "M21",
+ "oracle_id": "cbcb6d9a-6ae5-4bcd-8013-2b657553764a",
+ "name": "Mangara, the Diplomat",
+ "text_sha": "ed0a042d4046788c67ee17fb8c9cf945b5c7e06778ae34447a7b36822fb7ec2c",
+ "verified": {
+  "tree_sha": "7549321cccd1f82b481334e6b2853a3d818aa83d92055ca85a6f5d7adcdb167e",
+  "probe_sha": "8ffcc161fd8baec3d98499c64276f505627497059c776b5a352a1794e596f475",
+  "date": "2026-11-18",
+  "reviewer": "claude-sonnet-verifier-wave4",
+  "clauses": [
+   {
+    "clause": "Lifelink",
+    "status": "OK",
+    "evidence": "Trace, [this creature attacks alone, unblocked]: 'you gains 2 life (by card/DEAL_DAMAGE)' with the 2 combat damage to opp (life 20 -> 22 / 18); [this creature attacks and opp_giant blocks it]: 'you gains 2 life' for the 2 damage dealt to opp_giant. keywords [LIFELINK] in the tree and 'keywords +LIFELINK' in the state diff.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever an opponent attacks with creatures, if two or more of those creatures are attacking you and/or planeswalkers you control, draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "The only attack in the trace is one opposing creature ([on the opponent's turn, opp_bear attacks you (no block)]: none): the intervening 'if' is never true, so the draw is never shown. The tree reads right (DeclareAttackersEvent over opponent creatures, attacked = you or planeswalkers you control, once_per_event, ATTACK_AGAINST_COUNT_GE 2 with the same filter, draw 1 for you). Packs E01_1..E01_6 show it: three attackers draw exactly one card (E01_1); one of two attacking draws none (E01_2); one at me plus one at my planeswalker, and two at my planeswalker, draw (E01_3, E01_4); with three players, attackers at another player or at another player's planeswalker do not draw for Mangara's controller (E01_5, E01_6). G3 note: one critical survivor remains, 'controller YOU->OPPONENT at event/attacked/children/0/children/0/who' (the first arm of the EVENT's attacked filter read as 'planeswalkers an opponent controls'). It is equivalent: the condition's inner filter is the same expression, so it needs two attackers at 'you or a planeswalker you control' for the trigger to fire at all, and then the real event matched too; the bare arm 'controller is you' already matches a planeswalker I control, so the flip only adds opponents' planeswalkers to a slot the condition gates. Its twin on the condition is killed by pack E01_12.",
+    "issue": ""
+   },
+   {
+    "clause": "Whenever an opponent casts their second spell each turn, draw a card.",
+    "status": "NOT_EXERCISED",
+    "evidence": "No stimulus has the opponent cast a spell ([on the opponent's turn, you cast an instant (Life Goes On)] is my own spell: none), so neither the ordinal nor the draw is shown. The tree reads right (CastSpellEvent, actor opponent, ordinal 2, draw 1 for you). Packs E01_7..E01_11: one spell draws none (E01_7), two draw one (E01_8), three draw one (E01_9), my own second spell and a first spell in each of two turns draw none (E01_10), two opponents' first spells draw none (E01_11).",
+    "issue": ""
+   }
+  ],
+  "packs": [
+   "tools/scenarios/cards/M21/mangara_the_diplomat_1.json",
+   "tools/scenarios/cards/M21/mangara_the_diplomat_2.json",
+   "tools/scenarios/cards/M21/mangara_the_diplomat_3.json",
+   "tools/scenarios/cards/M21/mangara_the_diplomat_4.json",
+   "tools/scenarios/cards/M21/mangara_the_diplomat_5.json",
+   "tools/scenarios/cards/M21/mangara_the_diplomat_6.json",
+   "tools/scenarios/cards/M21/mangara_the_diplomat_7.json",
+   "tools/scenarios/cards/M21/mangara_the_diplomat_8.json",
+   "tools/scenarios/cards/M21/mangara_the_diplomat_9.json",
+   "tools/scenarios/cards/M21/mangara_the_diplomat_10.json",
+   "tools/scenarios/cards/M21/mangara_the_diplomat_11.json",
+   "tools/scenarios/cards/M21/mangara_the_diplomat_12.json"
+  ],
+  "mutation": {
+   "mutants": 20,
+   "killed": 2,
+   "score": 0.1,
+   "survived": [
+    "trigger count: once per event -> each occurrence at 1/0",
+    "widen filter (drop part 0) at 1/0/event/filter",
+    "widen filter (drop part 1) at 1/0/event/filter",
+    "controller OPPONENT->YOU at 1/0/event/filter/children/0/who",
+    "widen filter (drop part 0) at 1/0/event/attacked/children/0",
+    "widen filter (drop part 1) at 1/0/event/attacked/children/0",
+    "controller YOU->OPPONENT at 1/0/event/attacked/children/0/children/0/who",
+    "controller YOU->OPPONENT at 1/0/event/attacked/children/1/who",
+    "amount+1 at 1/0/condition/count",
+    "widen filter (drop part 0) at 1/0/condition/inner_filter/children/0",
+    "widen filter (drop part 1) at 1/0/condition/inner_filter/children/0",
+    "controller YOU->OPPONENT at 1/0/condition/inner_filter/children/0/children/0/who",
+    "controller YOU->OPPONENT at 1/0/condition/inner_filter/children/1/who",
+    "amount+1 at 1/0/effect/args/amount",
+    "controller YOU->OPPONENT at 1/0/effect/args/controller",
+    "controller OPPONENT->YOU at 1/1/event/actor/who",
+    "amount+1 at 1/1/effect/args/amount",
+    "controller YOU->OPPONENT at 1/1/effect/args/controller"
+   ]
+  }
+ }
+}

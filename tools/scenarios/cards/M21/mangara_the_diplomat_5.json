@@ -1,0 +1,67 @@
+{
+ "set": "M21",
+ "world": {
+  "life": 20,
+  "seed": 7,
+  "players": 3
+ },
+ "notes": "Mangara, the Diplomat, printed: 'Whenever an opponent attacks with creatures, if two or more of those creatures are attacking you and/or planeswalkers you control, draw a card.' Three players, Mangara under seat 2. Seat 1 attacks with two creatures and they attack seat 0 (the engine's defending player for seat 1), not seat 2: nobody attacks 'you', so seat 2 draws nothing (hand 0; seat 2 has not had a turn). Seat 0 takes 4.",
+ "cards": [
+  {
+   "key": "mangara",
+   "real": "Mangara, the Diplomat",
+   "zone": "battlefield",
+   "controller": 2
+  },
+  {
+   "key": "a",
+   "name": "Raider A",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  },
+  {
+   "key": "b",
+   "name": "Raider B",
+   "type": "Creature — Bear",
+   "power": "2",
+   "toughness": "2",
+   "zone": "battlefield",
+   "controller": 1
+  }
+ ],
+ "steps": [
+  {
+   "op": "end_turn"
+  },
+  {
+   "op": "advance_turn"
+  },
+  {
+   "op": "combat",
+   "seat": 1,
+   "attack": {
+    "a": true,
+    "b": true
+   }
+  }
+ ],
+ "expect": {
+  "life": {
+   "0": 16,
+   "1": 20,
+   "2": 20
+  },
+  "hand": {
+   "0": 1,
+   "1": 1,
+   "2": 0
+  },
+  "attackers": {
+   "a": true,
+   "b": true
+  }
+ }
+}
