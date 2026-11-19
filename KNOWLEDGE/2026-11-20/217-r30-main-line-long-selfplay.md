@@ -123,3 +123,27 @@ coordinator's next wake after 48 machine-hours:
   is not a fault.
 - **The gates' opponent changes:** v0 is now r29 B's save, not r28's v2. Read gates against v0 as
   progress over the init, and L as progress against the frozen pool.
+
+## 6. Launch (2026-11-20 00:35; appended, §1-§5 unedited)
+
+- r29 B stopped right after its save at update 945 (00:35:00). r30 started at 00:35:48 from the
+  worktree pinned at 979389a9 with `reports/r30_2026-11-20/start.sh`. Its guard runs as
+  `mtg-r30-guard`.
+- **The launch checks of §3, all met at updates 1 and 2:**
+
+  | Check | Update 1 | Update 2 |
+  |---|---|---|
+  | `voids` | 0 | 0 |
+  | `overflow` field (zero fallback) | absent | absent |
+  | `kl` | 0.0022 | 0.0028 |
+  | `ent` | 0.230 | 0.236 |
+  | `ev` | 0.326 | 0.333 |
+  | Games / learner seats | 1,181 / 1,801 | 1,175 / 1,818 |
+  | Seconds an update | 180 | 162 |
+  | Lowest memory (floor 15 GiB) | 50.7 GiB | 50.0 GiB |
+  | `turn_caps`, `act_caps`, quarantines | 0 | 0 |
+
+  There were no errors in `runs/selfplay/r30_main.out`. The rows of r29 B's last updates were alike:
+  1,159 games, 160 s, `kl` 0.005.
+- **Training win rates:** against the heuristic 0.72 and 0.66; against v0 (the init) 0.49 and 0.52.
+  The heuristic ladder rates the heuristic 506 against random's 0.

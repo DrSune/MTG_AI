@@ -14,29 +14,25 @@ play time, with the distillation parked (DECISIONS D21).
 `docs/PLAN_CLEANUP.md`, the quality lift the owner asked for. It is written and begins on the owner's prompt. **Planning (2026-11-18):** `docs/PLAN_PLANNING.md` (how options reach the network, the planning
 puzzle suite, the ladder from measurement to the no-ceiling run, and the order beside the card work).
 
-**Running since 2026-11-18 11:27: r29's main run, arm B** (training both seats, `--p-self 0.55`),
-resumed by `decide.py` after the A/B (`KNOWLEDGE/2026-11-14/208` §11).
-- **The reads:**
-  - B1 0.4946 [0.4823, 0.5069], not falsified;
-  - B2, B minus A, −3.9 Elo [−13.0, +5.1], no veto.
-
-  Neither arm moved off r28's v2 on L (633.2; A 637.7, B 633.8).
-- **How it runs.** The unit is `mtg-r29b` with its guard `mtg-r29b-guard`. It runs from the
-  worktree `/home/sune/Desktop/MTG_AI-r29`, pinned at 60f0913f (do not edit it), into
-  `runs/selfplay/r29b_pself055`.
-- **B8,** the plateau test, was read at B's update 300 (208 §12). B − A = −0.0010, 95% [−0.0137,
-  +0.0118]: neither met nor falsified, so B goes on to update 500 (about 04:40 on 11-19) and B8 is
-  read again there.
-  - A second "neither" counts as not met (registered before the data). `--p-self 0.55` stays, and
-    gate B (P3) is the next GPU job.
-  - After that comes the **M21+M20 segment**: by the owner, "M21 and M20 in full before FDN", so
-    FDN's segment waits. With it come:
-    - E3's fixes;
-    - zero fallback (KNOWLEDGE/2026-11-18/213);
-    - every public card as an entity;
-    - the turn-so-far columns (69b3f5ad);
-    - the rails (984aa3c4);
-    - the cards verified since.
+**Running since 2026-11-20 00:35: r30, the main line's long self-play on the corrected code**
+(`KNOWLEDGE/2026-11-20/217`, registered before any data; the owner asked for a long self-play run).
+- **What it is.** r29 arm B's save at update 945 (`runs/r29_looks/r29b_u945.pt`, pinned),
+  continued on main's code: zero fallback, every public card, the turn-so-far columns, engine waves
+  E3, W0, W1 and W3, rounds B3 and B12, the rails. Every flag is arm B's (`--p-self 0.55`) but the
+  seed (30). It deals the M21 and M20 verified pools; FDN waits.
+- **How it runs.** The unit is `mtg-r30` with its guard `mtg-r30-guard`. It runs from the worktree
+  `/home/sune/Desktop/MTG_AI-r30`, pinned at 979389a9 (do not edit it), into `runs/selfplay/r30_main`.
+  `reports/r30_2026-11-20/start.sh` starts or resumes it, also after a reboot.
+- **Its reads (217 §4):**
+  - the guard every update;
+  - gates every 25 updates against v0, which is the init;
+  - **the 48-machine-hour read**, at the coordinator's next wake after it: L and the puzzle pairs.
+    If both are flat, the coordinator proposes the next lever (gate B, the league, the multi-arm
+    A/B) to the owner, and r30 keeps training until the owner decides.
+- **r29 ended at update 945** (stopped, its directory kept).
+  - B1 0.4946, not falsified; B2 −3.9 Elo, no veto (208 §11).
+  - B8 undecided at 300 and at 500, so not met by 208 §12's rule. `--p-self 0.55` stays.
+  - B was flat to 945: its gates against r28's v2 average 0.508 against A's 0.5054.
 - **The readiness plans are red-teamed** (KNOWLEDGE/2026-11-18/216) and fixed (b380356e).
   `docs/PLAN_LONG_RUN.md` holds:
   - the long run's purpose and stall rule;
