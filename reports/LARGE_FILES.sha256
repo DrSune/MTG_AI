@@ -57,3 +57,5 @@ ceb19ed0a7d0a41093176c650b796c0283f5c4780bd7f30f1200c19202ad6c2b  runs/selfplay/
 # r29's init (KNOWLEDGE/2026-11-14/208 §1): r28's v2 (update 1000), copied out of its live run directory; and r28's save at 685 (199 §8's split)
 d9f752952714db35c9362701f7e1eb280d6b658b3bf1af45acd231fc9b0ad032  runs/r28_looks/r28_v2.pt
 ed308ff2f6ce6b7344eff50a092b2191db081347567a5c21e18a76e0057f1038  runs/r28_looks/r28_u685.pt
+# r30's init (KNOWLEDGE/2026-11-20/217): r29 arm B's save at update 945, copied out of its run directory
+0574e483ba385a1077cc2c51db039c8e040649cbdfb82be46e5b5f15844b9015  runs/r29_looks/r29b_u945.pt
